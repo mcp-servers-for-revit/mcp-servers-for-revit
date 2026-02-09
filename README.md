@@ -1,13 +1,13 @@
-[![Cover Image](./assets/cover.png)](https://github.com/sparx-fire/revit-mcp)
+[![Cover Image](./assets/cover.png?v=2)](https://github.com/sparx-fire/mcp-servers-for-revit)
 
-# revit-mcp
+# mcp-servers-for-revit
 
 **Connect AI assistants to Autodesk Revit via the Model Context Protocol.**
 
-revit-mcp enables AI clients like Claude, Cline, and other MCP-compatible tools to read, create, modify, and delete elements in Revit projects. It consists of three components: a TypeScript MCP server that exposes tools to AI, a C# Revit add-in that bridges commands into Revit, and a command set that implements the actual Revit API operations.
+mcp-servers-for-revit enables AI clients like Claude, Cline, and other MCP-compatible tools to read, create, modify, and delete elements in Revit projects. It consists of three components: a TypeScript MCP server that exposes tools to AI, a C# Revit add-in that bridges commands into Revit, and a command set that implements the actual Revit API operations.
 
 > [!NOTE]
-> This is a fork of the original [revit-mcp](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
+> This is a fork of the original [mcp-servers-for-revit](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
 
 ## Architecture
 
@@ -34,7 +34,7 @@ The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSo
 
 ## Quick Start (Using a Release)
 
-1. Download the ZIP for your Revit version from the [Releases](https://github.com/sparx-fire/revit-mcp/releases) page (e.g., `revit-mcp-v1.0.0-Revit2025.zip`)
+1. Download the ZIP for your Revit version from the [Releases](https://github.com/sparx-fire/mcp-servers-for-revit/releases) page (e.g., `mcp-servers-for-revit-v1.0.0-Revit2025.zip`)
 
 2. Extract the ZIP and copy the contents to your Revit addins folder:
    ```
@@ -43,7 +43,7 @@ The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSo
    After copying you should have:
    ```
    Addins/2025/
-   ├── revit-mcp.addin
+   ├── mcp-servers-for-revit.addin
    └── revit_mcp_plugin/
        ├── revit-mcp-plugin.dll
        ├── ...
@@ -66,7 +66,7 @@ The MCP server is published as an npm package and can be run directly with `npx`
 **Claude Code**
 
 ```bash
-claude mcp add revit-mcp -- npx -y @sparx-fire/revit-mcp
+claude mcp add mcp-servers-for-revit -- npx -y @sparx-fire/mcp-servers-for-revit
 ```
 
 **Claude Desktop**
@@ -76,9 +76,9 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 ```json
 {
     "mcpServers": {
-        "revit-mcp": {
+        "mcp-servers-for-revit": {
             "command": "npx",
-            "args": ["-y", "@sparx-fire/revit-mcp"]
+            "args": ["-y", "@sparx-fire/mcp-servers-for-revit"]
         }
     }
 }
@@ -93,7 +93,7 @@ Restart Claude Desktop. When you see the hammer icon, the MCP server is connecte
 If using a release ZIP, the plugin is already included. For manual installation:
 
 1. Build the plugin from `plugin/` (see [Development](#development))
-2. Copy `revit-mcp.addin` to `%AppData%\Autodesk\Revit\Addins\<version>\`
+2. Copy `mcp-servers-for-revit.addin` to `%AppData%\Autodesk\Revit\Addins\<version>\`
 3. Copy the `revit_mcp_plugin/` folder to the same addins directory
 
 ## Command Set Setup
@@ -150,7 +150,7 @@ The server compiles TypeScript to `server/build/`. During development you can ru
 
 ### Revit Plugin + Command Set
 
-Open `revit-mcp.sln` in Visual Studio. The solution contains both the plugin and command set projects. Build configurations target Revit 2020-2026:
+Open `mcp-servers-for-revit.sln` in Visual Studio. The solution contains both the plugin and command set projects. Build configurations target Revit 2020-2026:
 
 - **Revit 2020-2024**: .NET Framework 4.8 (`Release R20` through `Release R24`)
 - **Revit 2025-2026**: .NET 8 (`Release R25`, `Release R26`)
@@ -160,8 +160,8 @@ Building the solution automatically assembles the complete deployable layout in 
 ## Project Structure
 
 ```
-revit-mcp/
-├── revit-mcp.sln    # Combined solution (plugin + commandset)
+mcp-servers-for-revit/
+├── mcp-servers-for-revit.sln    # Combined solution (plugin + commandset)
 ├── command.json     # Command set manifest
 ├── server/          # MCP server (TypeScript) - tools exposed to AI clients
 ├── plugin/          # Revit add-in (C#) - WebSocket bridge inside Revit

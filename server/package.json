@@ -1,12 +1,12 @@
 {
-  "name": "@sparx-fire/revit-mcp",
+  "name": "@sparx-fire/mcp-servers-for-revit",
   "version": "1.0.2",
   "description": "MCP server for interacting with Autodesk Revit through AI assistants like Claude",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "revit-mcp": "./build/index.js",
-    "@sparx-fire/revit-mcp": "./build/index.js"
+    "mcp-servers-for-revit": "./build/index.js",
+    "@sparx-fire/mcp-servers-for-revit": "./build/index.js"
   },
   "scripts": {
     "clean": "rimraf build",
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sparx-fire/revit-mcp.git"
+    "url": "git+https://github.com/sparx-fire/mcp-servers-for-revit.git"
   },
   "keywords": [
     "mcp",
@@ -36,9 +36,9 @@
     "access": "public"
   },
   "bugs": {
-    "url": "https://github.com/sparx-fire/revit-mcp/issues"
+    "url": "https://github.com/sparx-fire/mcp-servers-for-revit/issues"
   },
-  "homepage": "https://github.com/sparx-fire/revit-mcp#readme",
+  "homepage": "https://github.com/sparx-fire/mcp-servers-for-revit#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
     "better-sqlite3": "^11.7.0",

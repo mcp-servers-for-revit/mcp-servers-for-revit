@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("revit-mcp-plugin")]
+[assembly: AssemblyTitle("mcp-servers-for-revit-plugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("P R C")]
-[assembly: AssemblyProduct("revit-mcp-plugin")]
+[assembly: AssemblyProduct("mcp-servers-for-revit-plugin")]
 [assembly: AssemblyCopyright("Copyright © P R C 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
