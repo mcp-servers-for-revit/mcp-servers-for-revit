@@ -136,6 +136,87 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `send_code_to_revit` | Send C# code to Revit to execute |
 | `say_hello` | Display a greeting dialog in Revit (connection test) |
 
+## Testing
+
+The test project uses [Nice3point.TUnit.Revit](https://github.com/Nice3point/RevitUnit) to run integration tests against a live Revit instance. No separate addin installation is required — the framework injects into the running Revit process automatically.
+
+### Prerequisites
+
+- **.NET 10 SDK** — required by Nice3point.Revit.Sdk 6.1.0. Install via `winget install Microsoft.DotNet.SDK.10`
+- **Autodesk Revit 2026** (or 2025) — must be installed and licensed on your machine
+
+### Running Tests
+
+1. Open Revit 2026 (or 2025) and wait for it to fully load
+2. Run the tests from the command line:
+
+```bash
+# For Revit 2026
+dotnet test -c Debug.R26 -r win-x64 tests/commandset
+
+# For Revit 2025
+dotnet test -c Debug.R25 -r win-x64 tests/commandset
+```
+
+> **Note:** The `-r win-x64` flag is required on ARM64 machines because the Revit API assemblies are x64-only.
+
+Alternatively, you can use `dotnet run`:
+
+```bash
+cd tests/commandset
+dotnet run -c Debug.R26
+```
+
+### IDE Support
+
+- **JetBrains Rider** — enable "Testing Platform support" in Settings > Build, Execution, Deployment > Unit Testing > Testing Platform
+- **Visual Studio** — tests should be discoverable through the standard Test Explorer
+
+### Test Structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `tests/commandset/AssemblyInfo.cs` | Global `[assembly: TestExecutor<RevitThreadExecutor>]` registration |
+| `tests/commandset/Architecture/` | Tests for level and room creation commands |
+| `tests/commandset/DataExtraction/` | Tests for model statistics, room data export, and material quantities |
+| `tests/commandset/ColorSplashTests.cs` | Tests for color override functionality |
+| `tests/commandset/TagRoomsTests.cs` | Tests for room tagging functionality |
+
+### Writing New Tests
+
+Test classes inherit from `RevitApiTest` and use TUnit's async assertion API:
+
+```csharp
+public class MyTests : RevitApiTest
+{
+    private static Document _doc;
+
+    [Before(HookType.Class)]
+    [HookExecutor<RevitThreadExecutor>]
+    public static void Setup()
+    {
+        _doc = Application.NewProjectDocument(UnitSystem.Imperial);
+    }
+
+    [After(HookType.Class)]
+    [HookExecutor<RevitThreadExecutor>]
+    public static void Cleanup()
+    {
+        _doc?.Close(false);
+    }
+
+    [Test]
+    public async Task MyTest_Condition_ExpectedResult()
+    {
+        var elements = new FilteredElementCollector(_doc)
+            .WhereElementIsNotElementType()
+            .ToElements();
+
+        await Assert.That(elements.Count).IsGreaterThan(0);
+    }
+}
+```
+
 ## Development
 
 ### MCP Server
@@ -161,11 +242,12 @@ Building the solution automatically assembles the complete deployable layout in 
 
 ```
 mcp-servers-for-revit/
-├── mcp-servers-for-revit.sln    # Combined solution (plugin + commandset)
+├── mcp-servers-for-revit.sln    # Combined solution (plugin + commandset + tests)
 ├── command.json     # Command set manifest
 ├── server/          # MCP server (TypeScript) - tools exposed to AI clients
 ├── plugin/          # Revit add-in (C#) - WebSocket bridge inside Revit
 ├── commandset/      # Command implementations (C#) - Revit API operations
+├── tests/           # Integration tests (C#) - TUnit tests against live Revit
 ├── assets/          # Images for documentation
 ├── .github/         # CI/CD workflows, contributing guide, code of conduct
 ├── LICENSE

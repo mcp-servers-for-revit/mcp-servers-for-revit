@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitMCPPlugin", "plugin\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitMCPCommandSet", "commandset\RevitMCPCommandSet.csproj", "{A23E71AF-675B-41EE-9BD4-D4F3C8BA080D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitMCPCommandSet.Tests", "tests\commandset\RevitMCPCommandSet.Tests.csproj", "{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug R20|Any CPU = Debug R20|Any CPU
@@ -81,6 +83,24 @@ Global
 		{A23E71AF-675B-41EE-9BD4-D4F3C8BA080D}.Release R25|Any CPU.Build.0 = Release R25|Any CPU
 		{A23E71AF-675B-41EE-9BD4-D4F3C8BA080D}.Release R26|Any CPU.ActiveCfg = Release R26|Any CPU
 		{A23E71AF-675B-41EE-9BD4-D4F3C8BA080D}.Release R26|Any CPU.Build.0 = Release R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R25|Any CPU.ActiveCfg = Debug.R25|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R25|Any CPU.Build.0 = Debug.R25|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R26|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R26|Any CPU.Build.0 = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R25|Any CPU.ActiveCfg = Release.R25|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R25|Any CPU.Build.0 = Release.R25|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R26|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R26|Any CPU.Build.0 = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R20|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R21|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R22|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R23|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Debug R24|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R20|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R21|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R22|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R23|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{E1F2D3C4-A5B6-7890-ABCD-EF1234567890}.Release R24|Any CPU.ActiveCfg = Release.R26|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
