@@ -275,7 +275,7 @@ To create a release:
    ```
 
 > [!NOTE]
-> npm publish requires an `NPM_TOKEN` secret in the repository settings. The workflow uses `--provenance` for supply chain attestation via npm's trusted publishing.
+> npm publish uses [trusted publishing](https://docs.npmjs.com/trusted-publishers/) via OIDC — no npm token is required. Provenance attestation is generated automatically.
 
 ## Acknowledgements
 

@@ -117,8 +117,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          registry-url: https://registry.npmjs.org
+          node-version: 22
 
       - name: Install and build
         working-directory: server
@@ -128,6 +127,4 @@ jobs:
 
       - name: Publish to npm
         working-directory: server
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
