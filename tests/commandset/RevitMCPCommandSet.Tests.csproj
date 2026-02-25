@@ -1,0 +1,11 @@
+<Project Sdk="Nice3point.Revit.Sdk/6.1.0">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Configurations>Debug.R25;Debug.R26</Configurations>
+    <Configurations>$(Configurations);Release.R25;Release.R26</Configurations>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*" />
+    <PackageReference Include="Nice3point.TUnit.Revit" Version="$(RevitVersion).*" />
+  </ItemGroup>
+</Project>
