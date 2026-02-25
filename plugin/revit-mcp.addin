@@ -6,6 +6,6 @@
     <FullClassName>revit_mcp_plugin.Core.Application</FullClassName>
     <ClientId>090A4C8C-61DC-426D-87DF-E4BAE0F80EC1</ClientId>
     <VendorId>mcp-servers-for-revit</VendorId>
-    <VendorDescription>https://github.com/sparx-fire/mcp-servers-for-revit</VendorDescription>
+    <VendorDescription>https://github.com/mcp-servers-for-revit/mcp-servers-for-revit</VendorDescription>
   </AddIn>
 </RevitAddIns>
