@@ -256,33 +256,27 @@ mcp-servers-for-revit/
 
 ## Releasing
 
-A single `v*` tag drives the entire release — the [release workflow](.github/workflows/release.yml) builds the Revit plugin ZIPs for every supported version (2020-2026) and creates a GitHub release. The npm package is published separately.
+A single `v*` tag drives the entire release. The [release workflow](.github/workflows/release.yml) automatically:
 
-1. Update the MCP server version:
+- Builds the Revit plugin + command set for Revit 2020-2026
+- Creates a GitHub release with `mcp-servers-for-revit-vX.Y.Z-Revit<year>.zip` assets
+- Publishes the MCP server to npm as [`mcp-server-for-revit`](https://www.npmjs.com/package/mcp-server-for-revit)
+
+To create a release:
+
+1. Bump the version and tag:
    ```bash
    cd server
    npm version <major|minor|patch> --no-git-tag-version
-   ```
-
-2. Commit, tag, and push:
-   ```bash
+   cd ..
    git add server/package.json server/package-lock.json
    git commit -m "Bump version to vX.Y.Z"
    git tag vX.Y.Z
    git push origin main --tags
    ```
 
-   Pushing the tag triggers the release workflow, which:
-   - Builds the MCP server (TypeScript)
-   - Builds the Revit plugin + command set for Revit 2020-2026
-   - Packages each Revit version into `mcp-servers-for-revit-vX.Y.Z-Revit<year>.zip`
-   - Creates a GitHub release with all ZIP assets
-
-3. Publish the MCP server to npm:
-   ```bash
-   cd server
-   npm publish
-   ```
+> [!NOTE]
+> npm publish requires an `NPM_TOKEN` secret in the repository settings. The workflow uses `--provenance` for supply chain attestation via npm's trusted publishing.
 
 ## Acknowledgements
 
