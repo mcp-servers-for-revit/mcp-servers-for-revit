@@ -1,4 +1,4 @@
-[![Cover Image](./assets/cover.png?v=2)](https://github.com/sparx-fire/mcp-servers-for-revit)
+[![Cover Image](./assets/cover.png?v=2)](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit)
 
 # mcp-servers-for-revit
 
@@ -7,7 +7,7 @@
 mcp-servers-for-revit enables AI clients like Claude, Cline, and other MCP-compatible tools to read, create, modify, and delete elements in Revit projects. It consists of three components: a TypeScript MCP server that exposes tools to AI, a C# Revit add-in that bridges commands into Revit, and a command set that implements the actual Revit API operations.
 
 > [!NOTE]
-> This is a fork of the original [mcp-servers-for-revit](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
+> This is a fork of the original [revit-mcp](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
 
 ## Architecture
 
@@ -34,7 +34,7 @@ The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSo
 
 ## Quick Start (Using a Release)
 
-1. Download the ZIP for your Revit version from the [Releases](https://github.com/sparx-fire/mcp-servers-for-revit/releases) page (e.g., `mcp-servers-for-revit-v1.0.0-Revit2025.zip`)
+1. Download the ZIP for your Revit version from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page (e.g., `mcp-servers-for-revit-v1.0.0-Revit2025.zip`)
 
 2. Extract the ZIP and copy the contents to your Revit addins folder:
    ```
@@ -66,7 +66,7 @@ The MCP server is published as an npm package and can be run directly with `npx`
 **Claude Code**
 
 ```bash
-claude mcp add mcp-servers-for-revit -- cmd /c npx -y @sparx-fire/mcp-servers-for-revit
+claude mcp add mcp-server-for-revit -- cmd /c npx -y mcp-server-for-revit
 ```
 
 **Claude Desktop**
@@ -76,9 +76,9 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 ```json
 {
     "mcpServers": {
-        "mcp-servers-for-revit": {
+        "mcp-server-for-revit": {
             "command": "cmd",
-            "args": ["/c", "npx", "-y", "@sparx-fire/mcp-servers-for-revit"]
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit"]
         }
     }
 }
@@ -253,6 +253,29 @@ mcp-servers-for-revit/
 ├── LICENSE
 └── README.md
 ```
+
+## Releasing
+
+A single `v*` tag drives the entire release. The [release workflow](.github/workflows/release.yml) automatically:
+
+- Builds the Revit plugin + command set for Revit 2020-2026
+- Creates a GitHub release with `mcp-servers-for-revit-vX.Y.Z-Revit<year>.zip` assets
+- Publishes the MCP server to npm as [`mcp-server-for-revit`](https://www.npmjs.com/package/mcp-server-for-revit)
+
+To create a release:
+
+1. Run the bump script (updates `server/package.json`, `server/package-lock.json`, and `plugin/Properties/AssemblyInfo.cs`, then commits and tags):
+   ```powershell
+   ./scripts/release.ps1 -Version X.Y.Z
+   ```
+
+2. Push to trigger the workflow:
+   ```bash
+   git push origin main --tags
+   ```
+
+> [!NOTE]
+> npm publish uses [trusted publishing](https://docs.npmjs.com/trusted-publishers/) via OIDC — no npm token is required. Provenance attestation is generated automatically.
 
 ## Acknowledgements
 
