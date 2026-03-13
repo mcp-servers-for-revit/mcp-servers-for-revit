@@ -18,8 +18,8 @@ export function registerStoreProjectDataTool(server: McpServer) {
     },
     async (args: any) => {
       try {
-        const projectId = storeProject(args);
-        const project = getProjectByName(args.project_name);
+        const projectId = await storeProject(args);
+        const project = await getProjectByName(args.project_name);
 
         return {
           content: [

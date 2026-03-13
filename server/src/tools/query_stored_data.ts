@@ -32,14 +32,14 @@ export function registerQueryStoredDataTool(server: McpServer) {
 
         switch (args.query_type) {
           case "all_projects":
-            result = getAllProjects();
+            result = await getAllProjects();
             break;
 
           case "project_by_id":
             if (!args.project_id) {
               throw new Error("project_id is required for this query type");
             }
-            result = getProjectById(args.project_id);
+            result = await getProjectById(args.project_id);
             if (!result) {
               return {
                 content: [
@@ -59,7 +59,7 @@ export function registerQueryStoredDataTool(server: McpServer) {
             if (!args.project_name) {
               throw new Error("project_name is required for this query type");
             }
-            result = getProjectByName(args.project_name);
+            result = await getProjectByName(args.project_name);
             if (!result) {
               return {
                 content: [
@@ -79,14 +79,14 @@ export function registerQueryStoredDataTool(server: McpServer) {
             if (!args.project_id) {
               throw new Error("project_id is required for this query type");
             }
-            result = getRoomsByProjectId(args.project_id);
+            result = await getRoomsByProjectId(args.project_id);
             break;
 
           case "rooms_by_project_name":
             if (!args.project_name) {
               throw new Error("project_name is required for this query type");
             }
-            const project = getProjectByName(args.project_name);
+            const project = await getProjectByName(args.project_name);
             if (!project) {
               return {
                 content: [
@@ -100,15 +100,15 @@ export function registerQueryStoredDataTool(server: McpServer) {
                 ]
               };
             }
-            result = getRoomsByProjectId(project.id);
+            result = await getRoomsByProjectId(project.id);
             break;
 
           case "all_rooms":
-            result = getAllRoomsWithProject();
+            result = await getAllRoomsWithProject();
             break;
 
           case "stats":
-            result = getStats();
+            result = await getStats();
             break;
 
           default:

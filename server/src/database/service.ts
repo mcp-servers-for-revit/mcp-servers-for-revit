@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { getDb, saveDatabase } from './db.js';
 
 // Project data interface
 export interface ProjectData {
@@ -26,19 +26,50 @@ export interface RoomData {
   metadata?: Record<string, any>;
 }
 
+// Helper to get a single row from a query
+function getOne(db: any, sql: string, params: any[] = []): any {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  let row: any = undefined;
+  if (stmt.step()) {
+    const columns = stmt.getColumnNames();
+    const values = stmt.get();
+    row = {} as any;
+    columns.forEach((col: string, i: number) => { row[col] = values[i]; });
+  }
+  stmt.free();
+  return row;
+}
+
+// Helper to get all rows from a query
+function getAll(db: any, sql: string, params: any[] = []): any[] {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const rows: any[] = [];
+  while (stmt.step()) {
+    const columns = stmt.getColumnNames();
+    const values = stmt.get();
+    const row = {} as any;
+    columns.forEach((col: string, i: number) => { row[col] = values[i]; });
+    rows.push(row);
+  }
+  stmt.free();
+  return rows;
+}
+
 // Store or update project data
-export function storeProject(data: ProjectData): number {
+export async function storeProject(data: ProjectData): Promise<number> {
+  const db = await getDb();
   const timestamp = Date.now();
   const metadata = data.metadata ? JSON.stringify(data.metadata) : null;
 
-  // Check if project already exists
-  const existingProject = db.prepare(
-    'SELECT id FROM projects WHERE project_name = ?'
-  ).get(data.project_name) as { id: number } | undefined;
+  const existingProject = getOne(db,
+    'SELECT id FROM projects WHERE project_name = ?',
+    [data.project_name]
+  );
 
   if (existingProject) {
-    // Update existing project
-    db.prepare(`
+    db.run(`
       UPDATE projects SET
         project_path = ?,
         project_number = ?,
@@ -49,7 +80,7 @@ export function storeProject(data: ProjectData): number {
         last_updated = ?,
         metadata = ?
       WHERE id = ?
-    `).run(
+    `, [
       data.project_path || null,
       data.project_number || null,
       data.project_address || null,
@@ -59,16 +90,16 @@ export function storeProject(data: ProjectData): number {
       timestamp,
       metadata,
       existingProject.id
-    );
+    ]);
+    saveDatabase();
     return existingProject.id;
   } else {
-    // Insert new project
-    const result = db.prepare(`
+    db.run(`
       INSERT INTO projects (
         project_name, project_path, project_number, project_address,
         client_name, project_status, author, timestamp, last_updated, metadata
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `, [
       data.project_name,
       data.project_path || null,
       data.project_number || null,
@@ -79,24 +110,26 @@ export function storeProject(data: ProjectData): number {
       timestamp,
       timestamp,
       metadata
-    );
-    return result.lastInsertRowid as number;
+    ]);
+    const row = getOne(db, 'SELECT last_insert_rowid() as id');
+    saveDatabase();
+    return row.id;
   }
 }
 
 // Store or update room data
-export function storeRoom(projectId: number, data: RoomData): number {
+export async function storeRoom(projectId: number, data: RoomData): Promise<number> {
+  const db = await getDb();
   const timestamp = Date.now();
   const metadata = data.metadata ? JSON.stringify(data.metadata) : null;
 
-  // Check if room already exists
-  const existingRoom = db.prepare(
-    'SELECT id FROM rooms WHERE project_id = ? AND room_id = ?'
-  ).get(projectId, data.room_id) as { id: number } | undefined;
+  const existingRoom = getOne(db,
+    'SELECT id FROM rooms WHERE project_id = ? AND room_id = ?',
+    [projectId, data.room_id]
+  );
 
   if (existingRoom) {
-    // Update existing room
-    db.prepare(`
+    db.run(`
       UPDATE rooms SET
         room_name = ?,
         room_number = ?,
@@ -109,7 +142,7 @@ export function storeRoom(projectId: number, data: RoomData): number {
         timestamp = ?,
         metadata = ?
       WHERE id = ?
-    `).run(
+    `, [
       data.room_name || null,
       data.room_number || null,
       data.department || null,
@@ -121,16 +154,16 @@ export function storeRoom(projectId: number, data: RoomData): number {
       timestamp,
       metadata,
       existingRoom.id
-    );
+    ]);
+    saveDatabase();
     return existingRoom.id;
   } else {
-    // Insert new room
-    const result = db.prepare(`
+    db.run(`
       INSERT INTO rooms (
         project_id, room_id, room_name, room_number, department,
         level, area, perimeter, occupancy, comments, timestamp, metadata
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `, [
       projectId,
       data.room_id,
       data.room_name || null,
@@ -143,34 +176,33 @@ export function storeRoom(projectId: number, data: RoomData): number {
       data.comments || null,
       timestamp,
       metadata
-    );
-    return result.lastInsertRowid as number;
+    ]);
+    const row = getOne(db, 'SELECT last_insert_rowid() as id');
+    saveDatabase();
+    return row.id;
   }
 }
 
 // Store multiple rooms at once
-export function storeRoomsBatch(projectId: number, rooms: RoomData[]): number {
-  const insertMany = db.transaction((roomsData: RoomData[]) => {
-    let count = 0;
-    for (const room of roomsData) {
-      storeRoom(projectId, room);
-      count++;
-    }
-    return count;
-  });
-
-  return insertMany(rooms);
+export async function storeRoomsBatch(projectId: number, rooms: RoomData[]): Promise<number> {
+  let count = 0;
+  for (const room of rooms) {
+    await storeRoom(projectId, room);
+    count++;
+  }
+  return count;
 }
 
 // Get all projects
-export function getAllProjects() {
-  const projects = db.prepare(`
+export async function getAllProjects() {
+  const db = await getDb();
+  const projects = getAll(db, `
     SELECT
       id, project_name, project_path, project_number, project_address,
       client_name, project_status, author, timestamp, last_updated, metadata
     FROM projects
     ORDER BY last_updated DESC
-  `).all();
+  `);
 
   return projects.map((p: any) => ({
     ...p,
@@ -181,14 +213,15 @@ export function getAllProjects() {
 }
 
 // Get project by ID
-export function getProjectById(projectId: number) {
-  const project = db.prepare(`
+export async function getProjectById(projectId: number) {
+  const db = await getDb();
+  const project = getOne(db, `
     SELECT
       id, project_name, project_path, project_number, project_address,
       client_name, project_status, author, timestamp, last_updated, metadata
     FROM projects
     WHERE id = ?
-  `).get(projectId) as any;
+  `, [projectId]);
 
   if (!project) return null;
 
@@ -201,14 +234,15 @@ export function getProjectById(projectId: number) {
 }
 
 // Get project by name
-export function getProjectByName(projectName: string) {
-  const project = db.prepare(`
+export async function getProjectByName(projectName: string) {
+  const db = await getDb();
+  const project = getOne(db, `
     SELECT
       id, project_name, project_path, project_number, project_address,
       client_name, project_status, author, timestamp, last_updated, metadata
     FROM projects
     WHERE project_name = ?
-  `).get(projectName) as any;
+  `, [projectName]);
 
   if (!project) return null;
 
@@ -221,15 +255,16 @@ export function getProjectByName(projectName: string) {
 }
 
 // Get rooms by project ID
-export function getRoomsByProjectId(projectId: number) {
-  const rooms = db.prepare(`
+export async function getRoomsByProjectId(projectId: number) {
+  const db = await getDb();
+  const rooms = getAll(db, `
     SELECT
       id, project_id, room_id, room_name, room_number, department,
       level, area, perimeter, occupancy, comments, timestamp, metadata
     FROM rooms
     WHERE project_id = ?
     ORDER BY room_number
-  `).all(projectId);
+  `, [projectId]);
 
   return rooms.map((r: any) => ({
     ...r,
@@ -239,8 +274,9 @@ export function getRoomsByProjectId(projectId: number) {
 }
 
 // Get all rooms with project info
-export function getAllRoomsWithProject() {
-  const rooms = db.prepare(`
+export async function getAllRoomsWithProject() {
+  const db = await getDb();
+  const rooms = getAll(db, `
     SELECT
       r.id, r.project_id, r.room_id, r.room_name, r.room_number,
       r.department, r.level, r.area, r.perimeter, r.occupancy,
@@ -249,7 +285,7 @@ export function getAllRoomsWithProject() {
     FROM rooms r
     JOIN projects p ON r.project_id = p.id
     ORDER BY p.project_name, r.room_number
-  `).all();
+  `);
 
   return rooms.map((r: any) => ({
     ...r,
@@ -259,15 +295,19 @@ export function getAllRoomsWithProject() {
 }
 
 // Delete project (and all its rooms due to CASCADE)
-export function deleteProject(projectId: number): boolean {
-  const result = db.prepare('DELETE FROM projects WHERE id = ?').run(projectId);
-  return result.changes > 0;
+export async function deleteProject(projectId: number): Promise<boolean> {
+  const db = await getDb();
+  db.run('DELETE FROM projects WHERE id = ?', [projectId]);
+  const changes = db.getRowsModified();
+  if (changes > 0) saveDatabase();
+  return changes > 0;
 }
 
 // Get database statistics
-export function getStats() {
-  const projectCount = db.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number };
-  const roomCount = db.prepare('SELECT COUNT(*) as count FROM rooms').get() as { count: number };
+export async function getStats() {
+  const db = await getDb();
+  const projectCount = getOne(db, 'SELECT COUNT(*) as count FROM projects');
+  const roomCount = getOne(db, 'SELECT COUNT(*) as count FROM rooms');
 
   return {
     total_projects: projectCount.count,

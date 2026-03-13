@@ -26,7 +26,7 @@ export function registerStoreRoomDataTool(server: McpServer) {
     async (args: any) => {
       try {
         // Get or create project
-        let project = getProjectByName(args.project_name);
+        let project = await getProjectByName(args.project_name);
 
         if (!project) {
           return {
@@ -44,8 +44,8 @@ export function registerStoreRoomDataTool(server: McpServer) {
         }
 
         // Store rooms
-        const count = storeRoomsBatch(project.id, args.rooms);
-        const rooms = getRoomsByProjectId(project.id);
+        const count = await storeRoomsBatch(project.id, args.rooms);
+        const rooms = await getRoomsByProjectId(project.id);
 
         return {
           content: [

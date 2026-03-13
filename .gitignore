@@ -371,3 +371,4 @@ FodyWeavers.xsd
 # =============================================================================
 .claude/
 .DS_Store
+issue-better-sqlite3.md
