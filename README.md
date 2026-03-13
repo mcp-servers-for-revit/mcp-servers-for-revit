@@ -1,4 +1,3 @@
-[![Cover Image](./assets/cover.png?v=2)](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit)
 
 # mcp-servers-for-revit
 
