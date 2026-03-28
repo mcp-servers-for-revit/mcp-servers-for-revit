@@ -66,7 +66,6 @@ namespace RevitMCPCommandSet.Services
 
         private void ExportPdf(Document doc)
         {
-#if REVIT2022_OR_GREATER
             var viewIds = GetViewOrSheetIds(doc);
             if (viewIds.Count == 0)
                 throw new Exception("No sheets/views to export");
@@ -102,9 +101,6 @@ namespace RevitMCPCommandSet.Services
                     files = exportedFiles.Select(f => System.IO.Path.GetFileName(f)).ToList()
                 }
             };
-#else
-            throw new Exception("PDF export requires Revit 2022 or later");
-#endif
         }
 
         private void ExportDwg(Document doc)

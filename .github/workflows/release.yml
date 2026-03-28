@@ -44,15 +44,6 @@ jobs:
       # The commandset's DeployCommandSet target automatically copies
       # its output into the plugin's AddIn layout.
       # ---------------------------------------------------------------
-      - name: Build Revit 2020 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R20" -restore
-
-      - name: Build Revit 2021 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R21" -restore
-
-      - name: Build Revit 2022 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R22" -restore
-
       - name: Build Revit 2023 (.NET Framework 4.8)
         run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R23" -restore
 
@@ -67,8 +58,6 @@ jobs:
 
       # ---------------------------------------------------------------
       # Create Release Assets
-      # The AddIn output already contains the complete deployable layout
-      # (plugin + commandset) thanks to the DeployCommandSet build target.
       # ---------------------------------------------------------------
       - name: Create release assets
         run: |
@@ -77,9 +66,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path $outputDir
 
           $revitVersions = @(
-            @{ Config = "Release R20"; Year = "2020" },
-            @{ Config = "Release R21"; Year = "2021" },
-            @{ Config = "Release R22"; Year = "2022" },
             @{ Config = "Release R23"; Year = "2023" },
             @{ Config = "Release R24"; Year = "2024" },
             @{ Config = "Release R25"; Year = "2025" },

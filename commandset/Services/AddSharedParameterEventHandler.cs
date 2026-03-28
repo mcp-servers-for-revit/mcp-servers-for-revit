@@ -49,11 +49,7 @@ namespace RevitMCPCommandSet.Services
                 ExternalDefinition externalDef = defGroup.Definitions.get_Item(ParameterName) as ExternalDefinition;
                 if (externalDef == null)
                 {
-#if REVIT2022_OR_GREATER
                     var creationOptions = new ExternalDefinitionCreationOptions(ParameterName, SpecTypeId.String.Text);
-#else
-                    var creationOptions = new ExternalDefinitionCreationOptions(ParameterName, ParameterType.Text);
-#endif
                     externalDef = defGroup.Definitions.Create(creationOptions) as ExternalDefinition;
                 }
 
@@ -118,7 +114,6 @@ namespace RevitMCPCommandSet.Services
                 {
                     transaction.Start();
 
-#if REVIT2022_OR_GREATER
                     // Resolve the parameter group (BuiltInParameterGroup -> GroupTypeId)
                     ForgeTypeId groupTypeId = ResolveGroupTypeId(ParameterGroup);
                     bool inserted = doc.ParameterBindings.Insert(externalDef, binding, groupTypeId);
@@ -126,13 +121,6 @@ namespace RevitMCPCommandSet.Services
                     // If already bound, re-insert to update the binding
                     if (!inserted)
                         inserted = doc.ParameterBindings.ReInsert(externalDef, binding, groupTypeId);
-#else
-                    BuiltInParameterGroup builtInGroup = ResolveBuiltInParameterGroup(ParameterGroup);
-                    bool inserted = doc.ParameterBindings.Insert(externalDef, binding, builtInGroup);
-
-                    if (!inserted)
-                        inserted = doc.ParameterBindings.ReInsert(externalDef, binding, builtInGroup);
-#endif
 
                     transaction.Commit();
 
@@ -172,7 +160,6 @@ namespace RevitMCPCommandSet.Services
             }
         }
 
-#if REVIT2022_OR_GREATER
         private static ForgeTypeId ResolveGroupTypeId(string parameterGroup)
         {
             if (string.IsNullOrEmpty(parameterGroup))
@@ -194,18 +181,6 @@ namespace RevitMCPCommandSet.Services
 
             return GroupTypeId.Data;
         }
-#else
-        private static BuiltInParameterGroup ResolveBuiltInParameterGroup(string parameterGroup)
-        {
-            if (string.IsNullOrEmpty(parameterGroup))
-                return BuiltInParameterGroup.PG_DATA;
-
-            if (Enum.TryParse<BuiltInParameterGroup>(parameterGroup, true, out var result))
-                return result;
-
-            return BuiltInParameterGroup.PG_DATA;
-        }
-#endif
 
         public string GetName() => "Add Shared Parameter";
     }

@@ -1068,7 +1068,6 @@ namespace RevitMCPCommandSet.Services
         public static bool IsDimensionParameter(Parameter param)
         {
 
-#if REVIT2023_OR_GREATER
             // 在Revit 2023中使用Definition的GetDataType()方法获取参数类型
             ForgeTypeId paramTypeId = param.Definition.GetDataType();
 
@@ -1079,16 +1078,6 @@ namespace RevitMCPCommandSet.Services
                                    paramTypeId.Equals(SpecTypeId.Volume);
             // 只存储尺寸类型参数
             return isDimensionType;
-#else
-            // 判断参数是否为尺寸相关的类型
-            bool isDimensionType = param.Definition.ParameterType == ParameterType.Length ||
-                                   param.Definition.ParameterType == ParameterType.Angle ||
-                                   param.Definition.ParameterType == ParameterType.Area ||
-                                   param.Definition.ParameterType == ParameterType.Volume;
-
-            // 只存储尺寸类型参数
-            return isDimensionType;
-#endif
         }
 
     }
