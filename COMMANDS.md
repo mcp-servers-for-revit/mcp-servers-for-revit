@@ -1,11 +1,12 @@
-# Revit MCP Server - Available Commands
+# Revit MCP Server - Complete Reference
 
-> 62 commands available | All coordinates in millimeters (mm)
+> **62 MCP tools** | **140 unit tests** | **Revit 2023–2026** | Coordinates in **millimeters (mm)**
 
 ---
 
 ## Table of Contents
 
+- [Setup](#setup)
 - [Element Creation](#element-creation)
 - [Element Modification](#element-modification)
 - [Element Query & Data Extraction](#element-query--data-extraction)
@@ -14,7 +15,30 @@
 - [Project Management](#project-management)
 - [Documentation & Annotation](#documentation--annotation)
 - [Model Audit & Cleanup](#model-audit--cleanup)
-- [Advanced Automation](#advanced-automation)
+- [Advanced Automation (New)](#advanced-automation-new)
+- [Chat Panel](#chat-panel)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Setup
+
+### Requirements
+- Autodesk Revit 2023, 2024, 2025, or 2026
+- Node.js 18+
+- .NET 8.0 SDK (for Revit 2025/2026) or .NET Framework 4.8 (for Revit 2023/2024)
+
+### Quick Start
+1. Build the plugin: `dotnet build plugin/RevitMCPPlugin.csproj -c "Debug R25"`
+2. Build the MCP server: `cd server && npm run build`
+3. Open Revit and click **"Revit MCP Switch"** in the ribbon
+4. Configure `.mcp.json` or Claude Desktop to connect to the MCP server
+
+### Chat Panel (inside Revit)
+The plugin includes a dockable chat panel accessible via **"MCP Panel"** in the ribbon.
+- Calls Anthropic API with 16 Revit tool definitions
+- Executes commands on the model via JSON-RPC (localhost:8080)
+- API key: set `ANTHROPIC_API_KEY` env var or create `%USERPROFILE%\.claude\api_key.txt`
 
 ---
 
@@ -33,7 +57,7 @@ Create levels at specified elevations with automatic floor plan generation.
 ```
 
 ### `create_grid`
-Create a grid system with X/Y axes, spacing, and naming.
+Create a grid system with X/Y axes, spacing, and naming. Supports prefixes (e.g., "MCP-A").
 ```json
 {
   "xCount": 5, "xSpacing": 6000, "xStartLabel": "A", "xNamingStyle": "alphabetic",
@@ -76,7 +100,7 @@ Create floor elements from boundary points or room boundaries.
     {"x": 0, "y": 0}, {"x": 10000, "y": 0},
     {"x": 10000, "y": 8000}, {"x": 0, "y": 8000}
   ],
-  "levelElevation": 0
+  "levelElevation": 0, "isStructural": true
 }
 ```
 
@@ -94,6 +118,16 @@ Create rooms at specified locations within enclosed boundaries.
 ### `create_structural_framing_system`
 Create structural beam framing systems with configurable spacing.
 
+### `create_array`
+Create linear or radial arrays of elements.
+```json
+// Linear array
+{ "elementIds": [12345], "arrayType": "linear", "count": 4, "spacingX": 3000, "spacingY": 0, "spacingZ": 0 }
+
+// Radial array
+{ "elementIds": [12345], "arrayType": "radial", "count": 6, "centerX": 0, "centerY": 0, "totalAngle": 360 }
+```
+
 ### `create_filled_region` *(new)*
 Create 2D filled regions in views.
 ```json
@@ -103,17 +137,6 @@ Create 2D filled regions in views.
     {"x": 5000, "y": 3000}, {"x": 0, "y": 3000}
   ],
   "filledRegionTypeName": "Solid Black"
-}
-```
-
-### `create_array`
-Create linear or radial arrays of elements.
-```json
-{
-  "elementIds": [12345],
-  "arrayType": "linear",
-  "count": 4,
-  "spacingX": 3000, "spacingY": 0, "spacingZ": 0
 }
 ```
 
@@ -202,9 +225,7 @@ Query elements by category, type, visibility, or spatial location.
 {
   "data": {
     "filterCategory": "OST_StructuralColumns",
-    "includeInstances": true,
-    "includeTypes": false,
-    "maxElements": 50
+    "includeInstances": true, "includeTypes": false, "maxElements": 50
   }
 }
 ```
@@ -267,7 +288,7 @@ Create FloorPlan, CeilingPlan, Section, Elevation, or 3D views.
 { "viewType": "FloorPlan", "name": "MCP Ground Floor", "levelElevation": 0, "scale": 100 }
 
 // Section
-{ "viewType": "Section", "name": "MCP Section A", "direction": {"x": 0, "y": 1, "z": 0} }
+{ "viewType": "Section", "name": "MCP Section A", "direction": {"x": 0, "y": 1, "z": 0}, "scale": 50 }
 
 // 3D View
 { "viewType": "3D", "name": "MCP Overview", "detailLevel": "Fine" }
@@ -300,7 +321,7 @@ Duplicate views with options.
 {
   "viewIds": [12345, 67890],
   "duplicateOption": "withDetailing",
-  "newNameSuffix": " - MCP Copy"
+  "newNameSuffix": " - Copy"
 }
 ```
 
@@ -313,7 +334,7 @@ List, apply, or remove view templates.
 // Apply template to views
 { "action": "apply", "viewIds": [12345, 67890], "templateName": "Structural Plan" }
 
-// Remove template from views
+// Remove template
 { "action": "remove", "viewIds": [12345] }
 ```
 
@@ -324,8 +345,7 @@ Set per-element graphic overrides in a view.
   "elementIds": [12345, 67890],
   "projectionLineColor": {"r": 255, "g": 0, "b": 0},
   "surfaceForegroundColor": {"r": 255, "g": 200, "b": 200},
-  "transparency": 50,
-  "action": "set"
+  "transparency": 50, "action": "set"
 }
 ```
 
@@ -406,7 +426,7 @@ Manage project revisions.
 { "action": "list" }
 
 // Create revision
-{ "action": "create", "date": "2026-03-28", "description": "MCP Coordination Update", "issuedBy": "BIM Manager" }
+{ "action": "create", "date": "2026-03-28", "description": "Coordination Update", "issuedBy": "BIM Manager" }
 
 // Add to sheets
 { "action": "add_to_sheets", "sheetIds": [12345, 67890] }
@@ -502,21 +522,95 @@ Audit and clean up CAD imports/links.
 
 ---
 
-## Advanced Automation
+## Advanced Automation (New)
 
-### `batch_export`
-Export sheets/views to PDF, DWG, or IFC.
+These 10 tools were added based on research of the most commonly automated BIM tasks:
 
-### `send_code_to_revit`
-Execute dynamic C# code in Revit with full API access.
-```json
-{
-  "code": "var walls = new FilteredElementCollector(document).OfClass(typeof(Wall)).GetElementCount(); return $\"Found {walls} walls\";"
-}
+| Tool | Description |
+|------|-------------|
+| `renumber_elements` | Sequential renumbering by spatial order |
+| `change_element_type` | Batch family type swap |
+| `apply_view_template` | List/apply/remove view templates |
+| `duplicate_view` | Duplicate views (independent/dependent/with detailing) |
+| `override_graphics` | Per-element graphic overrides |
+| `create_filled_region` | 2D filled regions with boundaries |
+| `create_revision` | Revision management and sheet assignment |
+| `match_element_properties` | Copy parameters from source to targets |
+| `clash_detection` | Geometric intersection detection |
+| `cad_link_cleanup` | Audit and delete CAD imports/links |
+
+---
+
+## Chat Panel
+
+The dockable panel inside Revit provides a Claude-style chat interface:
+
+- **UI**: Light theme matching claude.ai (white background, pill-shaped input, Claude orange branding)
+- **API**: Calls Anthropic API (claude-sonnet-4-20250514) with 16 MCP tool definitions
+- **Execution**: When Claude decides to use a tool, it sends JSON-RPC to localhost:8080
+- **Multi-turn**: Supports up to 5 tool execution rounds per message
+- **Setup**: API key via `ANTHROPIC_API_KEY` env var or `~/.claude/api_key.txt`
+
+### Example prompts for the chat panel:
+- "Che progetto ho aperto?"
+- "Fai un audit del modello"
+- "Crea un livello MCP a 15000mm"
+- "Mostra i warning"
+- "Quanti elementi strutturali ci sono?"
+
+---
+
+## Troubleshooting
+
+### Duplicated AddInId error
+Multiple `.addin` files with the same GUID. Check:
+```
+%AppData%\Autodesk\Revit\Addins\2025\
+```
+Remove any duplicate `revit-mcp.addin` — keep only `mcp-servers-for-revit.addin`.
+
+### Slow Revit startup
+Common causes:
+- **Enscape** (orphan `.addin` files): Delete `0_Enscape.addin` from `C:\ProgramData\Autodesk\Revit\Addins\`
+- **pyRevit** (old versions): Delete `pyRevit.addin` from ProgramData addins
+- **Speckle duplicate**: Remove `SpeckleRevit2` folder if using Speckle v3
+- **Unnecessary DLLs**: Remove WebView2/Windows SDK DLLs from plugin folder
+
+### IFC Export error (Autodesk Issues Addin)
+`ReflectionTypeLoadException: Could not load Revit.IFC.Export`
+- Caused by IFC Exporter version mismatch
+- Fix: Update Revit to latest patch (2025.3+) or update IFC Exporter from Autodesk Desktop App
+
+### MCP connection failed
+- Ensure "Revit MCP Switch" is clicked (server must be running)
+- Default port: 8080
+- Check Windows Firewall is not blocking localhost connections
+
+### Chat panel shows "API key not configured"
+Create the key file:
+```
+echo sk-ant-YOUR-KEY > %USERPROFILE%\.claude\api_key.txt
 ```
 
-### `say_hello`
-Test connectivity with the Revit plugin.
+---
+
+## Architecture
+
+```
+mcp-servers-for-revit/
+├── plugin/                    # Revit Plugin (C#/WPF)
+│   ├── Core/                  # Application, SocketService, CommandManager
+│   └── UI/                    # Dockable Panel, Chat UI
+├── commandset/                # MCP Command Set (C#)
+│   ├── Commands/              # 62 command classes
+│   ├── Services/              # 62 event handlers
+│   └── Models/                # Data models
+├── server/                    # MCP Server (TypeScript)
+│   └── src/tools/             # 62 tool definitions
+├── tests/                     # Unit tests (140 tests, TUnit)
+├── command.json               # Command registry
+└── COMMANDS.md                # This file
+```
 
 ---
 
@@ -524,6 +618,7 @@ Test connectivity with the Revit plugin.
 
 - All spatial coordinates are in **millimeters (mm)**
 - Revit uses **feet internally** — conversion is handled automatically (1 ft = 304.8 mm)
-- Commands marked *(new)* require plugin restart to be available via MCP
-- Use `dryRun: true` on destructive operations to preview changes before applying
+- Tools marked *(new)* were added in the latest update
+- Use `dryRun: true` on destructive operations to preview changes
 - Element IDs can be found using `ai_element_filter`, `get_current_view_elements`, or `get_selected_elements`
+- The plugin supports **Revit 2023–2026** (.NET Framework 4.8 and .NET 8.0)
