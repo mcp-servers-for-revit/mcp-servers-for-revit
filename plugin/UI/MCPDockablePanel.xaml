@@ -1,100 +1,60 @@
 <Page x:Class="revit_mcp_plugin.UI.MCPDockablePanel"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
       Background="#1E1E2E" Loaded="Page_Loaded">
-
-    <Page.Resources>
-        <!-- Placeholder for future styles -->
-    </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#353550" Padding="12,8">
+        <!-- Header Bar -->
+        <Border Grid.Row="0" Background="#353550" Padding="8,6">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Claude" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBlock Text=" for Revit" Foreground="#8080A0" FontSize="15" VerticalAlignment="Center"/>
+                    <TextBlock Text="Claude" Foreground="White" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text=" in Revit" Foreground="#8080A0" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
-                    <Ellipse x:Name="StatusIndicator" Width="8" Height="8" Fill="#FF4444" Margin="0,0,4,0"/>
-                    <TextBlock x:Name="StatusText" Text="Offline" Foreground="#FF6666" FontSize="10" VerticalAlignment="Center"/>
+
+                <!-- MCP Status -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                    <Ellipse x:Name="StatusIndicator" Width="7" Height="7" Fill="#FF4444" Margin="0,0,4,0"/>
+                    <TextBlock x:Name="StatusText" Text="MCP Off" Foreground="#FF6666" FontSize="9" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Grid.Column="2" x:Name="ClearChatLink" Text="Clear" Foreground="#6688CC" FontSize="11"
-                           Cursor="Hand" MouseLeftButtonDown="ClearChat_Click" TextDecorations="Underline" VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
 
-        <!-- Chat Messages -->
-        <ScrollViewer Grid.Row="1" x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto" Padding="0,4">
-            <ItemsControl x:Name="ChatMessages">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel>
-                            <!-- Role label -->
-                            <TextBlock Text="{Binding RoleLabel}" Foreground="#606080" FontSize="9" Margin="{Binding LabelMargin}"/>
-                            <!-- Message bubble -->
-                            <Border Background="{Binding BubbleBackground}" CornerRadius="10" Padding="12,8" Margin="{Binding BubbleMargin}" MaxWidth="500" HorizontalAlignment="{Binding BubbleAlignment}">
-                                <TextBlock Text="{Binding Text}" Foreground="{Binding TextColor}" FontSize="12" TextWrapping="Wrap" FontFamily="{Binding FontFamily}"/>
-                            </Border>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <!-- Typing indicator -->
-        <Border Grid.Row="2" x:Name="TypingIndicator" Visibility="Collapsed" Padding="12,4" Background="#1E1E2E">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Claude is thinking" Foreground="#6060A0" FontSize="11" FontStyle="Italic"/>
-                <TextBlock x:Name="TypingDots" Text="..." Foreground="#6060A0" FontSize="11" FontStyle="Italic"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Input Area -->
-        <Border Grid.Row="3" Background="#252538" Padding="8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="ChatInput" Grid.Column="0"
-                         Background="#2A2A3C" Foreground="#E0E0F0" CaretBrush="#E0E0F0"
-                         BorderBrush="#3A3A4C" BorderThickness="1"
-                         Padding="10,8" FontSize="13"
-                         AcceptsReturn="False"
-                         KeyDown="ChatInput_KeyDown"
-                         VerticalContentAlignment="Center">
-                    <TextBox.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </TextBox.Resources>
-                </TextBox>
-                <Button x:Name="SendButton" Grid.Column="1"
-                        Content="Send" Click="Send_Click"
-                        Background="#5B5BD6" Foreground="White"
-                        BorderThickness="0" Padding="16,8"
-                        FontSize="12" FontWeight="SemiBold"
-                        Margin="6,0,0,0" Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
+                <!-- Navigation buttons -->
+                <Button Grid.Column="2" Content="Home" Click="GoHome_Click"
+                        Background="#2A2A3C" Foreground="#C0C0D8" BorderThickness="0"
+                        Padding="8,3" FontSize="10" Margin="0,0,4,0" Cursor="Hand">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                </Button>
+                <Button Grid.Column="3" Content="Reload" Click="Reload_Click"
+                        Background="#2A2A3C" Foreground="#C0C0D8" BorderThickness="0"
+                        Padding="8,3" FontSize="10" Cursor="Hand">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
                 </Button>
             </Grid>
+        </Border>
+
+        <!-- WebView2 Browser -->
+        <wv2:WebView2 Grid.Row="1" x:Name="WebBrowser"
+                      DefaultBackgroundColor="#1E1E2E"/>
+
+        <!-- Loading overlay -->
+        <Border Grid.Row="1" x:Name="LoadingOverlay" Background="#1E1E2E" Visibility="Visible">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="Loading Claude..." Foreground="#8080A0" FontSize="16" HorizontalAlignment="Center"/>
+                <TextBlock Text="Connecting to claude.ai" Foreground="#606080" FontSize="11" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+            </StackPanel>
         </Border>
     </Grid>
 </Page>
