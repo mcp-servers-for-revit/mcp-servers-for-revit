@@ -63,11 +63,7 @@ namespace RevitMCPCommandSet.Services
                     var elem = doc.GetElement(id);
                     copiedElements.Add(new
                     {
-#if REVIT2024_OR_GREATER
                         id = id.Value,
-#else
-                        id = id.IntegerValue,
-#endif
                         name = elem?.Name ?? "",
                         category = elem?.Category?.Name ?? ""
                     });
@@ -100,11 +96,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Copy Elements";

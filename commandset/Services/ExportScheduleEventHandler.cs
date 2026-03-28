@@ -28,11 +28,7 @@ namespace RevitMCPCommandSet.Services
             {
                 var doc = app.ActiveUIDocument.Document;
 
-#if REVIT2024_OR_GREATER
                 var elementId = new ElementId(ScheduleId);
-#else
-                var elementId = new ElementId((int)ScheduleId);
-#endif
 
                 var schedule = doc.GetElement(elementId) as ViewSchedule;
                 if (schedule == null)

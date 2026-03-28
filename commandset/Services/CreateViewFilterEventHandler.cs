@@ -113,11 +113,7 @@ namespace RevitMCPCommandSet.Services
                 Message = $"Successfully created view filter '{FilterName}'",
                 Response = new
                 {
-#if REVIT2024_OR_GREATER
                     filterId = filter.Id.Value,
-#else
-                    filterId = filter.Id.IntegerValue,
-#endif
                     filterName = filter.Name
                 }
             };
@@ -186,11 +182,7 @@ namespace RevitMCPCommandSet.Services
             {
                 result.Add(new
                 {
-#if REVIT2024_OR_GREATER
                     id = filter.Id.Value,
-#else
-                    id = filter.Id.IntegerValue,
-#endif
                     name = filter.Name,
                     categoryCount = filter.GetCategories().Count
                 });
@@ -267,11 +259,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Create View Filter";

@@ -255,11 +255,7 @@ namespace RevitMCPCommandSet.Services
         {
             return new
             {
-#if REVIT2024_OR_GREATER
                 viewId = view.Id.Value,
-#else
-                viewId = view.Id.IntegerValue,
-#endif
                 name = view.Name,
                 viewType = type
             };

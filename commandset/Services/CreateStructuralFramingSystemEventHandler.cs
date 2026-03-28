@@ -180,19 +180,11 @@ namespace RevitMCPCommandSet.Services
                     ICollection<ElementId> beamIds = beamSystem.GetBeamIds();
                     List<long> beamIdsList = new List<long>();
 
-#if REVIT2024_OR_GREATER
                     long beamSystemId = beamSystem.Id.Value;
                     foreach (ElementId beamId in beamIds)
                     {
                         beamIdsList.Add(beamId.Value);
                     }
-#else
-                    long beamSystemId = beamSystem.Id.IntegerValue;
-                    foreach (ElementId beamId in beamIds)
-                    {
-                        beamIdsList.Add(beamId.IntegerValue);
-                    }
-#endif
 
                     // 10. Read actual spacing from layout rule
                     double actualSpacing = layoutRule.Spacing * 304.8;  // ft to mm

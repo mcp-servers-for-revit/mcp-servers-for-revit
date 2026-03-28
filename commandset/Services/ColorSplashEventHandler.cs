@@ -266,7 +266,6 @@ namespace RevitMCPCommandSet.Services
                     Element element = doc.GetElement(id);
                     return element?.Name ?? id.GetValue().ToString();
                 case StorageType.Integer:
-#if REVIT2023_OR_GREATER
                     // For Revit 2023+ we should use ForgeTypeId approach
                     if (parameter.Definition is InternalDefinition internalDef)
                     {
@@ -294,55 +293,6 @@ namespace RevitMCPCommandSet.Services
                     }
 
                     return parameter.AsValueString() ?? parameter.AsInteger().ToString();
-#else
-                    // For Revit 2022-，Code changes pending approval
-                    if (parameter.Definition is Autodesk.Revit.DB.InternalDefinition internalDef)
-                    {
-                        // 检查是否为已知的布尔类型内置参数 (仅使用Revit 2019中确认存在的参数)
-                        BuiltInParameter bip = internalDef.BuiltInParameter;
-                        if (bip == BuiltInParameter.IS_VISIBLE_PARAM ||
-                            bip == BuiltInParameter.WALL_ATTR_ROOM_BOUNDING ||
-                            bip == BuiltInParameter.LEVEL_IS_BUILDING_STORY)
-                        {
-                            return parameter.AsInteger() == 1 ? "True" : "False";
-                        }
-
-                        // 尝试通过参数名称识别布尔参数
-                        string paramName = parameter.Definition.Name.ToLower();
-                        if (paramName.Contains("是否") ||
-                            paramName.Contains("yes/no") ||
-                            paramName.Contains("true/false") ||
-                            paramName.Contains("visible") ||
-                            paramName.Contains("visibility"))
-                        {
-                            // 检查存储类型为整数且值为0或1
-                            if (parameter.StorageType == StorageType.Integer)
-                            {
-                                int intValue = parameter.AsInteger();
-                                if (intValue == 0 || intValue == 1)
-                                {
-                                    return intValue == 1 ? "True" : "False";
-                                }
-                            }
-                        }
-
-                        // 尝试通过储存类型和值字符串识别布尔参数
-                        if (parameter.StorageType == StorageType.Integer)
-                        {
-                            string valueString = parameter.AsValueString();
-                            if (!string.IsNullOrEmpty(valueString) &&
-                                (valueString == "是" || valueString == "否" ||
-                                 valueString == "Yes" || valueString == "No"))
-                            {
-                                return parameter.AsInteger() == 1 ? "True" : "False";
-                            }
-                        }
-                    }
-
-                    // 默认返回参数值
-                    return parameter.AsValueString() ?? parameter.AsInteger().ToString();
-                    //throw new NotImplementedException();
-#endif
                 case StorageType.String:
                     return parameter.AsString() ?? "None";
 

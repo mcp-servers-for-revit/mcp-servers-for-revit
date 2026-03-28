@@ -68,11 +68,7 @@ namespace RevitMCPCommandSet.Services
                 .Where(v => v.IsTemplate)
                 .Select(v => new
                 {
-#if REVIT2024_OR_GREATER
                     id = v.Id.Value,
-#else
-                    id = v.Id.IntegerValue,
-#endif
                     name = v.Name,
                     viewType = v.ViewType.ToString()
                 })
@@ -179,11 +175,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Apply View Template";

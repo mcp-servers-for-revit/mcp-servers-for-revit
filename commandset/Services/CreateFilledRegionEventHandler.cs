@@ -74,11 +74,7 @@ namespace RevitMCPCommandSet.Services
                     Message = $"Created filled region '{regionType.Name}' in view '{view.Name}'",
                     Response = new
                     {
-#if REVIT2024_OR_GREATER
                         filledRegionId = filledRegion.Id.Value,
-#else
-                        filledRegionId = filledRegion.Id.IntegerValue,
-#endif
                         typeName = regionType.Name,
                         viewName = view.Name
                     }
@@ -113,11 +109,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Create Filled Region";

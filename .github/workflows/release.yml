@@ -27,9 +27,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
       # ---------------------------------------------------------------
       # Build MCP Server (TypeScript)
       # ---------------------------------------------------------------
@@ -40,35 +37,13 @@ jobs:
           npm run build
 
       # ---------------------------------------------------------------
-      # Build Plugin + CommandSet via combined solution
-      # The commandset's DeployCommandSet target automatically copies
-      # its output into the plugin's AddIn layout.
+      # Build Plugin + CommandSet (Revit 2026 only, .NET 8)
       # ---------------------------------------------------------------
-      - name: Build Revit 2020 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R20" -restore
-
-      - name: Build Revit 2021 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R21" -restore
-
-      - name: Build Revit 2022 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R22" -restore
-
-      - name: Build Revit 2023 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R23" -restore
-
-      - name: Build Revit 2024 (.NET Framework 4.8)
-        run: msbuild mcp-servers-for-revit.sln -p:Configuration="Release R24" -restore
-
-      - name: Build Revit 2025 (.NET 8)
-        run: dotnet build mcp-servers-for-revit.sln -c "Release R25"
-
       - name: Build Revit 2026 (.NET 8)
         run: dotnet build mcp-servers-for-revit.sln -c "Release R26"
 
       # ---------------------------------------------------------------
       # Create Release Assets
-      # The AddIn output already contains the complete deployable layout
-      # (plugin + commandset) thanks to the DeployCommandSet build target.
       # ---------------------------------------------------------------
       - name: Create release assets
         run: |
@@ -76,25 +51,13 @@ jobs:
           $outputDir = "release-assets"
           New-Item -ItemType Directory -Force -Path $outputDir
 
-          $revitVersions = @(
-            @{ Config = "Release R20"; Year = "2020" },
-            @{ Config = "Release R21"; Year = "2021" },
-            @{ Config = "Release R22"; Year = "2022" },
-            @{ Config = "Release R23"; Year = "2023" },
-            @{ Config = "Release R24"; Year = "2024" },
-            @{ Config = "Release R25"; Year = "2025" },
-            @{ Config = "Release R26"; Year = "2026" }
-          )
-
-          foreach ($rv in $revitVersions) {
-            $addinDir = "plugin/bin/AddIn $($rv.Year) $($rv.Config)"
-            if (Test-Path $addinDir) {
-              $zipName = "$outputDir/mcp-servers-for-revit-$version-Revit$($rv.Year).zip"
-              Compress-Archive -Path "$addinDir/*" -DestinationPath $zipName
-              Write-Host "Created $zipName"
-            } else {
-              Write-Host "Warning: AddIn output not found: $addinDir"
-            }
+          $addinDir = "plugin/bin/AddIn 2026 Release R26"
+          if (Test-Path $addinDir) {
+            $zipName = "$outputDir/mcp-servers-for-revit-$version-Revit2026.zip"
+            Compress-Archive -Path "$addinDir/*" -DestinationPath $zipName
+            Write-Host "Created $zipName"
+          } else {
+            Write-Host "Warning: AddIn output not found: $addinDir"
           }
         shell: pwsh
 

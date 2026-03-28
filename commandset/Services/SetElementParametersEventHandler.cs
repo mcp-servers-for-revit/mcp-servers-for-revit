@@ -40,11 +40,7 @@ namespace RevitMCPCommandSet.Services
 
                         try
                         {
-#if REVIT2024_OR_GREATER
                             var elementId = new ElementId(request.ElementId);
-#else
-                            var elementId = new ElementId((int)request.ElementId);
-#endif
                             var element = doc.GetElement(elementId);
                             if (element == null)
                             {
@@ -139,11 +135,7 @@ namespace RevitMCPCommandSet.Services
                     case StorageType.Double:
                         return param.Set(jToken.Value<double>());
                     case StorageType.ElementId:
-#if REVIT2024_OR_GREATER
                         return param.Set(new ElementId(jToken.Value<long>()));
-#else
-                        return param.Set(new ElementId((int)jToken.Value<long>()));
-#endif
                     default:
                         return false;
                 }
@@ -163,11 +155,7 @@ namespace RevitMCPCommandSet.Services
                     return false;
                 case StorageType.ElementId:
                     if (long.TryParse(value.ToString(), out long parsedLong))
-#if REVIT2024_OR_GREATER
                         return param.Set(new ElementId(parsedLong));
-#else
-                        return param.Set(new ElementId((int)parsedLong));
-#endif
                     return false;
                 default:
                     return false;

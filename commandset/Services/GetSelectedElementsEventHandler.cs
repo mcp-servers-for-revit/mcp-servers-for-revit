@@ -48,11 +48,7 @@ namespace RevitMCPCommandSet.Services
                 // 转换为ElementInfo列表
                 ResultElements = selectedElements.Select(element => new ElementInfo
                 {
-#if REVIT2024_OR_GREATER
                     Id = element.Id.Value,
-#else
-                    Id = element.Id.IntegerValue,
-#endif
                     UniqueId = element.UniqueId,
                     Name = element.Name,
                     Category = element.Category?.Name

@@ -30,11 +30,7 @@ namespace RevitMCPCommandSet.Services
 
                 ResultInfo = new CurrentViewInfo
                 {
-#if REVIT2024_OR_GREATER
                     Id = (int)activeView.Id.Value,
-#else
-                    Id = activeView.Id.IntegerValue,
-#endif
                     UniqueId = activeView.UniqueId,
                     Name = activeView.Name,
                     ViewType = activeView.ViewType.ToString(),

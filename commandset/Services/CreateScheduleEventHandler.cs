@@ -69,11 +69,7 @@ namespace RevitMCPCommandSet.Services
                         Message = $"Successfully created {scheduleType} schedule '{schedule.Name}'",
                         Response = new
                         {
-#if REVIT2024_OR_GREATER
                             scheduleId = schedule.Id.Value,
-#else
-                            scheduleId = schedule.Id.IntegerValue,
-#endif
                             name = schedule.Name
                         }
                     };
@@ -103,11 +99,7 @@ namespace RevitMCPCommandSet.Services
 
             if (ScheduleInfo.CategoryId > 0)
             {
-#if REVIT2024_OR_GREATER
                 return new ElementId((long)ScheduleInfo.CategoryId);
-#else
-                return new ElementId((int)ScheduleInfo.CategoryId);
-#endif
             }
 
             // Multi-category schedule

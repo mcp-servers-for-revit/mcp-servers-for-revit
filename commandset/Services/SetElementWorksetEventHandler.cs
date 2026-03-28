@@ -73,11 +73,7 @@ namespace RevitMCPCommandSet.Services
                                 continue;
                             }
 
-#if REVIT2024_OR_GREATER
                             var elementId = new ElementId(request.ElementId);
-#else
-                            var elementId = new ElementId((int)request.ElementId);
-#endif
                             var element = doc.GetElement(elementId);
                             if (element == null)
                             {

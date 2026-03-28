@@ -61,11 +61,7 @@ namespace RevitMCPCommandSet.Services
             {
                 scheduleList.Add(new
                 {
-#if REVIT2024_OR_GREATER
                     id = schedule.Id.Value,
-#else
-                    id = schedule.Id.IntegerValue,
-#endif
                     name = schedule.Name,
                     category = schedule.Definition.CategoryId != ElementId.InvalidElementId
                         ? Category.GetCategory(doc, schedule.Definition.CategoryId)?.Name ?? ""
@@ -87,11 +83,7 @@ namespace RevitMCPCommandSet.Services
 
         private AIResult<object> GetScheduleData(Document doc)
         {
-#if REVIT2024_OR_GREATER
             var elementId = new ElementId(ScheduleId);
-#else
-            var elementId = new ElementId((int)ScheduleId);
-#endif
 
             var viewSchedule = doc.GetElement(elementId) as ViewSchedule;
             if (viewSchedule == null)

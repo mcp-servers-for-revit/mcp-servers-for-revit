@@ -34,11 +34,7 @@ namespace RevitMCPCommandSet.Services
 
                     if (SheetInfo.TitleBlockTypeId > 0)
                     {
-#if REVIT2024_OR_GREATER
                         titleBlockId = new ElementId((long)SheetInfo.TitleBlockTypeId);
-#else
-                        titleBlockId = new ElementId((int)SheetInfo.TitleBlockTypeId);
-#endif
                     }
                     else if (!string.IsNullOrEmpty(SheetInfo.TitleBlockFamilyName))
                     {
@@ -96,11 +92,7 @@ namespace RevitMCPCommandSet.Services
                         Message = $"Successfully created sheet '{sheet.SheetNumber} - {sheet.Name}'",
                         Response = new
                         {
-#if REVIT2024_OR_GREATER
                             sheetId = sheet.Id.Value,
-#else
-                            sheetId = sheet.Id.IntegerValue,
-#endif
                             sheetNumber = sheet.SheetNumber,
                             sheetName = sheet.Name
                         }

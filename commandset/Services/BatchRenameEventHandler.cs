@@ -75,11 +75,7 @@ namespace RevitMCPCommandSet.Services
 
                         renameResults.Add(new
                         {
-#if REVIT2024_OR_GREATER
                             id = elem.Id.Value,
-#else
-                            id = elem.Id.IntegerValue,
-#endif
                             oldName,
                             newName,
                             success,
@@ -199,11 +195,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Batch Rename";

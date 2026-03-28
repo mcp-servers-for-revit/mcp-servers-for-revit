@@ -66,11 +66,7 @@ namespace RevitMCPCommandSet.Services
                     {
                         filteredElements = filteredElements.Where(et =>
                         {
-#if REVIT2024_OR_GREATER
                             var categoryId = et.Category?.Id.Value;
-#else
-                            var categoryId = et.Category?.Id.IntegerValue;
-#endif
                             return categoryId != null && validCategoryIds.Contains((int)categoryId.Value);
                         });
                     }
@@ -110,11 +106,7 @@ namespace RevitMCPCommandSet.Services
                     }
                     return new FamilyTypeInfo
                     {
-#if REVIT2024_OR_GREATER
                         FamilyTypeId = et.Id.Value,
-#else
-                        FamilyTypeId = et.Id.IntegerValue,
-#endif
                         UniqueId = et.UniqueId,
                         FamilyName = familyName,
                         TypeName = et.Name,

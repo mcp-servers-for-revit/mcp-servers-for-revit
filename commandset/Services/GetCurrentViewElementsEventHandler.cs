@@ -136,11 +136,7 @@ namespace RevitMCPCommandSet.Services
                 // 构建结果
                 var elementInfos = elements.Select(e => new ElementInfo
                 {
-#if REVIT2024_OR_GREATER
                     Id = e.Id.Value,
-#else
-                    Id = e.Id.IntegerValue,
-#endif
                     UniqueId = e.UniqueId,
                     Name = e.Name,
                     Category = e.Category?.Name ?? "unknow",
@@ -149,11 +145,7 @@ namespace RevitMCPCommandSet.Services
 
                 ResultInfo = new ViewElementsResult
                 {
-#if REVIT2024_OR_GREATER
                     ViewId = activeView.Id.Value,
-#else
-                    ViewId = activeView.Id.IntegerValue,
-#endif
                     ViewName = activeView.Name,
                     TotalElementsInView = new FilteredElementCollector(doc, activeView.Id).GetElementCount(),
                     FilteredElementCount = elementInfos.Count,
@@ -176,11 +168,7 @@ namespace RevitMCPCommandSet.Services
             var properties = new Dictionary<string, string>();
 
             // 添加通用属性
-#if REVIT2024_OR_GREATER
             properties.Add("ElementId", element.Id.Value.ToString());
-#else
-            properties.Add("ElementId", element.Id.IntegerValue.ToString());
-#endif
             if (element.Location != null)
             {
                 if (element.Location is LocationPoint locationPoint)
@@ -213,11 +201,7 @@ namespace RevitMCPCommandSet.Services
                     else if (param.StorageType == StorageType.Integer)
                         properties.Add(paramName, param.AsInteger().ToString());
                     else if (param.StorageType == StorageType.ElementId)
-#if REVIT2024_OR_GREATER
                         properties.Add(paramName, param.AsElementId().Value.ToString());
-#else
-                        properties.Add(paramName, param.AsElementId().IntegerValue.ToString());
-#endif
                 }
             }
 

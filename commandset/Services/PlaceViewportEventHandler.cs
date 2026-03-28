@@ -29,13 +29,8 @@ namespace RevitMCPCommandSet.Services
                 {
                     transaction.Start();
 
-#if REVIT2024_OR_GREATER
                     var sheetId = new ElementId((long)ViewportInfo.SheetId);
                     var viewId = new ElementId((long)ViewportInfo.ViewId);
-#else
-                    var sheetId = new ElementId((int)ViewportInfo.SheetId);
-                    var viewId = new ElementId((int)ViewportInfo.ViewId);
-#endif
 
                     // Verify sheet exists
                     var sheet = doc.GetElement(sheetId) as ViewSheet;
@@ -68,15 +63,9 @@ namespace RevitMCPCommandSet.Services
                         Message = $"Successfully placed viewport on sheet",
                         Response = new
                         {
-#if REVIT2024_OR_GREATER
                             viewportId = viewport.Id.Value,
                             sheetId = sheetId.Value,
                             viewId = viewId.Value,
-#else
-                            viewportId = viewport.Id.IntegerValue,
-                            sheetId = sheetId.IntegerValue,
-                            viewId = viewId.IntegerValue,
-#endif
                         }
                     };
                 }

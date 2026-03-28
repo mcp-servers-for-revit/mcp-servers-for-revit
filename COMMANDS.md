@@ -1,6 +1,6 @@
 # Revit MCP Server - Complete Reference
 
-> **62 MCP tools** | **140 unit tests** | **Revit 2023–2026** | Coordinates in **millimeters (mm)**
+> **62 MCP tools** | **140 unit tests** | **Revit 2026** | Coordinates in **millimeters (mm)**
 
 ---
 
@@ -24,9 +24,9 @@
 ## Setup
 
 ### Requirements
-- Autodesk Revit 2023, 2024, 2025, or 2026
+- Autodesk Revit 2026
 - Node.js 18+
-- .NET 8.0 SDK (for Revit 2025/2026) or .NET Framework 4.8 (for Revit 2023/2024)
+- .NET 8.0 SDK
 
 ### Quick Start
 1. Build the plugin: `dotnet build plugin/RevitMCPPlugin.csproj -c "Debug R25"`
@@ -621,4 +621,4 @@ mcp-servers-for-revit/
 - Tools marked *(new)* were added in the latest update
 - Use `dryRun: true` on destructive operations to preview changes
 - Element IDs can be found using `ai_element_filter`, `get_current_view_elements`, or `get_selected_elements`
-- The plugin supports **Revit 2023–2026** (.NET Framework 4.8 and .NET 8.0)
+- The plugin supports **Revit 2026** (.NET 8.0)

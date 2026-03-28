@@ -91,11 +91,7 @@ namespace RevitMCPCommandSet.Services
                 {
                     types.Add(new
                     {
-#if REVIT2024_OR_GREATER
                         id = typeId.Value,
-#else
-                        id = typeId.IntegerValue,
-#endif
                         name = symbol.Name
                     });
                 }
@@ -107,11 +103,7 @@ namespace RevitMCPCommandSet.Services
                 Message = $"Successfully loaded family '{family.Name}' with {types.Count} types",
                 Response = new
                 {
-#if REVIT2024_OR_GREATER
                     familyId = family.Id.Value,
-#else
-                    familyId = family.Id.IntegerValue,
-#endif
                     familyName = family.Name,
                     category = family.FamilyCategory?.Name ?? "",
                     types
@@ -136,11 +128,7 @@ namespace RevitMCPCommandSet.Services
                 var typeCount = family.GetFamilySymbolIds().Count;
                 result.Add(new
                 {
-#if REVIT2024_OR_GREATER
                     id = family.Id.Value,
-#else
-                    id = family.Id.IntegerValue,
-#endif
                     name = family.Name,
                     category = family.FamilyCategory?.Name ?? "",
                     typeCount,
@@ -182,11 +170,7 @@ namespace RevitMCPCommandSet.Services
                 Message = $"Duplicated type '{sourceType.Name}' as '{NewTypeName}'",
                 Response = new
                 {
-#if REVIT2024_OR_GREATER
                     newTypeId = newType.Id.Value,
-#else
-                    newTypeId = newType.Id.IntegerValue,
-#endif
                     newTypeName = newType.Name,
                     familyName = sourceType.FamilyName,
                     category = sourceType.Category?.Name ?? ""
@@ -196,11 +180,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Load Family";

@@ -55,21 +55,13 @@ namespace RevitMCPCommandSet.Services
                     var failingIds = new List<long>();
                     foreach (var id in warning.GetFailingElements())
                     {
-#if REVIT2024_OR_GREATER
                         failingIds.Add(id.Value);
-#else
-                        failingIds.Add(id.IntegerValue);
-#endif
                     }
 
                     var additionalIds = new List<long>();
                     foreach (var id in warning.GetAdditionalElements())
                     {
-#if REVIT2024_OR_GREATER
                         additionalIds.Add(id.Value);
-#else
-                        additionalIds.Add(id.IntegerValue);
-#endif
                     }
 
                     warnings.Add(new

@@ -29,11 +29,7 @@ namespace RevitMCPCommandSet.Services
 
                 if (MaterialId.HasValue)
                 {
-#if REVIT2024_OR_GREATER
                     var elementId = new ElementId(MaterialId.Value);
-#else
-                    var elementId = new ElementId((int)MaterialId.Value);
-#endif
                     mat = doc.GetElement(elementId) as Material;
                 }
 
@@ -56,11 +52,7 @@ namespace RevitMCPCommandSet.Services
 
                 var result = new Dictionary<string, object>
                 {
-#if REVIT2024_OR_GREATER
                     ["id"] = mat.Id.Value,
-#else
-                    ["id"] = mat.Id.IntegerValue,
-#endif
                     ["name"] = mat.Name,
                     ["materialClass"] = mat.MaterialClass,
                     ["materialCategory"] = mat.MaterialCategory,

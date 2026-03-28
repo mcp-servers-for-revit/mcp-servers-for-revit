@@ -87,11 +87,7 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                         {
                             materialData[matId] = new MaterialQuantityModel
                             {
-#if REVIT2024_OR_GREATER
                                 MaterialId = matId.Value,
-#else
-                                MaterialId = matId.IntegerValue,
-#endif
                                 MaterialName = material.Name,
                                 MaterialClass = material.MaterialClass
                             };
@@ -104,15 +100,9 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                         materialData[matId].Area += area;
                         materialData[matId].Volume += volume;
 
-#if REVIT2024_OR_GREATER
                         if (!materialData[matId].ElementIds.Contains(element.Id.Value))
                         {
                             materialData[matId].ElementIds.Add(element.Id.Value);
-#else
-                        if (!materialData[matId].ElementIds.Contains(element.Id.IntegerValue))
-                        {
-                            materialData[matId].ElementIds.Add(element.Id.IntegerValue);
-#endif
                             materialData[matId].ElementCount++;
                         }
                     }

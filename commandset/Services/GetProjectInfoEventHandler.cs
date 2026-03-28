@@ -51,11 +51,7 @@ namespace RevitMCPCommandSet.Services
                     {
                         phases.Add(new
                         {
-#if REVIT2024_OR_GREATER
                             id = phase.Id.Value,
-#else
-                            id = phase.Id.IntegerValue,
-#endif
                             name = phase.Name
                         });
                     }
@@ -95,11 +91,7 @@ namespace RevitMCPCommandSet.Services
                         var linkType = doc.GetElement(link.GetTypeId()) as RevitLinkType;
                         links.Add(new
                         {
-#if REVIT2024_OR_GREATER
                             id = link.Id.Value,
-#else
-                            id = link.Id.IntegerValue,
-#endif
                             name = link.Name,
                             isLoaded = linkType != null && RevitLinkType.IsLoaded(doc, linkType.Id),
                             linkPath = GetLinkPath(linkType)
@@ -121,11 +113,7 @@ namespace RevitMCPCommandSet.Services
                     {
                         levels.Add(new
                         {
-#if REVIT2024_OR_GREATER
                             id = level.Id.Value,
-#else
-                            id = level.Id.IntegerValue,
-#endif
                             name = level.Name,
                             elevation = level.Elevation * 304.8 // feet to mm
                         });

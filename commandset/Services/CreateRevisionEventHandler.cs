@@ -59,11 +59,7 @@ namespace RevitMCPCommandSet.Services
                 .Where(r => r != null)
                 .Select(r => new
                 {
-#if REVIT2024_OR_GREATER
                     id = r.Id.Value,
-#else
-                    id = r.Id.IntegerValue,
-#endif
                     sequenceNumber = r.SequenceNumber,
                     date = r.RevisionDate,
                     description = r.Description,
@@ -108,11 +104,7 @@ namespace RevitMCPCommandSet.Services
                 Message = $"Created revision: {revision.Description}",
                 Response = new
                 {
-#if REVIT2024_OR_GREATER
                     id = revision.Id.Value,
-#else
-                    id = revision.Id.IntegerValue,
-#endif
                     sequenceNumber = revision.SequenceNumber,
                     date = revision.RevisionDate,
                     description = revision.Description
@@ -163,11 +155,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Create Revision";

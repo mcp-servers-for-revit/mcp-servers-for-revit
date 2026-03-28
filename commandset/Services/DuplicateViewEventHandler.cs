@@ -51,13 +51,8 @@ namespace RevitMCPCommandSet.Services
 
                             results.Add(new
                             {
-#if REVIT2024_OR_GREATER
                                 originalViewId = view.Id.Value,
                                 newViewId = newViewId.Value,
-#else
-                                originalViewId = view.Id.IntegerValue,
-                                newViewId = newViewId.IntegerValue,
-#endif
                                 originalName = view.Name,
                                 newName = newView?.Name ?? "",
                                 success = true
@@ -67,11 +62,7 @@ namespace RevitMCPCommandSet.Services
                         {
                             results.Add(new
                             {
-#if REVIT2024_OR_GREATER
                                 originalViewId = view.Id.Value,
-#else
-                                originalViewId = view.Id.IntegerValue,
-#endif
                                 newViewId = (long)0,
                                 originalName = view.Name,
                                 newName = "",
@@ -114,11 +105,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Duplicate Views";

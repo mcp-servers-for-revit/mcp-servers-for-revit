@@ -59,11 +59,7 @@ namespace RevitMCPCommandSet.Services
                     Message = $"Successfully created floor '{floorType.Name}' on level '{level.Name}'",
                     Response = new
                     {
-#if REVIT2024_OR_GREATER
                         floorId = floor.Id.Value,
-#else
-                        floorId = floor.Id.IntegerValue,
-#endif
                         floorTypeName = floorType.Name,
                         levelName = level.Name
                     }
@@ -178,11 +174,7 @@ namespace RevitMCPCommandSet.Services
 
         private ElementId ToElementId(long id)
         {
-#if REVIT2024_OR_GREATER
             return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
         }
 
         public string GetName() => "Create Floor";

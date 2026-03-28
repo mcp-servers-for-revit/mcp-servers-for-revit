@@ -79,7 +79,6 @@ namespace RevitMCPCommandSet.Services
                     // Create tags for each wall
                     foreach (Element wall in walls)
                     {
-#if REVIT2024_OR_GREATER
                         try
                         {
                             // Get the wall's location curve
@@ -122,50 +121,6 @@ namespace RevitMCPCommandSet.Services
                         {
                             errors.Add($"标记墙体 {wall.Id.Value} 出错: {ex.Message}");
                         }
-#else
-try
-                        {
-                            // Get the wall's location curve
-                            LocationCurve locationCurve = wall.Location as LocationCurve;
-                            if (locationCurve != null)
-                            {
-                                // Get the middle point of the wall
-                                Curve curve = locationCurve.Curve;
-                                XYZ midpoint = curve.Evaluate(0.5, true);
-
-                                // Create tag at midpoint
-                                IndependentTag tag = IndependentTag.Create(
-                                    doc,
-                                    wallTagType.Id,
-                                    activeView.Id,
-                                    new Reference(wall),
-                                    _useLeader, // Use leader based on parameter
-                                    TagOrientation.Horizontal,
-                                    midpoint);
-
-                                if (tag != null)
-                                {
-                                    createdTags.Add(new
-                                    {
-                                        id = tag.Id.IntegerValue.ToString(),
-                                        wallId = wall.Id.IntegerValue.ToString(),
-
-                                        wallName = wall.Name,
-                                        location = new
-                                        {
-                                            x = midpoint.X,
-                                            y = midpoint.Y,
-                                            z = midpoint.Z
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            errors.Add($"标记墙体 {wall.Id.IntegerValue} 出错: {ex.Message}");
-                        }
-#endif
                     }
 
                     tran.Commit();
@@ -219,7 +174,6 @@ try
         /// </summary>
         private FamilySymbol FindWallTagType(Document doc)
         {
-#if REVIT2024_OR_GREATER
             // If specific tag type ID was specified, try to use it
             if (!string.IsNullOrEmpty(_tagTypeId))
             {
@@ -258,46 +212,6 @@ try
             }
 
             return wallTagType;
-#else
-            // If specific tag type ID was specified, try to use it
-            if (!string.IsNullOrEmpty(_tagTypeId))
-            {
-                if (int.TryParse(_tagTypeId, out int id))
-                {
-                    ElementId elementId = new ElementId(id);
-                    Element element = doc.GetElement(elementId);
-
-                    if (element != null && element is FamilySymbol symbol &&
-                        (symbol.Category.Id.IntegerValue == (int)BuiltInCategory.OST_WallTags ||
-                         symbol.Category.Id.IntegerValue == (int)BuiltInCategory.OST_MultiCategoryTags))
-                    {
-                        return symbol;
-                    }
-                }
-            }
-
-            // First try to find a tag specifically for walls
-            FilteredElementCollector tagCollector = new FilteredElementCollector(doc);
-            FamilySymbol wallTagType = tagCollector.OfClass(typeof(FamilySymbol))
-                                                  .WhereElementIsElementType()
-                                                  .Where(e => e.Category != null &&
-                                                         e.Category.Id.IntegerValue == (int)BuiltInCategory.OST_WallTags)
-                                                  .Cast<FamilySymbol>()
-                                                  .FirstOrDefault();
-
-            // If no wall tag found, try to find a multi-category tag that can tag walls
-            if (wallTagType == null)
-            {
-                wallTagType = tagCollector.OfClass(typeof(FamilySymbol))
-                                         .WhereElementIsElementType()
-                                         .Where(e => e.Category != null &&
-                                                e.Category.Id.IntegerValue == (int)BuiltInCategory.OST_MultiCategoryTags)
-                                         .Cast<FamilySymbol>()
-                                         .FirstOrDefault();
-            }
-
-            return wallTagType;
-#endif
 
         }
     }
