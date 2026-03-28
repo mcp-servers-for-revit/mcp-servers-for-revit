@@ -203,9 +203,11 @@ public static class GeometryUtils
     {
         // Implement algorithm to calculate intersection
         // Simple method: use Revit API to find intersection
+#pragma warning disable CS0618 // Curve.Intersect deprecated in Revit 2026
         var results = new IntersectionResultArray();
         if (line1.Intersect(line2, out results) == SetComparisonResult.Overlap && results.Size > 0)
             return results.get_Item(0).XYZPoint;
+#pragma warning restore CS0618
         return null;
     }
 
