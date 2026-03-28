@@ -13,7 +13,7 @@ namespace revit_mcp_plugin.UI
         private static MCPDockablePanel _instance;
         private readonly ObservableCollection<ChatMessage> _messages = new ObservableCollection<ChatMessage>();
         private readonly DispatcherTimer _statusTimer;
-        private readonly ClaudeRevitClient _client;
+        private ClaudeRevitClient _client;
         private bool _isProcessing;
 
         public static MCPDockablePanel Instance => _instance;
@@ -23,7 +23,6 @@ namespace revit_mcp_plugin.UI
             InitializeComponent();
             _instance = this;
             ChatMessages.ItemsSource = _messages;
-            _client = new ClaudeRevitClient();
 
             _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _statusTimer.Tick += (s, e) => UpdateStatus();
@@ -92,6 +91,7 @@ namespace revit_mcp_plugin.UI
                     return;
                 }
 
+                if (_client == null) _client = new ClaudeRevitClient();
                 string response = await _client.SendMessage(input);
                 AddMessage("assistant", response);
             }
@@ -131,7 +131,7 @@ namespace revit_mcp_plugin.UI
         private void ClearChat_Click(object sender, MouseButtonEventArgs e)
         {
             _messages.Clear();
-            _client.ClearHistory();
+            _client?.ClearHistory();
             AddMessage("assistant", "Chat azzerata. Come posso aiutarti?");
         }
     }

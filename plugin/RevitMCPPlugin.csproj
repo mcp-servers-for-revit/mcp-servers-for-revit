@@ -59,7 +59,6 @@
         <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*"/>
         <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*"/>
         <PackageReference Include="RevitMCPSDK" Version="$(RevitVersion).*"/>
-        <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0"/>
     </ItemGroup>
     <ItemGroup>
         <Resource Include="Core\Ressources\icon-16.png"/>
