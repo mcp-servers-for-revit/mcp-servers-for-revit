@@ -12,18 +12,18 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- 左侧导航 -->
+        <!-- Left navigation panel -->
         <Border Grid.Column="0" Background="#f5f5f5" BorderBrush="#e0e0e0" BorderThickness="0,0,1,0">
             <ListBox x:Name="NavListBox" BorderThickness="0" Background="Transparent" 
                      SelectionChanged="NavListBox_SelectionChanged">
                 <ListBoxItem x:Name="CommandSetItem" IsSelected="True" Padding="10,8">
                     <TextBlock Text="CommandSet" FontSize="14"/>
                 </ListBoxItem>
-                <!-- 将来可以在此添加更多导航选项 -->
+                <!-- Additional navigation items can be added here in the future -->
             </ListBox>
         </Border>
 
-        <!-- 右侧内容区域 -->
+        <!-- Right content area -->
         <Grid Grid.Column="1" Margin="15">
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden"/>
         </Grid>

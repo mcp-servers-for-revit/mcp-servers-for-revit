@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -13,29 +13,29 @@ namespace RevitMCPCommandSet.Utils
     public static class JsonSchemaGenerator
     {
         /// <summary>
-        /// 生成并转换指定类型的 JSON Schema
+        /// Generate and transform a JSON Schema for the specified type
         /// </summary>
-        /// <typeparam name="T">要生成 Schema 的类型</typeparam>
-        /// <param name="mainPropertyName">转换后 Schema 中的主要属性名称</param>
-        /// <returns>转换后的 JSON Schema 字符串</returns>
+        /// <typeparam name="T">The type to generate a Schema for</typeparam>
+        /// <param name="mainPropertyName">The main property name in the transformed Schema</param>
+        /// <returns>The transformed JSON Schema string</returns>
         public static string GenerateTransformedSchema<T>(string mainPropertyName)
         {
             return GenerateTransformedSchema<T>(mainPropertyName, false);
         }
 
         /// <summary>
-        /// 生成并转换指定类型的 JSON Schema，支持 ThinkingProcess 属性
+        /// Generate and transform a JSON Schema for the specified type, with ThinkingProcess property support
         /// </summary>
-        /// <typeparam name="T">要生成 Schema 的类型</typeparam>
-        /// <param name="mainPropertyName">转换后 Schema 中的主要属性名称</param>
-        /// <param name="includeThinkingProcess">是否添加 ThinkingProcess 属性</param>
-        /// <returns>转换后的 JSON Schema 字符串</returns>
+        /// <typeparam name="T">The type to generate a Schema for</typeparam>
+        /// <param name="mainPropertyName">The main property name in the transformed Schema</param>
+        /// <param name="includeThinkingProcess">Whether to add the ThinkingProcess property</param>
+        /// <returns>The transformed JSON Schema string</returns>
         public static string GenerateTransformedSchema<T>(string mainPropertyName, bool includeThinkingProcess)
         {
             if (string.IsNullOrWhiteSpace(mainPropertyName))
                 throw new ArgumentException("Main property name cannot be null or empty.", nameof(mainPropertyName));
 
-            // 创建根 Schema
+            // Create root Schema
             JObject rootSchema = new JObject
             {
                 ["type"] = "object",
@@ -44,25 +44,25 @@ namespace RevitMCPCommandSet.Utils
                 ["additionalProperties"] = false
             };
 
-            // 如果需要添加 ThinkingProcess 属性
+            // Add ThinkingProcess property if needed
             if (includeThinkingProcess)
             {
                 AddProperty(rootSchema, "ThinkingProcess", new JObject { ["type"] = "string" }, true);
             }
 
-            // 生成目标属性的 Schema
+            // Generate Schema for the target property
             JObject mainPropertySchema = GenerateSchema(typeof(T));
             AddProperty(rootSchema, mainPropertyName, mainPropertySchema, true);
 
-            // 为所有对象递归添加 "additionalProperties": false
+            // Recursively add "additionalProperties": false to all objects
             AddAdditionalPropertiesFalse(rootSchema);
 
-            // 返回格式化后的 JSON Schema
+            // Return the formatted JSON Schema
             return JsonConvert.SerializeObject(rootSchema, Formatting.Indented);
         }
 
         /// <summary>
-        /// 递归生成指定类型的 JSON Schema
+        /// Recursively generate a JSON Schema for the specified type
         /// </summary>
         private static JObject GenerateSchema(Type type)
         {
@@ -71,11 +71,11 @@ namespace RevitMCPCommandSet.Utils
             if (type == typeof(float) || type == typeof(double) || type == typeof(decimal)) return new JObject { ["type"] = "number" };
             if (type == typeof(bool)) return new JObject { ["type"] = "boolean" };
 
-            // 优先处理 Dictionary 类型
+            // Handle Dictionary type first
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 return HandleDictionary(type);
 
-            // 处理数组或集合类型
+            // Handle array or collection types
             if (type.IsArray || (typeof(IEnumerable).IsAssignableFrom(type) && type.IsGenericType))
             {
                 Type itemType = type.IsArray ? type.GetElementType() : type.GetGenericArguments()[0];
@@ -86,7 +86,7 @@ namespace RevitMCPCommandSet.Utils
                 };
             }
 
-            // 处理类类型
+            // Handle class types
             if (type.IsClass)
             {
                 var schema = new JObject
@@ -104,12 +104,12 @@ namespace RevitMCPCommandSet.Utils
                 return schema;
             }
 
-            // 默认处理为字符串
+            // Default to string
             return new JObject { ["type"] = "string" };
         }
 
         /// <summary>
-        /// 专门处理 Dictionary<string, TValue> 类型，确保键是 string 类型，并正确处理值类型
+        /// Handle Dictionary&lt;string, TValue&gt; type, ensuring the key is a string type and correctly handling the value type
         /// </summary>
         private static JObject HandleDictionary(Type type)
         {
@@ -129,7 +129,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 为 Schema 添加属性
+        /// Add a property to the Schema
         /// </summary>
         private static void AddProperty(JObject schema, string propertyName, JToken propertySchema, bool isRequired)
         {
@@ -142,7 +142,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 为包含 "required" 属性的对象递归添加 "additionalProperties": false
+        /// Recursively add "additionalProperties": false to objects containing a "required" property
         /// </summary>
         private static void AddAdditionalPropertiesFalse(JToken token)
         {

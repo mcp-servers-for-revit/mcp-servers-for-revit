@@ -30,6 +30,9 @@
                     <TextBlock Text="  |  " Foreground="#DDD" FontSize="11"/>
                     <TextBlock Text="Nuova chat" Foreground="#D97757" FontSize="11"
                                Cursor="Hand" MouseLeftButtonDown="ClearChat_Click"/>
+                    <TextBlock Text="  |  " Foreground="#DDD" FontSize="11"/>
+                    <TextBlock Text="Esporta" Foreground="#D97757" FontSize="11"
+                               Cursor="Hand" MouseLeftButtonDown="ExportChat_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -58,9 +61,16 @@
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding RoleLabel}" Foreground="{Binding RoleLabelColor}"
                                                FontSize="13" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <TextBlock Text="{Binding Text}" Foreground="{Binding TextColor}"
-                                               FontSize="14" TextWrapping="Wrap" FontFamily="{Binding FontFamily}"
-                                               LineHeight="22"/>
+                                    <TextBox Text="{Binding Text, Mode=OneWay}"
+                                             Foreground="{Binding TextColor, Mode=OneWay}"
+                                             FontSize="14" TextWrapping="Wrap"
+                                             FontFamily="{Binding FontFamily, Mode=OneWay}"
+                                             IsReadOnly="True" AcceptsReturn="True"
+                                             BorderThickness="0" Background="Transparent"
+                                             VerticalScrollBarVisibility="Disabled"
+                                             HorizontalScrollBarVisibility="Disabled"
+                                             IsTabStop="False" Padding="0" Margin="0"
+                                             SelectionBrush="#D97757"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -109,11 +119,13 @@
                         <TextBox x:Name="ChatInput"
                                  Background="Transparent" Foreground="#1A1A1A" CaretBrush="#1A1A1A"
                                  BorderThickness="0" Padding="16,14,50,14" FontSize="14"
-                                 AcceptsReturn="False" KeyDown="ChatInput_KeyDown"
-                                 VerticalContentAlignment="Center"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 MaxHeight="150" VerticalScrollBarVisibility="Auto"
+                                 KeyDown="ChatInput_KeyDown"
+                                 VerticalContentAlignment="Top"
                                  FontFamily="Segoe UI"/>
                         <!-- Placeholder -->
-                        <TextBlock x:Name="Placeholder" Text="Rispondi..." IsHitTestVisible="False"
+                        <TextBlock x:Name="Placeholder" Text="Rispondi... (Ctrl+Invio per inviare)" IsHitTestVisible="False"
                                    Foreground="#AAA" FontSize="14" Padding="18,14,0,0"
                                    FontFamily="Segoe UI"/>
                     </Grid>

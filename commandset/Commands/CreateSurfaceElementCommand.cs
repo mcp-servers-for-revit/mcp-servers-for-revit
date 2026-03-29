@@ -11,12 +11,12 @@ namespace RevitMCPCommandSet.Commands
         private CreateSurfaceElementEventHandler _handler => (CreateSurfaceElementEventHandler)Handler;
 
         /// <summary>
-        /// 命令名称
+        /// Command name
         /// </summary>
         public override string CommandName => "create_surface_based_element";
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         /// <param name="uiApp">Revit UIApplication</param>
         public CreateSurfaceElementCommand(UIApplication uiApp)
@@ -29,27 +29,27 @@ namespace RevitMCPCommandSet.Commands
             try
             {
                 List<SurfaceElement> data = new List<SurfaceElement>();
-                // 解析参数
+                // Parse parameters
                 data = parameters["data"].ToObject<List<SurfaceElement>>();
                 if (data == null)
-                    throw new ArgumentNullException(nameof(data), "AI传入数据为空");
+                    throw new ArgumentNullException(nameof(data), "AI input data is null");
 
-                // 设置面状构件体参数
+                // Set surface-based element parameters
                 _handler.SetParameters(data);
 
-                // 触发外部事件并等待完成
+                // Raise external event and wait for completion
                 if (RaiseAndWaitForCompletion(10000))
                 {
                     return _handler.Result;
                 }
                 else
                 {
-                    throw new TimeoutException("创建面状构件操作超时");
+                    throw new TimeoutException("Surface-based element creation timed out");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"创建面状构件失败: {ex.Message}");
+                throw new Exception($"Failed to create surface-based element: {ex.Message}");
             }
         }
     }

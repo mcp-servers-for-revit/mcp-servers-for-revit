@@ -28,23 +28,23 @@ namespace RevitMCPCommandSet.Services
             {
                 var doc = app.ActiveUIDocument.Document;
 
-                // Resolve export path
-                if (string.IsNullOrEmpty(ExportPath))
-                    ExportPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "RevitExport_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+                string exportPath = string.IsNullOrEmpty(ExportPath)
+                    ? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "RevitExport_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss"))
+                    : ExportPath;
 
-                if (!System.IO.Directory.Exists(ExportPath))
-                    System.IO.Directory.CreateDirectory(ExportPath);
+                if (!System.IO.Directory.Exists(exportPath))
+                    System.IO.Directory.CreateDirectory(exportPath);
 
                 switch (Format.ToUpper())
                 {
                     case "PDF":
-                        ExportPdf(doc);
+                        ExportPdf(doc, exportPath);
                         break;
                     case "DWG":
-                        ExportDwg(doc);
+                        ExportDwg(doc, exportPath);
                         break;
                     case "IFC":
-                        ExportIfc(doc);
+                        ExportIfc(doc, exportPath);
                         break;
                     default:
                         throw new ArgumentException($"Unsupported format: {Format}");
@@ -64,7 +64,7 @@ namespace RevitMCPCommandSet.Services
             }
         }
 
-        private void ExportPdf(Document doc)
+        private void ExportPdf(Document doc, string exportPath)
         {
             var viewIds = GetViewOrSheetIds(doc);
             if (viewIds.Count == 0)
@@ -74,7 +74,6 @@ namespace RevitMCPCommandSet.Services
             options.FileName = "Export";
             options.Combine = false;
 
-            // Set paper size
             switch (PaperSize)
             {
                 case "A3": options.PaperFormat = ExportPaperFormat.ISO_A3; break;
@@ -86,24 +85,11 @@ namespace RevitMCPCommandSet.Services
                 default: options.PaperFormat = ExportPaperFormat.ISO_A4; break;
             }
 
-            doc.Export(ExportPath, viewIds, options);
-
-            var exportedFiles = System.IO.Directory.GetFiles(ExportPath, "*.pdf");
-            Result = new AIResult<object>
-            {
-                Success = true,
-                Message = $"Exported {exportedFiles.Length} PDF files to '{ExportPath}'",
-                Response = new
-                {
-                    format = "PDF",
-                    exportPath = ExportPath,
-                    fileCount = exportedFiles.Length,
-                    files = exportedFiles.Select(f => System.IO.Path.GetFileName(f)).ToList()
-                }
-            };
+            doc.Export(exportPath, viewIds, options);
+            Result = BuildExportResult("PDF", "*.pdf", exportPath);
         }
 
-        private void ExportDwg(Document doc)
+        private void ExportDwg(Document doc, string exportPath)
         {
             var viewIds = GetViewOrSheetIds(doc);
             if (viewIds.Count == 0)
@@ -113,43 +99,35 @@ namespace RevitMCPCommandSet.Services
             options.MergedViews = true;
             options.FileVersion = ACADVersion.R2018;
 
-            doc.Export(ExportPath, "Export", viewIds, options);
-
-            var exportedFiles = System.IO.Directory.GetFiles(ExportPath, "*.dwg");
-            Result = new AIResult<object>
-            {
-                Success = true,
-                Message = $"Exported {exportedFiles.Length} DWG files to '{ExportPath}'",
-                Response = new
-                {
-                    format = "DWG",
-                    exportPath = ExportPath,
-                    fileCount = exportedFiles.Length,
-                    files = exportedFiles.Select(f => System.IO.Path.GetFileName(f)).ToList()
-                }
-            };
+            doc.Export(exportPath, "Export", viewIds, options);
+            Result = BuildExportResult("DWG", "*.dwg", exportPath);
         }
 
-        private void ExportIfc(Document doc)
+        private void ExportIfc(Document doc, string exportPath)
         {
             var options = new IFCExportOptions();
 
             using (var transaction = new Transaction(doc, "Export IFC"))
             {
                 transaction.Start();
-                doc.Export(ExportPath, doc.Title + ".ifc", options);
+                doc.Export(exportPath, doc.Title + ".ifc", options);
                 transaction.Commit();
             }
 
-            var exportedFiles = System.IO.Directory.GetFiles(ExportPath, "*.ifc");
-            Result = new AIResult<object>
+            Result = BuildExportResult("IFC", "*.ifc", exportPath);
+        }
+
+        private static AIResult<object> BuildExportResult(string format, string searchPattern, string exportPath)
+        {
+            var exportedFiles = System.IO.Directory.GetFiles(exportPath, searchPattern);
+            return new AIResult<object>
             {
                 Success = true,
-                Message = $"Exported IFC file to '{ExportPath}'",
+                Message = $"Exported {exportedFiles.Length} {format} file(s) to '{exportPath}'",
                 Response = new
                 {
-                    format = "IFC",
-                    exportPath = ExportPath,
+                    format,
+                    exportPath,
                     fileCount = exportedFiles.Length,
                     files = exportedFiles.Select(f => System.IO.Path.GetFileName(f)).ToList()
                 }

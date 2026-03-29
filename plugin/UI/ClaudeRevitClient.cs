@@ -16,7 +16,7 @@ namespace revit_mcp_plugin.UI
     {
         private readonly List<JObject> _conversationHistory = new List<JObject>();
         private string _apiKey;
-        private const string API_URL = "https://api.anthropic.com/v1/messages";
+        private const string ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
         private string _model = "claude-sonnet-4-6";
         private const int MCP_PORT = 8080;
         private CancellationTokenSource _cts;
@@ -28,12 +28,18 @@ namespace revit_mcp_plugin.UI
 
         private const string SYSTEM_PROMPT = @"Sei Claude, un assistente AI integrato direttamente in Autodesk Revit. Hai accesso a tool che eseguono comandi sul modello Revit attivo in tempo reale.
 
-Quando l'utente ti chiede di fare qualcosa sul modello, USA I TOOL disponibili per eseguirlo. Non limitarti a descrivere — esegui l'azione.
+REGOLE:
+1. Quando l'utente ti chiede di fare qualcosa sul modello, USA I TOOL disponibili per eseguirlo. Non limitarti a descrivere — esegui l'azione.
+2. Se ti mancano informazioni necessarie per eseguire un comando (es. quale livello, quale tipo di muro, quali elementi, dove posizionare), CHIEDI ALL'UTENTE prima di procedere. Non indovinare parametri critici.
+3. Per scoprire cosa è disponibile nel modello, usa prima i tool di lettura: get_available_family_types, get_project_info (per livelli), get_current_view_elements, get_selected_elements. Poi proponi all'utente le opzioni trovate.
+4. Se l'utente dice 'gli elementi selezionati' o 'la selezione corrente', usa get_selected_elements. Se il risultato è vuoto, chiedi all'utente di selezionare qualcosa in Revit.
+5. Dopo aver eseguito un tool, descrivi brevemente il risultato con gli ID degli elementi creati/modificati.
 
-Rispondi in italiano, sii conciso. Dopo aver eseguito un tool, descrivi brevemente il risultato.
+Rispondi in italiano, sii conciso.
 
 Coordinate: tutti i valori sono in millimetri (mm).
-Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralColumns, OST_StructuralFraming, OST_Rooms.";
+Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralColumns, OST_StructuralFraming, OST_Rooms.
+Fai sempre riferimento alle API e ai comandi di Revit quando spieghi cosa stai facendo.";
 
         private bool _thinkingEnabled;
         private int _thinkingBudget = 10000;
@@ -63,12 +69,15 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
 
         private void LoadApiKey()
         {
+            string claudeDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude");
+
+            // Try Anthropic API key (env → file)
             _apiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
             if (string.IsNullOrEmpty(_apiKey))
             {
                 try
                 {
-                    string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "api_key.txt");
+                    string path = Path.Combine(claudeDir, "api_key.txt");
                     if (File.Exists(path)) _apiKey = File.ReadAllText(path).Trim();
                 }
                 catch { }
@@ -79,11 +88,10 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
         {
             if (string.IsNullOrEmpty(_apiKey))
             {
-                return "Chiave API non configurata.\n\n" +
-                       "Per abilitare la chat con tool Revit:\n" +
-                       "1. Variabile d'ambiente: ANTHROPIC_API_KEY=sk-ant-...\n" +
-                       "2. Oppure file: %USERPROFILE%\\.claude\\api_key.txt\n\n" +
-                       "Ottieni una chiave su console.anthropic.com";
+                return "API key not configured.\n\n" +
+                       "Set your Anthropic API key:\n" +
+                       "  File: %USERPROFILE%\\.claude\\api_key.txt\n" +
+                       "  or env variable: ANTHROPIC_API_KEY=sk-ant-...";
             }
 
             _conversationHistory.Add(new JObject { ["role"] = "user", ["content"] = userMessage });
@@ -109,7 +117,7 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
 
         private async Task<string> ProcessConversation()
         {
-            int maxToolRounds = 5;
+            int maxToolRounds = 15;
 
             for (int round = 0; round < maxToolRounds; round++)
             {
@@ -147,6 +155,10 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
                 // Add assistant message to history
                 _conversationHistory.Add(new JObject { ["role"] = "assistant", ["content"] = content });
 
+                // Show intermediate text (Claude's reasoning between tool calls)
+                if (textParts.Count > 0 && toolUses.Count > 0)
+                    MCPDockablePanel.Instance?.OnIntermediateText(string.Join("\n", textParts));
+
                 if (stopReason == "tool_use" && toolUses.Count > 0)
                 {
                     // Execute tools and add results
@@ -161,6 +173,10 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
                         MCPDockablePanel.Instance?.OnToolExecuting(toolName);
 
                         string result = await ExecuteMcpCommand(toolName, toolInput);
+                        bool isError = result.StartsWith("Error:") || result.StartsWith("MCP command failed:");
+
+                        // Notify panel about tool result
+                        MCPDockablePanel.Instance?.OnToolCompleted(toolName, isError, result);
 
                         toolResults.Add(new JObject
                         {
@@ -171,6 +187,10 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
                     }
 
                     _conversationHistory.Add(new JObject { ["role"] = "user", ["content"] = toolResults });
+
+                    // Show round progress
+                    MCPDockablePanel.Instance?.OnRoundProgress(round + 1, maxToolRounds);
+
                     continue; // Loop to get Claude's response after tool results
                 }
 
@@ -208,7 +228,7 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
             {
                 _cts?.Token.ThrowIfCancellationRequested();
 
-                var request = (HttpWebRequest)WebRequest.Create(API_URL);
+                var request = (HttpWebRequest)WebRequest.Create(ANTHROPIC_URL);
                 request.Method = "POST";
                 request.ContentType = "application/json";
                 request.Headers.Add("x-api-key", _apiKey);
@@ -342,15 +362,34 @@ Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralC
             if (_cachedToolDefinitions != null)
                 return _cachedToolDefinitions;
 
-            _cachedToolDefinitions = LoadToolsFromCommandJson() ?? BuildFallbackTools();
+            _cachedToolDefinitions = LoadToolsFromSchemaFile() ?? LoadToolsFromCommandJson() ?? BuildFallbackTools();
             return _cachedToolDefinitions;
+        }
+
+        private JArray LoadToolsFromSchemaFile()
+        {
+            try
+            {
+                string dllDir = Path.GetDirectoryName(
+                    System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
+                string schemaPath = Path.Combine(dllDir, "tool_schemas.json");
+
+                if (!File.Exists(schemaPath))
+                    return null;
+
+                var tools = JArray.Parse(File.ReadAllText(schemaPath));
+                return tools.Count > 0 ? tools : null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private JArray LoadToolsFromCommandJson()
         {
             try
             {
-                // Find command.json relative to plugin DLL: Commands/RevitMCPCommandSet/command.json
                 string dllDir = Path.GetDirectoryName(
                     System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
                 string commandJsonPath = Path.Combine(dllDir, "Commands", "RevitMCPCommandSet", "command.json");

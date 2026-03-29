@@ -1,6 +1,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services.AnnotationComponents
@@ -24,7 +25,13 @@ namespace RevitMCPCommandSet.Services.AnnotationComponents
             {
                 var doc = app.ActiveUIDocument.Document;
                 var results = new List<object>();
-                int _successCount = 0;
+                int successCount = 0;
+
+                var defaultTextNoteTypeId = new FilteredElementCollector(doc)
+                    .OfClass(typeof(TextNoteType))
+                    .FirstElementId();
+                if (defaultTextNoteTypeId == null)
+                    throw new InvalidOperationException("No text note type found in project");
 
                 using (var transaction = new Transaction(doc, "Create Text Notes"))
                 {
@@ -38,11 +45,7 @@ namespace RevitMCPCommandSet.Services.AnnotationComponents
                             View view;
                             if (data.ViewId > 0)
                             {
-#if REVIT2024_OR_GREATER
-                                view = doc.GetElement(new ElementId(data.ViewId)) as View;
-#else
-                                view = doc.GetElement(new ElementId((int)data.ViewId)) as View;
-#endif
+                                view = doc.GetElement(ElementIdExtensions.FromLong(data.ViewId)) as View;
                                 if (view == null)
                                     throw new ArgumentException($"View with ID {data.ViewId} not found");
                             }
@@ -51,26 +54,9 @@ namespace RevitMCPCommandSet.Services.AnnotationComponents
                                 view = doc.ActiveView;
                             }
 
-                            // Get text note type
-                            ElementId typeId;
-                            if (data.TextNoteTypeId > 0)
-                            {
-#if REVIT2024_OR_GREATER
-                                typeId = new ElementId(data.TextNoteTypeId);
-#else
-                                typeId = new ElementId((int)data.TextNoteTypeId);
-#endif
-                            }
-                            else
-                            {
-                                // Use default text note type
-                                var defaultType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(TextNoteType))
-                                    .Cast<TextNoteType>()
-                                    .FirstOrDefault();
-
-                                typeId = defaultType?.Id ?? throw new InvalidOperationException("No text note type found in project");
-                            }
+                            ElementId typeId = data.TextNoteTypeId > 0
+                                ? ElementIdExtensions.FromLong(data.TextNoteTypeId)
+                                : defaultTextNoteTypeId;
 
                             XYZ position = JZPoint.ToXYZ(data.Position);
 
@@ -88,7 +74,7 @@ namespace RevitMCPCommandSet.Services.AnnotationComponents
                                 textNote.Width = data.Width / 304.8;
                             }
 
-                            _successCount++;
+                            successCount++;
                             results.Add(new
                             {
 #if REVIT2024_OR_GREATER
@@ -118,7 +104,7 @@ namespace RevitMCPCommandSet.Services.AnnotationComponents
                 Result = new AIResult<List<object>>
                 {
                     Success = true,
-                    Message = $"Created {_successCount} text notes",
+                    Message = $"Created {successCount} text notes",
                     Response = results
                 };
             }

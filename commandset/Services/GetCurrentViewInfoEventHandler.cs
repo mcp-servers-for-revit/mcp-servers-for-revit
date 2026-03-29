@@ -6,14 +6,14 @@ namespace RevitMCPCommandSet.Services
 {
     public class GetCurrentViewInfoEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
     {
-        // 执行结果
+        // Execution result
         public CurrentViewInfo ResultInfo { get; private set; }
 
-        // 状态同步对象
+        // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        // 实现IWaitableExternalEventHandler接口
+        // Implement IWaitableExternalEventHandler interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -45,7 +45,7 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception)
             {
-                TaskDialog.Show("error", "获取信息失败");
+                TaskDialog.Show("error", "Failed to get info");
             }
             finally
             {
@@ -56,7 +56,7 @@ namespace RevitMCPCommandSet.Services
 
         public string GetName()
         {
-            return "获取当前视图信息";
+            return "Get Current View Info";
         }
     }
 }

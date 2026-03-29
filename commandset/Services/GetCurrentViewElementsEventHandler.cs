@@ -6,7 +6,7 @@ namespace RevitMCPCommandSet.Services
 {
     public class GetCurrentViewElementsEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
     {
-        // 默认模型类别列表
+        // Default model category list
         private readonly List<string> _defaultModelCategories = new List<string>
         {
             "OST_Walls",
@@ -22,7 +22,7 @@ namespace RevitMCPCommandSet.Services
             "OST_MEPSpaces",
             "OST_Rooms"
         };
-        // 默认注释类别列表
+        // Default annotation category list
         private readonly List<string> _defaultAnnotationCategories = new List<string>
         {
             "OST_Dimensions",
@@ -38,20 +38,20 @@ namespace RevitMCPCommandSet.Services
             "OST_TitleBlocks"
         };
 
-        // 查询参数
+        // Query parameters
         private List<string> _modelCategoryList;
         private List<string> _annotationCategoryList;
         private bool _includeHidden;
         private int _limit;
 
-        // 执行结果
+        // Execution result
         public ViewElementsResult ResultInfo { get; private set; }
 
-        // 状态同步对象
+        // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        // 设置查询参数
+        // Set query parameters
         public void SetQueryParameters(List<string> modelCategoryList, List<string> annotationCategoryList, bool includeHidden, int limit)
         {
             _modelCategoryList = modelCategoryList;
@@ -62,7 +62,7 @@ namespace RevitMCPCommandSet.Services
             _resetEvent.Reset();
         }
 
-        // 实现IWaitableExternalEventHandler接口
+        // Implement IWaitableExternalEventHandler interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -78,7 +78,7 @@ namespace RevitMCPCommandSet.Services
                 var activeView = doc.ActiveView;
 
 
-                // 合并所有类别
+                // Merge all categories
                 List<string> allCategories = new List<string>();
                 if (_modelCategoryList == null && _annotationCategoryList == null)
                 {
@@ -91,17 +91,17 @@ namespace RevitMCPCommandSet.Services
                     allCategories.AddRange(_annotationCategoryList ?? new List<string>());
                 }
 
-                // 获取当前视图中的所有元素
+                // Get all elements in the current view
                 var collector = new FilteredElementCollector(doc, activeView.Id)
                     .WhereElementIsNotElementType();
 
-                // 获取所有元素
+                // Get all elements
                 IList<Element> elements = collector.ToElements();
 
-                // 按类别筛选
+                // Filter by category
                 if (allCategories.Count > 0)
                 {
-                    // 转换字符串类别为枚举
+                    // Convert string categories to enum
                     List<BuiltInCategory> builtInCategories = new List<BuiltInCategory>();
                     foreach (string categoryName in allCategories)
                     {
@@ -110,7 +110,7 @@ namespace RevitMCPCommandSet.Services
                             builtInCategories.Add(category);
                         }
                     }
-                    // 如果成功解析了类别，则使用类别过滤器
+                    // If categories were successfully parsed, use category filter
                     if (builtInCategories.Count > 0)
                     {
                         ElementMulticategoryFilter categoryFilter = new ElementMulticategoryFilter(builtInCategories);
@@ -121,19 +121,19 @@ namespace RevitMCPCommandSet.Services
                     }
                 }
 
-                // 过滤隐藏的元素
+                // Filter hidden elements
                 if (!_includeHidden)
                 {
                     elements = elements.Where(e => !e.IsHidden(activeView)).ToList();
                 }
 
-                // 限制返回数量
+                // Limit return count
                 if (_limit > 0 && elements.Count > _limit)
                 {
                     elements = elements.Take(_limit).ToList();
                 }
 
-                // 构建结果
+                // Build result
                 var elementInfos = elements.Select(e => new ElementInfo
                 {
 #if REVIT2024_OR_GREATER
@@ -175,7 +175,7 @@ namespace RevitMCPCommandSet.Services
         {
             var properties = new Dictionary<string, string>();
 
-            // 添加通用属性
+            // Add common properties
 #if REVIT2024_OR_GREATER
             properties.Add("ElementId", element.Id.Value.ToString());
 #else
@@ -199,7 +199,7 @@ namespace RevitMCPCommandSet.Services
                 }
             }
 
-            // 获取常用参数值
+            // Get common parameter values
             var commonParams = new[] { "Comments", "Mark", "Level", "Family", "Type" };
             foreach (var paramName in commonParams)
             {
@@ -226,7 +226,7 @@ namespace RevitMCPCommandSet.Services
 
         public string GetName()
         {
-            return "获取当前视图元素";
+            return "Get Current View Elements";
         }
     }
 }

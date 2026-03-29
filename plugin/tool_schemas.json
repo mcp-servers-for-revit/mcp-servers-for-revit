@@ -1,0 +1,2891 @@
+[
+  {
+    "name": "add_shared_parameter",
+    "description": "Add a shared parameter from the shared parameter file to specified categories. Requires a shared parameter file to be set in Revit.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "parameterName": {
+          "type": "string",
+          "description": "Name of the shared parameter to add. Must exist in the specified group of the shared parameter file, or will be created."
+        },
+        "groupName": {
+          "type": "string",
+          "description": "Name of the parameter group in the shared parameter file where the parameter is defined (e.g. 'Identity Data', 'My Group')."
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of Revit category names to bind the parameter to (e.g. ['Walls', 'Floors', 'Doors'])."
+        },
+        "isInstance": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, binds as an instance parameter. If false, binds as a type parameter. Defaults to true."
+        },
+        "parameterGroup": {
+          "type": "string",
+          "description": "Display group for the parameter in the element properties panel. For Revit 2022+, use GroupTypeId property names (e.g. 'Data', 'IdentityData'). For older versions, use BuiltInParameterGroup enum names (e.g. 'PG_DATA'). Defaults to 'Data' / 'PG_DATA'."
+        }
+      },
+      "required": [
+        "parameterName",
+        "groupName",
+        "categories"
+      ]
+    }
+  },
+  {
+    "name": "ai_element_filter",
+    "description": "An intelligent Revit element querying tool designed specifically for AI assistants to retrieve detailed element information from Revit projects. This tool allows the AI to request elements matching specific criteria (such as category, type, visibility, or spatial location) and then perform further analysis on the returned data to answer complex user queries about Revit model elements. Example: When a user asks 'Find all walls taller than 5m in the project', the AI would: 1) Call this tool with parameters: {\"filterCategory\": \"OST_Walls\", \"includeInstances\": true}, 2) Receive detailed information about all wall instances in the project, 3) Process the returned data to filter walls with height > 5000mm, 4) Present the filtered results to the user with relevant details.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "filterCategory": {
+              "type": "string",
+              "description": "Enumeration of built-in element categories in Revit used for filtering and identifying specific element types (e.g., OST_Walls, OST_Floors, OST_GenericModel). Note that furniture elements may be classified as either OST_Furniture or OST_GenericModel categories, requiring flexible selection approaches"
+            },
+            "filterElementType": {
+              "type": "string",
+              "description": "The Revit element type name used for filtering specific elements by their class or type (e.g., 'Wall', 'Floor', 'Autodesk.Revit.DB.Wall'). Gets or sets the name of the Revit element type to be filtered."
+            },
+            "filterFamilySymbolId": {
+              "type": "number",
+              "description": "The ElementId of a specific FamilySymbol (type) in Revit used for filtering elements by their type (e.g., '123456', '789012'). Gets or sets the ElementId of the FamilySymbol to be used as a filter criterion. Use '-1' if no specific FamilySymbol filtering is needed."
+            },
+            "includeTypes": {
+              "type": "boolean",
+              "default": false,
+              "description": "Determines whether to include element types (such as wall types, door types, etc.) in the selection results. When set to true, element types will be included; when false, they will be excluded."
+            },
+            "includeInstances": {
+              "type": "boolean",
+              "default": true,
+              "description": "Determines whether to include element instances (such as placed walls, doors, etc.) in the selection results. When set to true, element instances will be included; when false, they will be excluded."
+            },
+            "filterVisibleInCurrentView": {
+              "type": "boolean",
+              "description": "Determines whether to only return elements that are visible in the current view. When set to true, only elements visible in the current view will be returned. Note: This filter only applies to element instances, not type elements."
+            },
+            "boundingBoxMin": {
+              "type": "object",
+              "properties": {
+                "p0": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "description": "X coordinate of start point"
+                    },
+                    "y": {
+                      "type": "number",
+                      "description": "Y coordinate of start point"
+                    },
+                    "z": {
+                      "type": "number",
+                      "description": "Z coordinate of start point"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                "p1": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "description": "X coordinate of end point"
+                    },
+                    "y": {
+                      "type": "number",
+                      "description": "Y coordinate of end point"
+                    },
+                    "z": {
+                      "type": "number",
+                      "description": "Z coordinate of end point"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "p0",
+                "p1"
+              ],
+              "additionalProperties": false,
+              "description": "The minimum point coordinates (in mm) for spatial bounding box filtering. When set along with boundingBoxMax, only elements that intersect with this bounding box will be returned. Set to null to disable this filter."
+            },
+            "boundingBoxMax": {
+              "type": "object",
+              "properties": {
+                "p0": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "description": "X coordinate of start point"
+                    },
+                    "y": {
+                      "type": "number",
+                      "description": "Y coordinate of start point"
+                    },
+                    "z": {
+                      "type": "number",
+                      "description": "Z coordinate of start point"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                "p1": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "description": "X coordinate of end point"
+                    },
+                    "y": {
+                      "type": "number",
+                      "description": "Y coordinate of end point"
+                    },
+                    "z": {
+                      "type": "number",
+                      "description": "Z coordinate of end point"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "p0",
+                "p1"
+              ],
+              "additionalProperties": false,
+              "description": "The maximum point coordinates (in mm) for spatial bounding box filtering. When set along with boundingBoxMin, only elements that intersect with this bounding box will be returned. Set to null to disable this filter."
+            },
+            "maxElements": {
+              "type": "number",
+              "description": "The maximum number of elements to find in a single tool invocation. Default is 50. Values exceeding 50 are not recommended for performance reasons."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Configuration parameters for the Revit element filter tool. These settings determine which elements will be selected from the Revit project based on various filtering criteria. Multiple filters can be combined to achieve precise element selection. All spatial coordinates should be provided in millimeters."
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "analyze_model_statistics",
+    "description": "Analyze model complexity with element counts. Returns detailed statistics about the Revit model including total element counts, total types, total families, views, sheets, counts by category (with type/family breakdown), and level-by-level element distribution. Useful for model auditing, performance analysis, and understanding model composition.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "includeDetailedTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to include detailed breakdown by family and type within each category. Defaults to true."
+        }
+      }
+    }
+  },
+  {
+    "name": "apply_view_template",
+    "description": "List available view templates, apply a template to views, or remove template assignments. Essential for consistent drawing standards.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "apply",
+            "remove"
+          ],
+          "description": "Action: list templates, apply to views, or remove from views (default: list)"
+        },
+        "viewIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "View IDs to apply/remove template (required for apply/remove)"
+        },
+        "templateId": {
+          "type": "number",
+          "description": "Template view ID to apply"
+        },
+        "templateName": {
+          "type": "string",
+          "description": "Template name to search for (used if templateId not provided)"
+        }
+      }
+    }
+  },
+  {
+    "name": "batch_export",
+    "description": "Export sheets or views to PDF, DWG, or IFC format. Can export single or multiple sheets/views. Returns the export file paths on success.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "PDF",
+            "DWG",
+            "IFC"
+          ],
+          "description": "Export format"
+        },
+        "sheetIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Sheet IDs to export (for PDF/DWG). If empty, exports all sheets."
+        },
+        "viewIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "View IDs to export (for DWG)"
+        },
+        "exportPath": {
+          "type": "string",
+          "description": "Directory path for exported files. If omitted, uses temp folder."
+        },
+        "paperSize": {
+          "type": "string",
+          "enum": [
+            "A4",
+            "A3",
+            "A2",
+            "A1",
+            "A0",
+            "Letter",
+            "Tabloid"
+          ],
+          "description": "Paper size for PDF export (default: A4)"
+        }
+      },
+      "required": [
+        "format"
+      ]
+    }
+  },
+  {
+    "name": "batch_rename",
+    "description": "Batch rename views, sheets, or elements using find/replace, prefix/suffix, or parameter-based naming rules. Useful for enforcing naming conventions across the project.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Specific element IDs to rename. If omitted, uses targetCategory to find elements."
+        },
+        "targetCategory": {
+          "type": "string",
+          "enum": [
+            "Views",
+            "Sheets",
+            "Levels",
+            "Grids",
+            "Rooms"
+          ],
+          "description": "Category of elements to rename (used when elementIds is not provided)"
+        },
+        "findText": {
+          "type": "string",
+          "description": "Text to find in existing names (for find/replace mode)"
+        },
+        "replaceText": {
+          "type": "string",
+          "description": "Replacement text (for find/replace mode)"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix to add to names"
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Suffix to add to names"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "If true (default), only previews changes without applying. Set to false to apply."
+        }
+      }
+    }
+  },
+  {
+    "name": "cad_link_cleanup",
+    "description": "Audit and clean up CAD imports and links in the model. List all CAD files (imports and links), identify bloat, and optionally delete them. Models often accumulate forgotten CAD imports that increase file size.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "delete"
+          ],
+          "description": "Action: list all CAD imports/links, or delete them (default: list)"
+        },
+        "deleteImports": {
+          "type": "boolean",
+          "description": "Delete CAD imports (embedded files) when action is delete"
+        },
+        "deleteLinks": {
+          "type": "boolean",
+          "description": "Delete CAD links (referenced files) when action is delete"
+        },
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Specific CAD element IDs to delete (overrides deleteImports/deleteLinks flags)"
+        }
+      }
+    }
+  },
+  {
+    "name": "change_element_type",
+    "description": "Batch swap family/element types on multiple elements at once. Useful for changing all doors from one type to another, swapping wall types, etc.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Element IDs to change type for"
+        },
+        "targetTypeId": {
+          "type": "number",
+          "description": "Target type element ID to change to"
+        },
+        "targetTypeName": {
+          "type": "string",
+          "description": "Target type name to search for (used if targetTypeId not provided)"
+        },
+        "targetFamilyName": {
+          "type": "string",
+          "description": "Target family name to narrow type search"
+        }
+      },
+      "required": [
+        "elementIds"
+      ]
+    }
+  },
+  {
+    "name": "clash_detection",
+    "description": "Detect geometric intersections (clashes) between two sets of elements. Specify by category names (e.g., 'Ducts' vs 'StructuralFraming') or specific element IDs. Returns pairs of clashing elements.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryA": {
+          "type": "string",
+          "description": "Category name for set A (e.g., Walls, Ducts, Pipes, StructuralFraming, Columns, Floors)"
+        },
+        "categoryB": {
+          "type": "string",
+          "description": "Category name for set B"
+        },
+        "elementIdsA": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Specific element IDs for set A (overrides categoryA)"
+        },
+        "elementIdsB": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Specific element IDs for set B (overrides categoryB)"
+        },
+        "tolerance": {
+          "type": "number",
+          "description": "Tolerance in mm (default: 0, exact intersection)"
+        },
+        "maxResults": {
+          "type": "number",
+          "description": "Maximum number of clashes to return (default: 100)"
+        }
+      }
+    }
+  },
+  {
+    "name": "color_elements",
+    "description": "Color elements in the current view based on a category and parameter value. Each unique parameter value gets assigned a distinct color.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryName": {
+          "type": "string",
+          "description": "The name of the Revit category to color (e.g., 'Walls', 'Doors', 'Rooms')"
+        },
+        "parameterName": {
+          "type": "string",
+          "description": "The name of the parameter to use for grouping and coloring elements"
+        },
+        "useGradient": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use a gradient color scheme instead of random colors"
+        },
+        "customColors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "r": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "g": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "b": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            },
+            "required": [
+              "r",
+              "g",
+              "b"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Optional array of custom RGB colors to use for specific parameter values"
+        }
+      },
+      "required": [
+        "categoryName",
+        "parameterName"
+      ]
+    }
+  },
+  {
+    "name": "copy_elements",
+    "description": "Copy elements between views within the same document. Useful for copying detail items, annotations, or model elements from one view to another.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Array of element IDs to copy"
+        },
+        "sourceViewId": {
+          "type": "number",
+          "description": "Source view ID where elements currently exist"
+        },
+        "targetViewId": {
+          "type": "number",
+          "description": "Target view ID to copy elements to"
+        },
+        "offsetX": {
+          "type": "number",
+          "description": "X offset in mm for the copied elements (default: 0)"
+        },
+        "offsetY": {
+          "type": "number",
+          "description": "Y offset in mm for the copied elements (default: 0)"
+        },
+        "offsetZ": {
+          "type": "number",
+          "description": "Z offset in mm for the copied elements (default: 0)"
+        }
+      },
+      "required": [
+        "elementIds",
+        "sourceViewId",
+        "targetViewId"
+      ]
+    }
+  },
+  {
+    "name": "create_array",
+    "description": "Create linear or radial arrays of elements. Useful for repetitive patterns like columns along a grid, fixtures along a corridor, etc.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Element IDs to array"
+        },
+        "arrayType": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "radial"
+          ],
+          "description": "Type of array: 'linear' or 'radial'"
+        },
+        "count": {
+          "type": "number",
+          "description": "Number of copies to create (total = original + count)"
+        },
+        "spacingX": {
+          "type": "number",
+          "description": "X spacing in mm between copies (for linear array, default: 0)"
+        },
+        "spacingY": {
+          "type": "number",
+          "description": "Y spacing in mm between copies (for linear array, default: 0)"
+        },
+        "spacingZ": {
+          "type": "number",
+          "description": "Z spacing in mm between copies (for linear array, default: 0)"
+        },
+        "centerX": {
+          "type": "number",
+          "description": "X center of rotation in mm (for radial array)"
+        },
+        "centerY": {
+          "type": "number",
+          "description": "Y center of rotation in mm (for radial array)"
+        },
+        "totalAngle": {
+          "type": "number",
+          "description": "Total angle in degrees for radial array (default: 360)"
+        }
+      },
+      "required": [
+        "elementIds",
+        "arrayType",
+        "count"
+      ]
+    }
+  },
+  {
+    "name": "create_dimensions",
+    "description": "Create dimension annotations in the current Revit view. Supports dimensioning between elements (walls, doors, windows) by element IDs, or between two points with automatic reference detection. All coordinates are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "startPoint": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in mm"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in mm"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z coordinate in mm"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "Start point of the dimension line (mm)"
+              },
+              "endPoint": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in mm"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in mm"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z coordinate in mm"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "End point of the dimension line (mm)"
+              },
+              "linePoint": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in mm"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in mm"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z coordinate in mm"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "Location of the dimension line itself (mm). If not provided, defaults to midpoint offset by 1 foot"
+              },
+              "elementIds": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Element IDs to dimension between. If provided, references are extracted from these elements. If empty, references are auto-detected at start/end points"
+              },
+              "dimensionType": {
+                "type": "string",
+                "default": "Linear",
+                "description": "Dimension type (default: 'Linear')"
+              },
+              "dimensionStyleId": {
+                "type": "number",
+                "default": -1,
+                "description": "Element ID of the dimension style to apply. -1 for default style"
+              },
+              "viewId": {
+                "type": "number",
+                "default": -1,
+                "description": "Element ID of the view to create the dimension in. -1 for active view"
+              }
+            },
+            "required": [
+              "startPoint",
+              "endPoint"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of dimensions to create"
+        }
+      },
+      "required": [
+        "dimensions"
+      ]
+    }
+  },
+  {
+    "name": "create_filled_region",
+    "description": "Create a 2D filled region (hatched area) in a view with specified boundary points and fill pattern. Useful for area shading, detail views, and presentation drawings.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "boundaryPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Boundary points in mm defining the filled region outline (minimum 3 points)"
+        },
+        "viewId": {
+          "type": "number",
+          "description": "View ID to create the region in (default: active view)"
+        },
+        "filledRegionTypeName": {
+          "type": "string",
+          "description": "Filled region type name (default: first available)"
+        }
+      },
+      "required": [
+        "boundaryPoints"
+      ]
+    }
+  },
+  {
+    "name": "create_floor",
+    "description": "Create a floor element from boundary points or from room boundaries. Coordinates in mm. Specify either boundary points or a roomId to derive the boundary from a room.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "boundaryPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate in mm"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate in mm"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of 2D points defining the floor boundary in mm (minimum 3 points). Points are connected in order, last connects to first."
+        },
+        "roomId": {
+          "type": "number",
+          "description": "Room element ID to derive floor boundary from (alternative to boundaryPoints)"
+        },
+        "floorTypeName": {
+          "type": "string",
+          "description": "Floor type name to use. If omitted, uses the first available floor type."
+        },
+        "levelElevation": {
+          "type": "number",
+          "description": "Level elevation in mm for the floor. If omitted, uses the room's level or the closest level."
+        },
+        "isStructural": {
+          "type": "boolean",
+          "description": "Whether the floor is structural (default: false)"
+        }
+      }
+    }
+  },
+  {
+    "name": "create_grid",
+    "description": "Create a grid system in Revit with smart spacing generation. Supports both X-axis (vertical) and Y-axis (horizontal) grids with customizable naming styles (alphabetic A,B,C or numeric 1,2,3). All units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xCount": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Number of grid lines along X-axis (vertical grids)"
+        },
+        "xSpacing": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Spacing between X-axis grid lines in millimeters"
+        },
+        "xStartLabel": {
+          "type": "string",
+          "default": "A",
+          "description": "Starting label for X-axis grids (e.g., 'A' or '1')"
+        },
+        "xNamingStyle": {
+          "type": "string",
+          "enum": [
+            "alphabetic",
+            "numeric"
+          ],
+          "default": "alphabetic",
+          "description": "Naming style for X-axis: 'alphabetic' (A,B,C...) or 'numeric' (1,2,3...)"
+        },
+        "yCount": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Number of grid lines along Y-axis (horizontal grids)"
+        },
+        "ySpacing": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Spacing between Y-axis grid lines in millimeters"
+        },
+        "yStartLabel": {
+          "type": "string",
+          "default": "1",
+          "description": "Starting label for Y-axis grids (e.g., '1' or 'A')"
+        },
+        "yNamingStyle": {
+          "type": "string",
+          "enum": [
+            "alphabetic",
+            "numeric"
+          ],
+          "default": "numeric",
+          "description": "Naming style for Y-axis: 'alphabetic' (A,B,C...) or 'numeric' (1,2,3...)"
+        },
+        "xExtentMin": {
+          "type": "number",
+          "default": 0,
+          "description": "Minimum extent along X-axis in mm (where Y-axis grids start)"
+        },
+        "xExtentMax": {
+          "type": "number",
+          "default": 50000,
+          "description": "Maximum extent along X-axis in mm (where Y-axis grids end)"
+        },
+        "yExtentMin": {
+          "type": "number",
+          "default": 0,
+          "description": "Minimum extent along Y-axis in mm (where X-axis grids start)"
+        },
+        "yExtentMax": {
+          "type": "number",
+          "default": 50000,
+          "description": "Maximum extent along Y-axis in mm (where X-axis grids end)"
+        },
+        "elevation": {
+          "type": "number",
+          "default": 0,
+          "description": "Elevation for grid lines in mm (Z-coordinate)"
+        },
+        "xStartPosition": {
+          "type": "number",
+          "default": 0,
+          "description": "Starting position for first X-axis grid in mm"
+        },
+        "yStartPosition": {
+          "type": "number",
+          "default": 0,
+          "description": "Starting position for first Y-axis grid in mm"
+        }
+      },
+      "required": [
+        "xCount",
+        "xSpacing",
+        "yCount",
+        "ySpacing"
+      ]
+    }
+  },
+  {
+    "name": "create_level",
+    "description": "Create one or more levels in Revit at specified elevations. Levels define horizontal planes in the building and are used to host floor plans, ceilings, and other level-based elements. All elevation units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the level (e.g., 'Level 2', 'Roof', 'Basement')"
+              },
+              "elevation": {
+                "type": "number",
+                "description": "Elevation of the level in millimeters (mm) from project origin"
+              },
+              "description": {
+                "type": "string",
+                "description": "Optional description of the level"
+              },
+              "isMainLevel": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether this is a main level (default: true)"
+              },
+              "isBuildingStory": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether this level represents a building story (default: true)"
+              },
+              "computationHeight": {
+                "type": "number",
+                "description": "Optional computation height in mm"
+              },
+              "viewPlanOffset": {
+                "type": "number",
+                "description": "Optional view plan offset in mm"
+              },
+              "viewSectionOffset": {
+                "type": "number",
+                "description": "Optional view section offset in mm"
+              },
+              "viewElevationOffset": {
+                "type": "number",
+                "description": "Optional view elevation offset in mm"
+              },
+              "createFloorPlan": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to create a floor plan view for this level (default: true)"
+              },
+              "createCeilingPlan": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to create a ceiling plan view for this level (default: true)"
+              }
+            },
+            "required": [
+              "name",
+              "elevation"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of levels to create"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "create_line_based_element",
+    "description": "Create one or more line-based elements in Revit such as walls, beams, or pipes. Supports batch creation with detailed parameters including family type ID, start and end points, thickness, height, and level information. All units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string",
+                "description": "Revit built-in category (e.g., OST_Walls, OST_StructuralFraming, OST_DuctCurves)"
+              },
+              "typeId": {
+                "type": "number",
+                "description": "The ID of the family type to create."
+              },
+              "locationLine": {
+                "type": "object",
+                "properties": {
+                  "p0": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                        "description": "X coordinate of start point"
+                      },
+                      "y": {
+                        "type": "number",
+                        "description": "Y coordinate of start point"
+                      },
+                      "z": {
+                        "type": "number",
+                        "description": "Z coordinate of start point"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "p1": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                        "description": "X coordinate of end point"
+                      },
+                      "y": {
+                        "type": "number",
+                        "description": "Y coordinate of end point"
+                      },
+                      "z": {
+                        "type": "number",
+                        "description": "Z coordinate of end point"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "p0",
+                  "p1"
+                ],
+                "additionalProperties": false,
+                "description": "The line defining the element's location"
+              },
+              "thickness": {
+                "type": "number",
+                "description": "Thickness/width of the element (e.g., wall thickness)"
+              },
+              "height": {
+                "type": "number",
+                "description": "Height of the element (e.g., wall height)"
+              },
+              "baseLevel": {
+                "type": "number",
+                "description": "Base level height"
+              },
+              "baseOffset": {
+                "type": "number",
+                "description": "Offset from the base level"
+              }
+            },
+            "required": [
+              "category",
+              "locationLine",
+              "thickness",
+              "height",
+              "baseLevel",
+              "baseOffset"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of line-based elements to create"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "create_point_based_element",
+    "description": "Create one or more point-based elements in Revit such as doors, windows, or furniture. Supports batch creation with detailed parameters including family type ID, position, dimensions, and level information. All units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Description of the element (e.g., door, window)"
+              },
+              "typeId": {
+                "type": "number",
+                "description": "The ID of the family type to create."
+              },
+              "locationPoint": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z coordinate"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "The position coordinates where the element will be placed"
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of the element in mm"
+              },
+              "depth": {
+                "type": "number",
+                "description": "Depth of the element in mm"
+              },
+              "height": {
+                "type": "number",
+                "description": "Height of the element in mm"
+              },
+              "baseLevel": {
+                "type": "number",
+                "description": "Base level height"
+              },
+              "baseOffset": {
+                "type": "number",
+                "description": "Offset from the base level"
+              },
+              "rotation": {
+                "type": "number",
+                "description": "Rotation angle in degrees (0-360)"
+              },
+              "hostWallId": {
+                "type": "number",
+                "description": "The ElementId of a specific wall to use as host for doors/windows. If not provided, the nearest wall will be auto-detected."
+              },
+              "facingFlipped": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether to flip the facing direction of the door/window. When true, the element faces the opposite side of the wall."
+              }
+            },
+            "required": [
+              "name",
+              "locationPoint",
+              "width",
+              "height",
+              "baseLevel",
+              "baseOffset"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of point-based elements to create"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "create_revision",
+    "description": "Manage project revisions: list all revisions, create a new revision, or add the latest revision to sheets. Essential for documentation tracking and issue management.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "create",
+            "add_to_sheets"
+          ],
+          "description": "Action: list revisions, create new, or add latest revision to sheets (default: list)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Revision date string (for create)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Revision description (for create)"
+        },
+        "issuedBy": {
+          "type": "string",
+          "description": "Issued by name (for create)"
+        },
+        "issuedTo": {
+          "type": "string",
+          "description": "Issued to name (for create)"
+        },
+        "sheetIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Sheet IDs to add revision to (for add_to_sheets)"
+        }
+      }
+    }
+  },
+  {
+    "name": "create_room",
+    "description": "Create and place rooms in Revit at specified locations. Rooms are placed within enclosed wall boundaries and can be named and numbered. The location point should be inside an enclosed area bounded by walls. All coordinates are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Room name (e.g., 'Server Room', 'Kitchen', 'Office')"
+              },
+              "number": {
+                "type": "string",
+                "description": "Room number (e.g., '101', 'A-01')"
+              },
+              "location": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X coordinate in mm (should be inside enclosed walls)"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y coordinate in mm (should be inside enclosed walls)"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z coordinate in mm (typically 0 or level elevation)"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "The location point where the room will be placed - must be inside an enclosed area"
+              },
+              "levelId": {
+                "type": "number",
+                "description": "Revit Level ElementId. If not provided, uses the nearest level to the Z coordinate"
+              },
+              "upperLimitId": {
+                "type": "number",
+                "description": "Upper limit Level ElementId for room height"
+              },
+              "limitOffset": {
+                "type": "number",
+                "description": "Offset from upper limit in mm"
+              },
+              "baseOffset": {
+                "type": "number",
+                "description": "Offset from base level in mm"
+              },
+              "department": {
+                "type": "string",
+                "description": "Department the room belongs to"
+              },
+              "comments": {
+                "type": "string",
+                "description": "Additional comments for the room"
+              }
+            },
+            "required": [
+              "name",
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of rooms to create"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "create_schedule",
+    "description": "Create a schedule view in Revit. Supports Regular, KeySchedule, and MaterialTakeoff types. Specify a BuiltInCategory name (e.g. OST_Walls) or leave empty for multi-category.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryName": {
+          "type": "string",
+          "description": "BuiltInCategory name like 'OST_Walls', 'OST_Doors', 'OST_Rooms'. Use empty string for multi-category schedule."
+        },
+        "name": {
+          "type": "string",
+          "description": "Schedule name"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Regular",
+            "KeySchedule",
+            "MaterialTakeoff"
+          ],
+          "description": "Schedule type. Default: Regular"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "parameterName": {
+                "type": "string",
+                "description": "Parameter name to add as a schedule field"
+              },
+              "fieldType": {
+                "type": "string",
+                "description": "Field type (Instance, Type, Count, Formula, Phasing)"
+              },
+              "heading": {
+                "type": "string",
+                "description": "Custom column heading"
+              },
+              "isHidden": {
+                "type": "boolean",
+                "description": "Whether the field is hidden"
+              },
+              "horizontalAlignment": {
+                "type": "string",
+                "enum": [
+                  "Left",
+                  "Center",
+                  "Right"
+                ],
+                "description": "Horizontal alignment. Default: Left"
+              }
+            },
+            "required": [
+              "parameterName"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Fields to include in the schedule"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fieldName": {
+                "type": "string",
+                "description": "Field name to filter by"
+              },
+              "filterType": {
+                "type": "string",
+                "description": "Filter type (Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, NotContains, BeginsWith, NotBeginsWith, EndsWith, NotEndsWith, HasValue, HasNoValue)"
+              },
+              "filterValue": {
+                "type": "string",
+                "description": "Filter value"
+              }
+            },
+            "required": [
+              "fieldName",
+              "filterType",
+              "filterValue"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Filters to apply to the schedule"
+        },
+        "sortFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fieldName": {
+                "type": "string",
+                "description": "Field name to sort by"
+              },
+              "sortOrder": {
+                "type": "string",
+                "enum": [
+                  "Ascending",
+                  "Descending"
+                ],
+                "description": "Sort order. Default: Ascending"
+              }
+            },
+            "required": [
+              "fieldName"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Sort/group fields for the schedule"
+        },
+        "showTitle": {
+          "type": "boolean",
+          "description": "Show schedule title. Default: true"
+        },
+        "showHeaders": {
+          "type": "boolean",
+          "description": "Show column headers. Default: true"
+        },
+        "showGridLines": {
+          "type": "boolean",
+          "description": "Show grid lines. Default: true"
+        }
+      },
+      "required": [
+        "categoryName"
+      ]
+    }
+  },
+  {
+    "name": "create_sheet",
+    "description": "Create a new sheet in the Revit project with an optional title block. Returns the sheet ID, number, and name.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sheetNumber": {
+          "type": "string",
+          "description": "Sheet number (e.g. 'A101')"
+        },
+        "sheetName": {
+          "type": "string",
+          "description": "Sheet name"
+        },
+        "titleBlockFamilyName": {
+          "type": "string",
+          "description": "Title block family name. If not specified, uses the first available title block"
+        },
+        "titleBlockTypeName": {
+          "type": "string",
+          "description": "Title block type name within the family"
+        },
+        "titleBlockTypeId": {
+          "type": "number",
+          "description": "Title block type ID (alternative to family/type name)"
+        }
+      }
+    }
+  },
+  {
+    "name": "create_structural_framing_system",
+    "description": "Create a structural beam framing system in Revit. Generates beams within a rectangular boundary at fixed spacing intervals. The system uses Revit's BeamSystem API to create properly connected beam layouts. All units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "levelName": {
+          "type": "string",
+          "description": "Name of the level to place the beam system on (e.g., 'Level 1', 'Level 2'). If the level doesn't exist but follows 'Level N' pattern, it will be auto-created at 4000mm floor-to-floor height."
+        },
+        "xMin": {
+          "type": "number",
+          "description": "Minimum X coordinate of the rectangular boundary in millimeters"
+        },
+        "xMax": {
+          "type": "number",
+          "description": "Maximum X coordinate of the rectangular boundary in millimeters"
+        },
+        "yMin": {
+          "type": "number",
+          "description": "Minimum Y coordinate of the rectangular boundary in millimeters"
+        },
+        "yMax": {
+          "type": "number",
+          "description": "Maximum Y coordinate of the rectangular boundary in millimeters"
+        },
+        "spacing": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Spacing between beams in millimeters"
+        },
+        "directionEdge": {
+          "type": "string",
+          "enum": [
+            "bottom",
+            "right",
+            "top",
+            "left"
+          ],
+          "default": "bottom",
+          "description": "Which edge defines the beam direction. Beams run perpendicular to this edge. 'bottom'/'top' = beams run in Y direction, 'left'/'right' = beams run in X direction."
+        },
+        "layoutRule": {
+          "type": "string",
+          "enum": [
+            "fixed_distance"
+          ],
+          "default": "fixed_distance",
+          "description": "Layout rule type. Currently only 'fixed_distance' is supported."
+        },
+        "justify": {
+          "type": "string",
+          "enum": [
+            "beginning",
+            "center",
+            "end",
+            "directionline"
+          ],
+          "default": "center",
+          "description": "Beam justification within the layout. 'center' places beams symmetrically, 'beginning'/'end' align to boundary edges."
+        },
+        "beamTypeName": {
+          "type": "string",
+          "description": "Name of the beam family type to use (e.g., 'W10x12', 'W-Wide Flange'). If not provided, the first available structural framing type will be used."
+        },
+        "elevation": {
+          "type": "number",
+          "default": 0,
+          "description": "Elevation offset from the level in millimeters. Use this to adjust the vertical position of the beam system."
+        },
+        "is3d": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to create a 3D beam system. Set to true for sloped or non-planar systems."
+        }
+      },
+      "required": [
+        "levelName",
+        "xMin",
+        "xMax",
+        "yMin",
+        "yMax",
+        "spacing"
+      ]
+    }
+  },
+  {
+    "name": "create_surface_based_element",
+    "description": "Create one or more surface-based elements in Revit such as floors, ceilings, or roofs. Supports batch creation with detailed parameters including family type ID, boundary lines, thickness, and level information. All units are in millimeters (mm).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Description of the element (e.g., floor, ceiling)"
+              },
+              "category": {
+                "type": "string",
+                "enum": [
+                  "OST_Floors",
+                  "OST_Ceilings",
+                  "OST_Roofs"
+                ],
+                "description": "The Revit built-in category for the element. Use OST_Floors for floors, OST_Ceilings for ceilings, OST_Roofs for roofs. If not specified, will be determined from typeId."
+              },
+              "typeId": {
+                "type": "number",
+                "description": "The ID of the family type to create."
+              },
+              "boundary": {
+                "type": "object",
+                "properties": {
+                  "outerLoop": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "p0": {
+                          "type": "object",
+                          "properties": {
+                            "x": {
+                              "type": "number",
+                              "description": "X coordinate of start point"
+                            },
+                            "y": {
+                              "type": "number",
+                              "description": "Y coordinate of start point"
+                            },
+                            "z": {
+                              "type": "number",
+                              "description": "Z coordinate of start point"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y",
+                            "z"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "p1": {
+                          "type": "object",
+                          "properties": {
+                            "x": {
+                              "type": "number",
+                              "description": "X coordinate of end point"
+                            },
+                            "y": {
+                              "type": "number",
+                              "description": "Y coordinate of end point"
+                            },
+                            "z": {
+                              "type": "number",
+                              "description": "Z coordinate of end point"
+                            }
+                          },
+                          "required": [
+                            "x",
+                            "y",
+                            "z"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "p0",
+                        "p1"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 3,
+                    "description": "Array of line segments defining the boundary"
+                  }
+                },
+                "required": [
+                  "outerLoop"
+                ],
+                "additionalProperties": false,
+                "description": "Boundary definition with outer loop"
+              },
+              "thickness": {
+                "type": "number",
+                "description": "Thickness of the element"
+              },
+              "baseLevel": {
+                "type": "number",
+                "description": "Base level height"
+              },
+              "baseOffset": {
+                "type": "number",
+                "description": "Offset from the base level"
+              }
+            },
+            "required": [
+              "name",
+              "boundary",
+              "thickness",
+              "baseLevel",
+              "baseOffset"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of surface-based elements to create"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "create_text_note",
+    "description": "Create text note annotations in a Revit view. Coordinates are in millimeters.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "textNotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The text content"
+              },
+              "position": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "X position in mm"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Y position in mm"
+                  },
+                  "z": {
+                    "type": "number",
+                    "description": "Z position in mm"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false,
+                "description": "Position of the text note in mm"
+              },
+              "viewId": {
+                "type": "number",
+                "description": "View ID to place the text note in (default: active view)"
+              },
+              "textNoteTypeId": {
+                "type": "number",
+                "description": "Text note type ID (default: first available type)"
+              },
+              "horizontalAlignment": {
+                "type": "string",
+                "enum": [
+                  "Left",
+                  "Center",
+                  "Right"
+                ],
+                "description": "Text alignment. Default: Left"
+              },
+              "width": {
+                "type": "number",
+                "description": "Text note width in mm (0 = auto width). Controls text wrapping"
+              }
+            },
+            "required": [
+              "text",
+              "position"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of text notes to create"
+        }
+      },
+      "required": [
+        "textNotes"
+      ]
+    }
+  },
+  {
+    "name": "create_view",
+    "description": "Create a new Revit view. Supports FloorPlan, CeilingPlan, Section, Elevation, and 3D view types. For plan views, specify level elevation. For sections, specify direction. Coordinates in mm.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "viewType": {
+          "type": "string",
+          "enum": [
+            "FloorPlan",
+            "CeilingPlan",
+            "Section",
+            "Elevation",
+            "3D"
+          ],
+          "description": "Type of view to create"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for the new view"
+        },
+        "levelElevation": {
+          "type": "number",
+          "description": "Level elevation in mm (for plan views, or origin Z for sections)"
+        },
+        "scale": {
+          "type": "number",
+          "description": "View scale (e.g. 100 for 1:100). Default: 100"
+        },
+        "detailLevel": {
+          "type": "string",
+          "enum": [
+            "Coarse",
+            "Medium",
+            "Fine"
+          ],
+          "description": "Detail level. Default: Medium"
+        },
+        "direction": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z"
+          ],
+          "additionalProperties": false,
+          "description": "View direction vector for Section/Elevation (e.g. {x:0, y:1, z:0} for looking North)"
+        },
+        "viewFamilyTypeName": {
+          "type": "string",
+          "description": "Specific view family type name to use"
+        }
+      },
+      "required": [
+        "viewType"
+      ]
+    }
+  },
+  {
+    "name": "create_view_filter",
+    "description": "Create or apply a view filter to control element visibility and graphics overrides in views. Can create parameter-based filters and apply them to views with color/pattern overrides.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "apply",
+            "list"
+          ],
+          "description": "Action: 'create' a new filter, 'apply' existing filter to view, 'list' all filters"
+        },
+        "filterName": {
+          "type": "string",
+          "description": "Name for the new filter or name of existing filter to apply"
+        },
+        "categoryNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Category names to filter (e.g. ['Walls', 'Floors']). Required for 'create'."
+        },
+        "parameterName": {
+          "type": "string",
+          "description": "Parameter name to filter by (for 'create')"
+        },
+        "filterRule": {
+          "type": "string",
+          "enum": [
+            "Equals",
+            "DoesNotEqual",
+            "IsGreaterThan",
+            "IsLessThan",
+            "Contains",
+            "DoesNotContain",
+            "BeginsWith",
+            "EndsWith",
+            "HasValue",
+            "HasNoValue"
+          ],
+          "description": "Filter rule type (for 'create')"
+        },
+        "filterValue": {
+          "type": "string",
+          "description": "Value to filter against (for 'create')"
+        },
+        "viewId": {
+          "type": "number",
+          "description": "View ID to apply the filter to (for 'apply', default: active view)"
+        },
+        "colorR": {
+          "type": "number",
+          "description": "Override color Red 0-255"
+        },
+        "colorG": {
+          "type": "number",
+          "description": "Override color Green 0-255"
+        },
+        "colorB": {
+          "type": "number",
+          "description": "Override color Blue 0-255"
+        },
+        "isVisible": {
+          "type": "boolean",
+          "description": "Whether filtered elements are visible (default: true)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "delete_element",
+    "description": "Delete one or more elements from the Revit model by their element IDs.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of the elements to delete"
+        }
+      },
+      "required": [
+        "elementIds"
+      ]
+    }
+  },
+  {
+    "name": "duplicate_view",
+    "description": "Duplicate one or more views with options: independent copy, dependent (linked to parent), or with detailing (copies annotations). Supports custom name prefix/suffix.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "viewIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "View IDs to duplicate"
+        },
+        "duplicateOption": {
+          "type": "string",
+          "enum": [
+            "duplicate",
+            "dependent",
+            "withDetailing"
+          ],
+          "description": "Duplication mode: duplicate (independent), dependent (linked), withDetailing (copies annotations)"
+        },
+        "newNamePrefix": {
+          "type": "string",
+          "description": "Prefix for the new view name"
+        },
+        "newNameSuffix": {
+          "type": "string",
+          "description": "Suffix for the new view name"
+        }
+      },
+      "required": [
+        "viewIds"
+      ]
+    }
+  },
+  {
+    "name": "export_room_data",
+    "description": "Export all room data from the current Revit project. Returns detailed information about each room including name, number, level, area, volume, perimeter, department, and more. Useful for generating room schedules, space analysis, and facility management data.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "includeUnplacedRooms": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to include unplaced rooms (rooms not yet placed in the model). Defaults to false."
+        },
+        "includeNotEnclosedRooms": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to include rooms that are not fully enclosed. Defaults to false."
+        }
+      }
+    }
+  },
+  {
+    "name": "export_schedule",
+    "description": "Export a Revit schedule to a text/CSV file. Returns the export file path on success.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "number",
+          "description": "The element ID of the schedule to export"
+        },
+        "exportPath": {
+          "type": "string",
+          "description": "File path for the exported schedule. If omitted, exports to the user's temp folder"
+        },
+        "delimiter": {
+          "type": "string",
+          "enum": [
+            "Tab",
+            "Comma",
+            "Space",
+            "Semicolon"
+          ],
+          "description": "Field delimiter for the exported file (default: Tab)"
+        },
+        "includeHeaders": {
+          "type": "boolean",
+          "description": "Whether to include column headers in the export (default: true)"
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
+  },
+  {
+    "name": "get_available_family_types",
+    "description": "Get available family types in the current Revit project. You can filter by category and family name, and limit the number of returned types.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of Revit category names to filter by (e.g., 'OST_Walls', 'OST_Doors', 'OST_Furniture')"
+        },
+        "familyNameFilter": {
+          "type": "string",
+          "description": "Filter family types by family name (partial match)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Maximum number of family types to return"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_current_view_elements",
+    "description": "Get elements from the current active view in Revit. You can filter by model categories (like Walls, Floors) or annotation categories (like Dimensions, Text). Use includeHidden to show/hide invisible elements and limit to control the number of returned elements.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "modelCategoryList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of Revit model category names (e.g., 'OST_Walls', 'OST_Doors', 'OST_Floors')"
+        },
+        "annotationCategoryList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of Revit annotation category names (e.g., 'OST_Dimensions', 'OST_WallTags', 'OST_TextNotes')"
+        },
+        "includeHidden": {
+          "type": "boolean",
+          "description": "Whether to include hidden elements in the results"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Maximum number of elements to return"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_current_view_info",
+    "description": "获取 Revit 当前活动视图的详细信息，包括视图类型、名称、比例等属性。",
+    "input_schema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "get_element_parameters",
+    "description": "Get all parameters (instance and type) of one or more Revit elements by their IDs. Returns parameter names, values, storage types, and whether they are read-only or shared.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Array of Revit element IDs to get parameters for"
+        },
+        "includeTypeParameters": {
+          "type": "boolean",
+          "description": "Include type parameters in addition to instance parameters (default: true)"
+        }
+      },
+      "required": [
+        "elementIds"
+      ]
+    }
+  },
+  {
+    "name": "get_materials",
+    "description": "List all materials in the current Revit project with their basic properties including color, transparency, and asset availability. Can filter by material class or name.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "materialClass": {
+          "type": "string",
+          "description": "Filter materials by class (case-insensitive exact match, e.g. 'Metal', 'Concrete', 'Wood')"
+        },
+        "nameFilter": {
+          "type": "string",
+          "description": "Filter materials whose name contains this substring (case-insensitive)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_material_properties",
+    "description": "Get detailed physical, structural, and thermal properties of a specific Revit material. Provide either materialId or materialName.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "materialId": {
+          "type": "number",
+          "description": "The Revit element ID of the material"
+        },
+        "materialName": {
+          "type": "string",
+          "description": "The name of the material to look up (case-insensitive exact match, used if materialId is not provided)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_material_quantities",
+    "description": "Calculate material quantities and takeoffs from the current Revit project. Returns detailed information about each material including name, class, area, volume, and element counts. Useful for cost estimation, material ordering, and sustainability analysis.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryFilters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional list of Revit category names to filter by (e.g., ['OST_Walls', 'OST_Floors', 'OST_Roofs']). If not specified, all categories are included."
+        },
+        "selectedElementsOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to only analyze currently selected elements. Defaults to false (analyze entire project)."
+        }
+      }
+    }
+  },
+  {
+    "name": "get_phases",
+    "description": "Get all phases and phase filters from the current Revit project. Phases define the timeline of construction, and phase filters control element visibility based on phase status.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "includePhaseFilters": {
+          "type": "boolean",
+          "description": "Include phase filters in addition to phases (default: true)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_project_info",
+    "description": "Get comprehensive project information from the active Revit document, including project metadata, phases, worksets, Revit links, and levels.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "includePhases": {
+          "type": "boolean",
+          "description": "Include project phases (default: true)"
+        },
+        "includeWorksets": {
+          "type": "boolean",
+          "description": "Include workset information (default: true)"
+        },
+        "includeLinks": {
+          "type": "boolean",
+          "description": "Include Revit link information (default: true)"
+        },
+        "includeLevels": {
+          "type": "boolean",
+          "description": "Include level information (default: true)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_schedule_data",
+    "description": "Read data from a Revit schedule. Pass a schedule ID to get its content, or omit to list all schedules in the project.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "scheduleId": {
+          "type": "number",
+          "description": "Schedule element ID. If omitted or 0, lists all schedules in the project."
+        },
+        "maxRows": {
+          "type": "number",
+          "description": "Maximum rows to return (default: 500)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_selected_elements",
+    "description": "Get elements currently selected in Revit. You can limit the number of returned elements.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "number",
+          "description": "Maximum number of elements to return"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_shared_parameters",
+    "description": "List all project parameters (shared and non-shared) bound to categories in the current Revit project. Can filter by category name.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "categoryFilter": {
+          "type": "string",
+          "description": "Optional category name filter. Returns only parameters bound to categories whose name contains this string (case-insensitive)."
+        }
+      }
+    }
+  },
+  {
+    "name": "get_warnings",
+    "description": "Get all warnings/errors in the current Revit model. Warnings indicate issues like duplicate elements, overlapping geometry, room separation problems, etc. Useful for model health auditing and quality control.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "severityFilter": {
+          "type": "string",
+          "enum": [
+            "All",
+            "Warning",
+            "Error"
+          ],
+          "description": "Filter by severity level (default: All)"
+        },
+        "maxWarnings": {
+          "type": "number",
+          "description": "Maximum number of warnings to return (default: 500)"
+        },
+        "categoryFilter": {
+          "type": "string",
+          "description": "Filter warnings containing this text in the description (case-insensitive)"
+        }
+      }
+    }
+  },
+  {
+    "name": "get_worksets",
+    "description": "List all worksets in the current Revit project with their properties. Returns workset name, kind, open/editable status, and owner.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "includeSystemWorksets": {
+          "type": "boolean",
+          "description": "Include system worksets such as Family Workset, Project Standards, and Views workset (default: false)"
+        }
+      }
+    }
+  },
+  {
+    "name": "load_family",
+    "description": "Load a Revit family (.rfa) file into the current project, or list loaded families by category. Can also duplicate existing family types with new parameter values.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "load",
+            "list",
+            "duplicate_type"
+          ],
+          "description": "Action: 'load' to load a .rfa file, 'list' to list loaded families, 'duplicate_type' to duplicate an existing type"
+        },
+        "familyPath": {
+          "type": "string",
+          "description": "Full path to .rfa file (required for 'load' action)"
+        },
+        "categoryFilter": {
+          "type": "string",
+          "description": "Filter families by category name (for 'list' action, case-insensitive)"
+        },
+        "sourceTypeId": {
+          "type": "number",
+          "description": "Source family type ID to duplicate (for 'duplicate_type' action)"
+        },
+        "newTypeName": {
+          "type": "string",
+          "description": "Name for the new duplicated type (for 'duplicate_type' action)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "manage_links",
+    "description": "Manage linked Revit models: list all links with status, reload, unload, or load links. Essential for multi-discipline BIM coordination.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "reload",
+            "unload"
+          ],
+          "description": "Action: 'list' shows all links, 'reload' reloads a link, 'unload' unloads a link"
+        },
+        "linkId": {
+          "type": "number",
+          "description": "Link element ID (required for reload/unload actions)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "match_element_properties",
+    "description": "Copy parameter values from a source element to one or more target elements. Like Revit's 'Match Type Properties' but for instance parameters too. Specify which parameters to copy or copy all matching writable parameters.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sourceElementId": {
+          "type": "number",
+          "description": "Source element ID to copy parameter values from"
+        },
+        "targetElementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Target element IDs to copy parameter values to"
+        },
+        "parameterNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific parameter names to copy (default: copy all matching writable parameters)"
+        },
+        "includeTypeParameters": {
+          "type": "boolean",
+          "description": "Also copy type parameters (default: false, instance only)"
+        }
+      },
+      "required": [
+        "sourceElementId",
+        "targetElementIds"
+      ]
+    }
+  },
+  {
+    "name": "modify_element",
+    "description": "Modify Revit elements by moving, rotating, mirroring, or copying them. Coordinates are in millimeters.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "elementIds": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "description": "Array of element IDs to modify"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "move",
+                "rotate",
+                "mirror",
+                "copy"
+              ],
+              "description": "The modification action to perform"
+            },
+            "translation": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate in mm"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate in mm"
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z coordinate in mm"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "z"
+              ],
+              "additionalProperties": false,
+              "description": "Translation vector in mm (required for 'move' action). E.g. {x: 1000, y: 0, z: 0} moves 1m in X"
+            },
+            "rotationCenter": {
+              "$ref": "#/properties/data/properties/translation",
+              "description": "Center point of rotation in mm (required for 'rotate' action)"
+            },
+            "rotationAngle": {
+              "type": "number",
+              "description": "Rotation angle in degrees (required for 'rotate' action)"
+            },
+            "mirrorPlaneOrigin": {
+              "$ref": "#/properties/data/properties/translation",
+              "description": "Origin point of the mirror plane in mm (required for 'mirror' action)"
+            },
+            "mirrorPlaneNormal": {
+              "$ref": "#/properties/data/properties/translation",
+              "description": "Normal vector of the mirror plane (required for 'mirror' action). E.g. {x: 1, y: 0, z: 0} for YZ plane"
+            },
+            "copyOffset": {
+              "$ref": "#/properties/data/properties/translation",
+              "description": "Offset vector for copy in mm (required for 'copy' action)"
+            }
+          },
+          "required": [
+            "elementIds",
+            "action"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "operate_element",
+    "description": "Operate on Revit elements by performing actions such as select, selectionBox, setColor, setTransparency, delete, hide, etc.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "properties": {
+            "elementIds": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "description": "A valid Revit element ID to operate on"
+              },
+              "description": "Array of Revit element IDs to perform the specified action on"
+            },
+            "action": {
+              "type": "string",
+              "description": "The operation to perform on elements. Valid values: Select, SelectionBox, SetColor, SetTransparency, Delete, Hide, TempHide, Isolate, Unhide, ResetIsolate, Highlight. Select enables direct element selection in the active view. SelectionBox allows selection of elements by drawing a rectangular window in the view. SetColor changes the color of elements (requires elementColor parameter). SetTransparency adjusts element transparency (requires transparencyValue parameter). Highlight is a convenience operation that sets elements to red color (internally calls SetColor with red). Delete permanently removes elements from the project. Hide makes elements invisible in the current view until explicitly shown. TempHide temporarily hides elements in the current view. Isolate displays only selected elements while hiding all others. Unhide reveals previously hidden elements. ResetIsolate restores normal visibility to the view."
+            },
+            "transparencyValue": {
+              "type": "number",
+              "default": 50,
+              "description": "Transparency value (0-100) for SetTransparency action. Higher values increase transparency."
+            },
+            "colorValue": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "default": [
+                255,
+                0,
+                0
+              ],
+              "description": "RGB color values for SetColor action. Default is red [255,0,0]."
+            }
+          },
+          "required": [
+            "elementIds",
+            "action"
+          ],
+          "additionalProperties": false,
+          "description": "Parameters for operating on Revit elements with specific actions"
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  {
+    "name": "override_graphics",
+    "description": "Set per-element graphic overrides in a view: projection line color, surface fill color, transparency, halftone, and lineweight. Can also reset overrides.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Element IDs to override"
+        },
+        "viewId": {
+          "type": "number",
+          "description": "View ID (default: active view)"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "set",
+            "reset"
+          ],
+          "description": "set overrides or reset to default (default: set)"
+        },
+        "projectionLineColor": {
+          "type": "object",
+          "properties": {
+            "r": {
+              "type": "number"
+            },
+            "g": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "r",
+            "g",
+            "b"
+          ],
+          "additionalProperties": false,
+          "description": "Projection line color RGB (0-255)"
+        },
+        "surfaceForegroundColor": {
+          "type": "object",
+          "properties": {
+            "r": {
+              "type": "number"
+            },
+            "g": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "r",
+            "g",
+            "b"
+          ],
+          "additionalProperties": false,
+          "description": "Surface fill color RGB (0-255)"
+        },
+        "transparency": {
+          "type": "number",
+          "description": "Surface transparency (0-100)"
+        },
+        "halftone": {
+          "type": "boolean",
+          "description": "Apply halftone effect"
+        },
+        "projectionLineWeight": {
+          "type": "number",
+          "description": "Projection lineweight (1-16)"
+        }
+      },
+      "required": [
+        "elementIds"
+      ]
+    }
+  },
+  {
+    "name": "place_viewport",
+    "description": "Place a view onto a sheet as a viewport. The view must not already be placed on another sheet. Position coordinates are in millimeters relative to the sheet origin.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sheetId": {
+          "type": "number",
+          "description": "ID of the sheet to place the viewport on"
+        },
+        "viewId": {
+          "type": "number",
+          "description": "ID of the view to place"
+        },
+        "positionX": {
+          "type": "number",
+          "description": "X position on the sheet in mm (from sheet origin)"
+        },
+        "positionY": {
+          "type": "number",
+          "description": "Y position on the sheet in mm (from sheet origin)"
+        }
+      },
+      "required": [
+        "sheetId",
+        "viewId",
+        "positionX",
+        "positionY"
+      ]
+    }
+  },
+  {
+    "name": "purge_unused",
+    "description": "Identify and optionally remove unused families, family types, materials, and other elements that bloat the Revit model. Use dryRun=true (default) to preview what would be purged without actually deleting anything.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "dryRun": {
+          "type": "boolean",
+          "description": "If true (default), only reports what would be purged without deleting. Set to false to actually purge."
+        },
+        "maxElements": {
+          "type": "number",
+          "description": "Maximum number of elements to purge in one operation (default: 500)"
+        }
+      }
+    }
+  },
+  {
+    "name": "renumber_elements",
+    "description": "Sequentially renumber rooms, doors, windows, or parking elements by spatial order or custom sequence. Supports prefix/suffix, custom start number, and dry-run preview.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Specific element IDs to renumber. If omitted, uses targetCategory."
+        },
+        "targetCategory": {
+          "type": "string",
+          "enum": [
+            "Rooms",
+            "Doors",
+            "Windows",
+            "Parking"
+          ],
+          "description": "Category of elements to renumber"
+        },
+        "parameterName": {
+          "type": "string",
+          "description": "Custom parameter name to set the number on (default: uses built-in number parameter)"
+        },
+        "startNumber": {
+          "type": "number",
+          "description": "Starting number (default: 1)"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix before the number (e.g., 'R-')"
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Suffix after the number"
+        },
+        "increment": {
+          "type": "number",
+          "description": "Increment between numbers (default: 1)"
+        },
+        "sortBy": {
+          "type": "string",
+          "enum": [
+            "location",
+            "name",
+            "none"
+          ],
+          "description": "Sort order before numbering: location (spatial), name (alphabetical), or none (as-is)"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "If true (default), only preview changes. Set to false to apply."
+        }
+      }
+    }
+  },
+  {
+    "name": "say_hello",
+    "description": "Display a greeting dialog in Revit. Useful for testing the connection between Claude and Revit.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Optional custom message to display in the dialog. Defaults to 'Hello MCP!'"
+        }
+      }
+    }
+  },
+  {
+    "name": "send_code_to_revit",
+    "description": "Send C# code to Revit for execution. The code will be inserted into a template with access to the Revit Document and parameters. Your code should be written to work within the Execute method of the template.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The C# code to execute in Revit. This code will be inserted into the Execute method of a template with access to Document and parameters."
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Optional execution parameters that will be passed to your code"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    }
+  },
+  {
+    "name": "set_element_parameters",
+    "description": "Set parameter values on one or more Revit elements. Supports instance and type parameters. Values are automatically converted to the correct storage type (String, Integer, Double, ElementId).",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementId": {
+                "type": "number",
+                "description": "Revit element ID"
+              },
+              "parameterName": {
+                "type": "string",
+                "description": "Name of the parameter to set"
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ],
+                "description": "Value to set. String for text, number for numeric/ElementId, boolean for yes/no parameters"
+              }
+            },
+            "required": [
+              "elementId",
+              "parameterName",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of parameter set requests"
+        }
+      },
+      "required": [
+        "requests"
+      ]
+    }
+  },
+  {
+    "name": "set_element_phase",
+    "description": "Set the created and/or demolished phase on Revit elements. Use get_phases first to get valid phase IDs.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementId": {
+                "type": "number",
+                "description": "Revit element ID"
+              },
+              "createdPhaseId": {
+                "type": "number",
+                "description": "Phase ID to set as the created phase for the element"
+              },
+              "demolishedPhaseId": {
+                "type": "number",
+                "description": "Phase ID to set as the demolished phase for the element"
+              }
+            },
+            "required": [
+              "elementId"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of phase assignment requests. At least one of createdPhaseId or demolishedPhaseId must be provided per request."
+        }
+      },
+      "required": [
+        "requests"
+      ]
+    }
+  },
+  {
+    "name": "set_element_workset",
+    "description": "Move elements to a different workset by setting their workset parameter. Project must be workshared.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementId": {
+                "type": "number",
+                "description": "Revit element ID"
+              },
+              "worksetName": {
+                "type": "string",
+                "description": "Name of the target workset to move the element to"
+              }
+            },
+            "required": [
+              "elementId",
+              "worksetName"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Array of workset assignment requests"
+        }
+      },
+      "required": [
+        "requests"
+      ]
+    }
+  },
+  {
+    "name": "tag_all_rooms",
+    "description": "Create tags for all rooms in the current active view. Tags will be placed at the center point of each room, displaying the room name and number.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "useLeader": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use a leader line when creating the tags"
+        },
+        "tagTypeId": {
+          "type": "string",
+          "description": "The ID of the specific room tag family type to use. If not provided, the default room tag type will be used"
+        },
+        "roomIds": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Optional array of specific room element IDs to tag. If not provided, all rooms in the current view will be tagged"
+        }
+      }
+    }
+  },
+  {
+    "name": "tag_all_walls",
+    "description": "Create tags for all walls in the current active view. Tags will be placed at the middle point of each wall.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "useLeader": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use a leader line when creating the tags"
+        },
+        "tagTypeId": {
+          "type": "string",
+          "description": "The ID of the specific wall tag family type to use. If not provided, the default wall tag type will be used"
+        }
+      }
+    }
+  }
+]

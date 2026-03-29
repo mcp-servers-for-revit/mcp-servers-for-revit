@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,6 +21,11 @@ namespace revit_mcp_plugin.UI
         private bool _isProcessing;
         private bool _planningMode;
         private int _selectedModelIndex;
+        private bool _lastStatus;
+
+        private static readonly SolidColorBrush BrushOnline = new SolidColorBrush(Color.FromRgb(76, 175, 80));
+        private static readonly SolidColorBrush BrushOffline = new SolidColorBrush(Color.FromRgb(244, 67, 54));
+        private static readonly SolidColorBrush BrushOfflineText = new SolidColorBrush(Color.FromRgb(136, 136, 136));
 
         public static MCPDockablePanel Instance => _instance;
 
@@ -68,18 +74,18 @@ namespace revit_mcp_plugin.UI
             try
             {
                 bool running = Core.SocketService.Instance.IsRunning;
-                StatusIndicator.Fill = new SolidColorBrush(running
-                    ? Color.FromRgb(76, 175, 80) : Color.FromRgb(244, 67, 54));
+                if (running == _lastStatus) return;
+                _lastStatus = running;
+                StatusIndicator.Fill = running ? BrushOnline : BrushOffline;
                 StatusText.Text = running ? "MCP Online" : "MCP Offline";
-                StatusText.Foreground = new SolidColorBrush(running
-                    ? Color.FromRgb(76, 175, 80) : Color.FromRgb(136, 136, 136));
+                StatusText.Foreground = running ? BrushOnline : BrushOfflineText;
             }
             catch { }
         }
 
         private void ChatInput_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && !_isProcessing)
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && !_isProcessing)
             {
                 Send_Click(sender, e);
                 e.Handled = true;
@@ -143,8 +149,36 @@ namespace revit_mcp_plugin.UI
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 TypingText.Text = $"Eseguo {toolName}...";
-                _messages.Add(new ChatMessage("tool", toolName));
+                _messages.Add(new ChatMessage("tool", $"⚡ {toolName}"));
                 ChatScrollViewer.ScrollToEnd();
+            }));
+        }
+
+        public void OnToolCompleted(string toolName, bool isError, string result)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                string preview = result.Length > 200 ? result.Substring(0, 200) + "..." : result;
+                string status = isError ? $"✗ {toolName} — errore:\n{preview}" : $"✓ {toolName} completato";
+                _messages.Add(new ChatMessage(isError ? "tool_error" : "tool_ok", status));
+                ChatScrollViewer.ScrollToEnd();
+            }));
+        }
+
+        public void OnIntermediateText(string text)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _messages.Add(new ChatMessage("assistant", text));
+                ChatScrollViewer.ScrollToEnd();
+            }));
+        }
+
+        public void OnRoundProgress(int current, int max)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                TypingText.Text = $"Claude sta elaborando... (step {current}/{max})";
             }));
         }
 
@@ -231,7 +265,17 @@ namespace revit_mcp_plugin.UI
                 _client.Model = selected.ModelId;
             SaveModelIndex(index);
             ModelPopup.IsOpen = false;
-            BuildModelPopup(); // Refresh checkmarks
+
+            for (int i = 0; i < ModelPopupItems.Children.Count; i++)
+            {
+                if (ModelPopupItems.Children[i] is Border border &&
+                    border.Child is Grid grid &&
+                    grid.Children.Count > 1 &&
+                    grid.Children[1] is TextBlock check)
+                {
+                    check.Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
         }
 
         private static int LoadSavedModelIndex()
@@ -322,6 +366,86 @@ namespace revit_mcp_plugin.UI
             _client?.ClearHistory();
             AddMessage("assistant", "Chat azzerata. Come posso aiutarti?");
         }
+
+        private void ExportChat_Click(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                var dialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Title = "Esporta chat",
+                    FileName = $"chat_{DateTime.Now:yyyyMMdd_HHmmss}",
+                    DefaultExt = ".txt",
+                    Filter = "Testo (*.txt)|*.txt|Markdown (*.md)|*.md|JSON (*.json)|*.json",
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                };
+
+                if (dialog.ShowDialog() != true) return;
+
+                string content;
+                switch (dialog.FilterIndex)
+                {
+                    case 2: content = BuildMarkdown(); break;
+                    case 3: content = BuildJson(); break;
+                    default: content = BuildPlainText(); break;
+                }
+
+                File.WriteAllText(dialog.FileName, content, Encoding.UTF8);
+                AddMessage("assistant", $"Chat esportata in:\n{dialog.FileName}");
+            }
+            catch (Exception ex)
+            {
+                AddMessage("assistant", $"Errore esportazione: {ex.Message}");
+            }
+        }
+
+        private string BuildPlainText()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"Claude for Revit — {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine(new string('=', 60));
+            sb.AppendLine();
+            foreach (var msg in _messages)
+            {
+                sb.AppendLine($"[{msg.RoleLabel}]");
+                sb.AppendLine(msg.Text);
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        private string BuildMarkdown()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"# Claude for Revit — {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine();
+            foreach (var msg in _messages)
+            {
+                sb.AppendLine($"**{msg.RoleLabel}**");
+                sb.AppendLine();
+                sb.AppendLine(msg.Text);
+                sb.AppendLine();
+                sb.AppendLine("---");
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        private string BuildJson()
+        {
+            var array = new Newtonsoft.Json.Linq.JArray();
+            foreach (var msg in _messages)
+                array.Add(new Newtonsoft.Json.Linq.JObject
+                {
+                    ["role"] = msg.RoleLabel,
+                    ["text"] = msg.Text
+                });
+            return new Newtonsoft.Json.Linq.JObject
+            {
+                ["exported"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                ["messages"] = array
+            }.ToString(Newtonsoft.Json.Formatting.Indented);
+        }
     }
 
     public class ModelOption
@@ -387,6 +511,24 @@ namespace revit_mcp_plugin.UI
                     RoleLabelColor = ToolGreen;
                     TextColor = new SolidColorBrush(Color.FromRgb(46, 125, 50));
                     RowBackground = new SolidColorBrush(Color.FromRgb(250, 249, 247));
+                    FontFamily = new FontFamily("Consolas");
+                    break;
+                case "tool_ok":
+                    RoleLabel = "";
+                    AvatarLetter = "✓";
+                    AvatarBackground = ToolGreen;
+                    RoleLabelColor = ToolGreen;
+                    TextColor = new SolidColorBrush(Color.FromRgb(46, 125, 50));
+                    RowBackground = new SolidColorBrush(Color.FromRgb(245, 252, 245));
+                    FontFamily = new FontFamily("Segoe UI");
+                    break;
+                case "tool_error":
+                    RoleLabel = "";
+                    AvatarLetter = "✗";
+                    AvatarBackground = new SolidColorBrush(Color.FromRgb(244, 67, 54));
+                    RoleLabelColor = new SolidColorBrush(Color.FromRgb(244, 67, 54));
+                    TextColor = new SolidColorBrush(Color.FromRgb(183, 28, 28));
+                    RowBackground = new SolidColorBrush(Color.FromRgb(255, 245, 245));
                     FontFamily = new FontFamily("Consolas");
                     break;
                 default:

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,115 +8,115 @@ using System.Threading.Tasks;
 namespace RevitMCPCommandSet.Models.Common
 {
     /// <summary>
-    /// 过滤器设置 - 支持组合条件过滤
+    /// Filter settings - supports combined condition filtering
     /// </summary>
     public class FilterSetting
     {
         /// <summary>
-        /// 获取或设置要过滤的 Revit 内置类别名称（如"OST_Walls"）。
-        /// 如果为 null 或空，则不进行类别过滤。
+        /// Gets or sets the Revit built-in category name to filter by (e.g. "OST_Walls").
+        /// If null or empty, no category filtering is applied.
         /// </summary>
         [JsonProperty("filterCategory")]
         public string FilterCategory { get; set; } = null;
         /// <summary>
-        /// 获取或设置要过滤的 Revit 元素类型名称（如"Wall"或"Autodesk.Revit.DB.Wall"）。
-        /// 如果为 null 或空，则不进行类型过滤。
+        /// Gets or sets the Revit element type name to filter by (e.g. "Wall" or "Autodesk.Revit.DB.Wall").
+        /// If null or empty, no type filtering is applied.
         /// </summary>
         [JsonProperty("filterElementType")]
         public string FilterElementType { get; set; } = null;
         /// <summary>
-        /// 获取或设置要过滤的族类型的ElementId值（FamilySymbol）。
-        /// 如果为0或负数，则不进行族过滤。
-        /// 注意：此过滤器仅适用于元素实例，不适用于类型元素。
+        /// Gets or sets the ElementId value of the family type (FamilySymbol) to filter by.
+        /// If 0 or negative, no family filtering is applied.
+        /// Note: This filter only applies to element instances, not to type elements.
         /// </summary>
         [JsonProperty("filterFamilySymbolId")]
         public int FilterFamilySymbolId { get; set; } = -1;
         /// <summary>
-        /// 获取或设置是否包含元素类型（如墙类型、门类型等）
+        /// Gets or sets whether to include element types (e.g. wall types, door types, etc.)
         /// </summary>
         [JsonProperty("includeTypes")]
         public bool IncludeTypes { get; set; } = false;
         /// <summary>
-        /// 获取或设置是否包含元素实例（如已放置的墙、门等）
+        /// Gets or sets whether to include element instances (e.g. placed walls, doors, etc.)
         /// </summary>
         [JsonProperty("includeInstances")]
         public bool IncludeInstances { get; set; } = true;
         /// <summary>
-        /// 获取或设置是否仅返回在当前视图中可见的元素。
-        /// 注意：此过滤器仅适用于元素实例，不适用于类型元素。
+        /// Gets or sets whether to return only elements visible in the current view.
+        /// Note: This filter only applies to element instances, not to type elements.
         /// </summary>
         [JsonProperty("filterVisibleInCurrentView")]
         public bool FilterVisibleInCurrentView { get; set; }
         /// <summary>
-        /// 获取或设置空间范围过滤的最小点坐标 (单位：mm)
-        /// 如果设置了此值和BoundingBoxMax，将筛选出与此边界框相交的元素
+        /// Gets or sets the minimum point coordinates for spatial range filtering (unit: mm).
+        /// If this value and BoundingBoxMax are set, elements intersecting this bounding box will be filtered.
         /// </summary>
         [JsonProperty("boundingBoxMin")]
         public JZPoint BoundingBoxMin { get; set; } = null;
         /// <summary>
-        /// 获取或设置空间范围过滤的最大点坐标 (单位：mm)
-        /// 如果设置了此值和BoundingBoxMin，将筛选出与此边界框相交的元素
+        /// Gets or sets the maximum point coordinates for spatial range filtering (unit: mm).
+        /// If this value and BoundingBoxMin are set, elements intersecting this bounding box will be filtered.
         /// </summary>
         [JsonProperty("boundingBoxMax")]
         public JZPoint BoundingBoxMax { get; set; } = null;
         /// <summary>
-        /// 最大元素数量限制
+        /// Maximum element count limit
         /// </summary>
         [JsonProperty("maxElements")]
-        public int MaxElements { get; set; } = 50; 
+        public int MaxElements { get; set; } = 50;
         /// <summary>
-        /// 验证过滤器设置的有效性，检查潜在的冲突
+        /// Validates the filter settings for correctness, checking for potential conflicts
         /// </summary>
-        /// <returns>如果设置有效返回true，否则返回false</returns>
+        /// <returns>Returns true if the settings are valid, otherwise returns false</returns>
         public bool Validate(out string errorMessage)
         {
             errorMessage = null;
 
-            // 检查是否至少选择了一种元素种类
+            // Check that at least one element kind is selected
             if (!IncludeTypes && !IncludeInstances)
             {
-                errorMessage = "过滤设置无效: 必须至少包含元素类型或元素实例之一";
+                errorMessage = "Invalid filter settings: must include at least one of element types or element instances";
                 return false;
             }
 
-            // 检查是否至少指定了一个过滤条件
+            // Check that at least one filter condition is specified
             if (string.IsNullOrWhiteSpace(FilterCategory) &&
                 string.IsNullOrWhiteSpace(FilterElementType) &&
                 FilterFamilySymbolId <= 0)
             {
-                errorMessage = "过滤设置无效: 必须至少指定一个过滤条件(类别、元素类型或族类型)";
+                errorMessage = "Invalid filter settings: must specify at least one filter condition (category, element type, or family type)";
                 return false;
             }
 
-            // 检查类型元素与某些过滤器的冲突
+            // Check for conflicts between type elements and certain filters
             if (IncludeTypes && !IncludeInstances)
             {
                 List<string> invalidFilters = new List<string>();
                 if (FilterFamilySymbolId > 0)
-                    invalidFilters.Add("族实例过滤");
+                    invalidFilters.Add("family instance filter");
                 if (FilterVisibleInCurrentView)
-                    invalidFilters.Add("视图可见性过滤");
+                    invalidFilters.Add("view visibility filter");
                 if (invalidFilters.Count > 0)
                 {
-                    errorMessage = $"当仅过滤类型元素时，以下过滤器不适用: {string.Join(", ", invalidFilters)}";
+                    errorMessage = $"When filtering type elements only, the following filters are not applicable: {string.Join(", ", invalidFilters)}";
                     return false;
                 }
             }
-            // 检查空间范围过滤器的有效性
+            // Check validity of the spatial range filter
             if (BoundingBoxMin != null && BoundingBoxMax != null)
             {
-                // 确保最小点小于或等于最大点
+                // Ensure minimum point is less than or equal to maximum point
                 if (BoundingBoxMin.X > BoundingBoxMax.X ||
                     BoundingBoxMin.Y > BoundingBoxMax.Y ||
                     BoundingBoxMin.Z > BoundingBoxMax.Z)
                 {
-                    errorMessage = "空间范围过滤器设置无效: 最小点坐标必须小于或等于最大点坐标";
+                    errorMessage = "Invalid spatial range filter settings: minimum point coordinates must be less than or equal to maximum point coordinates";
                     return false;
                 }
             }
             else if (BoundingBoxMin != null || BoundingBoxMax != null)
             {
-                errorMessage = "空间范围过滤器设置无效: 必须同时设置最小点和最大点坐标";
+                errorMessage = "Invalid spatial range filter settings: both minimum and maximum point coordinates must be set";
                 return false;
             }
             return true;

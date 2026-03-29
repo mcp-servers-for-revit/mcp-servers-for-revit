@@ -125,6 +125,18 @@ Clicca **"Nuova chat"** in alto a destra per azzerare la conversazione e ricomin
 | Sfondo crema, avatar arancione | Risposte di Claude |
 | Sfondo viola, avatar viola | Ragionamento Planning |
 | Sfondo crema, icona fulmine verde | Esecuzione tool Revit |
+| Sfondo verde chiaro | Tool completato con successo |
+| Sfondo rosso chiaro | Tool fallito con errore |
+| Testo grigio | Progresso round (es. "Round 3/15") |
+
+### Feedback durante l'Esecuzione
+
+Durante l'esecuzione di operazioni complesse, il chat panel mostra messaggi di feedback in tempo reale:
+
+- **Testo intermedio**: Quando Claude spiega cosa sta per fare prima di chiamare un tool
+- **Tool completato**: Conferma verde con il nome del tool eseguito
+- **Tool errore**: Messaggio rosso con dettagli dell'errore
+- **Progresso round**: Indicatore del round corrente (fino a 15 round per messaggio)
 
 ---
 
@@ -369,7 +381,7 @@ Crea una struttura completa:
 5. Tagga tutte le stanze
 ```
 
-Claude pianifichera' tutti i passaggi e li eseguira' in ordine usando fino a 5 round di tool call per messaggio.
+Claude pianifichera' tutti i passaggi e li eseguira' in ordine usando fino a 15 round di tool call per messaggio.
 
 ### Esecuzione Codice C# Personalizzato
 
@@ -456,7 +468,7 @@ Revit ha il suo sistema di undo (`Ctrl+Z`). Le operazioni eseguite dai tool veng
 
 ### Quanti tool call puo' fare Claude per messaggio?
 
-Il chat panel permette fino a **5 round** di tool call per messaggio. Ogni round puo' contenere piu' chiamate parallele. Per operazioni piu' complesse, dividi la richiesta in piu' messaggi.
+Il chat panel permette fino a **15 round** di tool call per messaggio. Ogni round puo' contenere piu' chiamate parallele. Questo consente automazioni multi-step complesse in un singolo messaggio.
 
 ### Funziona con modelli di grandi dimensioni?
 

@@ -60,12 +60,16 @@
         <None Update="mcp-servers-for-revit.addin">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="tool_schemas.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <Target Name="CopyFiles" AfterTargets="CoreBuild">
         <ItemGroup>
             <RootItem Include="$(ProjectDir)*.addin"/>
             <AddinItem Include="$(TargetDir)*.dll"/>
             <AddinItem Include="$(TargetDir)*.pdb"/>
+            <AddinItem Include="$(TargetDir)*.json"/>
         </ItemGroup>
 
         <PropertyGroup>

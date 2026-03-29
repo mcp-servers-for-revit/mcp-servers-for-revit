@@ -23,17 +23,17 @@ namespace RevitMCPCommandSet.Commands.Delete
             {
                 try
                 {
-                    // 解析数组参数
+                    // Parse array parameters
                     var elementIds = parameters?["elementIds"]?.ToObject<string[]>();
                     if (elementIds == null || elementIds.Length == 0)
                     {
-                        throw new ArgumentException("元素ID列表不能为空");
+                        throw new ArgumentException("Element ID list cannot be empty");
                     }
 
-                    // 设置要删除的元素ID数组
+                    // Set element IDs to delete
                     _handler.ElementIds = elementIds;
 
-                    // 触发外部事件并等待完成
+                    // Raise external event and wait for completion
                     if (RaiseAndWaitForCompletion(15000))
                     {
                         if (_handler.IsSuccess)
@@ -42,17 +42,17 @@ namespace RevitMCPCommandSet.Commands.Delete
                         }
                         else
                         {
-                            throw new Exception("删除元素失败");
+                            throw new Exception("Failed to delete element");
                         }
                     }
                     else
                     {
-                        throw new TimeoutException("删除元素操作超时");
+                        throw new TimeoutException("Delete element operation timed out");
                     }
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"删除元素失败: {ex.Message}");
+                    throw new Exception($"Failed to delete element: {ex.Message}");
                 }
             }
         }

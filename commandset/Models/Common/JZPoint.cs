@@ -1,21 +1,21 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
 /// <summary>
-///     三维点
+///     3D point
 /// </summary>
 public class JZPoint
 {
     /// <summary>
-    ///     构造函数
+    ///     Constructor
     /// </summary>
     public JZPoint()
     {
     }
 
     /// <summary>
-    ///     构造函数
+    ///     Constructor
     /// </summary>
     public JZPoint(double x, double y, double z)
     {
@@ -25,7 +25,7 @@ public class JZPoint
     }
 
     /// <summary>
-    ///     构造函数
+    ///     Constructor
     /// </summary>
     public JZPoint(double x, double y)
     {
@@ -41,8 +41,8 @@ public class JZPoint
     [JsonProperty("z")] public double Z { get; set; }
 
     /// <summary>
-    ///     转换为Revit的XYZ点
-    ///     单位转换：mm -> ft
+    ///     Convert to Revit XYZ point
+    ///     Unit conversion: mm -> ft
     /// </summary>
     public static XYZ ToXYZ(JZPoint jzPoint)
     {

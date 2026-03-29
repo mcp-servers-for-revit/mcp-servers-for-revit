@@ -67,30 +67,15 @@ namespace RevitMCPCommandSet.Services
                 var categorySet = new CategorySet();
                 var unresolvedCategories = new List<string>();
 
+                var categoryByName = new Dictionary<string, Category>(StringComparer.OrdinalIgnoreCase);
+                foreach (Category cat in doc.Settings.Categories)
+                    categoryByName[cat.Name] = cat;
+
                 foreach (var categoryName in Categories)
                 {
-                    bool resolved = false;
-
-                    // Try to parse as BuiltInCategory enum
-                    foreach (BuiltInCategory bic in Enum.GetValues(typeof(BuiltInCategory)))
-                    {
-                        try
-                        {
-                            var cat = Category.GetCategory(doc, bic);
-                            if (cat != null && string.Equals(cat.Name, categoryName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                categorySet.Insert(cat);
-                                resolved = true;
-                                break;
-                            }
-                        }
-                        catch
-                        {
-                            // Some BuiltInCategory values are not valid for GetCategory; skip them
-                        }
-                    }
-
-                    if (!resolved)
+                    if (categoryByName.TryGetValue(categoryName, out var resolved))
+                        categorySet.Insert(resolved);
+                    else
                         unresolvedCategories.Add(categoryName);
                 }
 
@@ -160,26 +145,29 @@ namespace RevitMCPCommandSet.Services
             }
         }
 
+        private static readonly Dictionary<string, ForgeTypeId> _groupTypeIdCache =
+            BuildGroupTypeIdCache();
+
+        private static Dictionary<string, ForgeTypeId> BuildGroupTypeIdCache()
+        {
+            var cache = new Dictionary<string, ForgeTypeId>(StringComparer.OrdinalIgnoreCase);
+            foreach (var prop in typeof(GroupTypeId).GetProperties(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            {
+                if (prop.GetValue(null) is ForgeTypeId value)
+                    cache[prop.Name] = value;
+            }
+            return cache;
+        }
+
         private static ForgeTypeId ResolveGroupTypeId(string parameterGroup)
         {
             if (string.IsNullOrEmpty(parameterGroup))
                 return GroupTypeId.Data;
 
-            // Map common display group names to GroupTypeId constants via reflection
-            var groupTypeIdType = typeof(GroupTypeId);
-            var properties = groupTypeIdType.GetProperties(
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-
-            foreach (var prop in properties)
-            {
-                if (string.Equals(prop.Name, parameterGroup, StringComparison.OrdinalIgnoreCase))
-                {
-                    var value = prop.GetValue(null) as ForgeTypeId;
-                    if (value != null) return value;
-                }
-            }
-
-            return GroupTypeId.Data;
+            return _groupTypeIdCache.TryGetValue(parameterGroup, out var typeId)
+                ? typeId
+                : GroupTypeId.Data;
         }
 
         public string GetName() => "Add Shared Parameter";

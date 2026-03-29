@@ -15,9 +15,7 @@ namespace revit_mcp_plugin.UI
             data.FrameworkElement = _panel;
             data.InitialState = new DockablePaneState
             {
-                DockPosition = DockPosition.Right,
-                MinimumWidth = 320,
-                MinimumHeight = 400
+                DockPosition = DockPosition.Floating
             };
             data.VisibleByDefault = false;
         }

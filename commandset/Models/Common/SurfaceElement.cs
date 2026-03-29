@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
 /// <summary>
-///     面状构件
+///     Surface-based element
 /// </summary>
 public class SurfaceElement
 {
@@ -13,43 +13,43 @@ public class SurfaceElement
     }
 
     /// <summary>
-    ///     构件类型
+    ///     Element category
     /// </summary>
     [JsonProperty("category")]
     public string Category { get; set; } = "INVALID";
 
     /// <summary>
-    ///     类型Id
+    ///     Type ID
     /// </summary>
     [JsonProperty("typeId")]
     public int TypeId { get; set; } = -1;
 
     /// <summary>
-    ///     壳形轮廓边界
+    ///     Shell profile boundary
     /// </summary>
     [JsonProperty("boundary")]
     public JZFace Boundary { get; set; }
 
     /// <summary>
-    ///     厚度
+    ///     Thickness
     /// </summary>
     [JsonProperty("thickness")]
     public double Thickness { get; set; }
 
     /// <summary>
-    ///     底部标高
+    ///     Base level
     /// </summary>
     [JsonProperty("baseLevel")]
     public double BaseLevel { get; set; }
 
     /// <summary>
-    ///     底部偏移
+    ///     Base offset
     /// </summary>
     [JsonProperty("baseOffset")]
     public double BaseOffset { get; set; }
 
     /// <summary>
-    ///     参数化属性
+    ///     Parametric properties
     /// </summary>
     public Dictionary<string, double> Parameters { get; set; }
 }

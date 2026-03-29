@@ -228,7 +228,14 @@ Se hai buildato il server da sorgente:
 
 ## Configurazione della Chiave API (Chat Panel)
 
-Il pannello chat integrato in Revit richiede una chiave API Anthropic per funzionare. Questo e' necessario **solo** per il chat panel — l'uso tramite Claude Desktop/Claude Code non richiede configurazione aggiuntiva.
+Il pannello chat integrato in Revit richiede una chiave API **Anthropic** per funzionare. Questo e' necessario **solo** per il chat panel — l'uso tramite Claude Desktop/Claude Code non richiede configurazione aggiuntiva.
+
+### Ottenere una Chiave API
+
+1. Vai su [console.anthropic.com](https://console.anthropic.com)
+2. Registrati o accedi
+3. Vai in **API Keys** e crea una nuova chiave
+4. Copia la chiave (viene mostrata una sola volta)
 
 ### Metodo 1: Variabile d'Ambiente (consigliato)
 
@@ -260,13 +267,6 @@ setx ANTHROPIC_API_KEY "sk-ant-..."
    ```
 
 > **Sicurezza**: Non condividere mai la chiave API. Il file `api_key.txt` e' letto solo localmente dal plugin.
-
-### Ottenere una Chiave API
-
-1. Vai su [console.anthropic.com](https://console.anthropic.com)
-2. Registrati o accedi
-3. Vai in **API Keys** e crea una nuova chiave
-4. Copia la chiave (viene mostrata una sola volta)
 
 ---
 
@@ -360,11 +360,11 @@ dotnet build mcp-servers-for-revit.sln -c "Debug R26"
 - Assicurati che Revit sia aperto e il servizio MCP attivo (indicatore verde)
 - Riavvia il client AI dopo aver modificato la configurazione
 
-### Errore "Chiave API non configurata" nel chat panel
+### Errore "API key not configured" nel chat panel
 
-- Configura la chiave API con uno dei metodi descritti sopra
+- Configura la chiave API Anthropic con uno dei metodi descritti sopra
 - Riavvia Revit dopo aver impostato la variabile d'ambiente
-- Verifica che il file `api_key.txt` contenga solo la chiave, senza spazi o newline extra
+- Verifica che il file `api_key.txt` contenga solo la chiave (`sk-ant-...`), senza spazi o newline extra
 
 ### Build fallisce per Revit 2023/2024
 
