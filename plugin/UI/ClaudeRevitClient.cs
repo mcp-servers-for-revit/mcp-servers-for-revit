@@ -28,38 +28,23 @@ namespace revit_mcp_plugin.UI
 
         private const string SYSTEM_PROMPT = @"Sei Claude, un assistente AI integrato direttamente in Autodesk Revit. Hai accesso a tool che eseguono comandi sul modello Revit attivo in tempo reale.
 
+COMPORTAMENTO:
+- Gestisci il modello direttamente. Quando l'utente chiede qualcosa, ESEGUI l'azione con i tool disponibili. Non chiedere conferme inutili.
+- Per task semplici (info, lettura, singola operazione): esegui subito.
+- Per task complessi (multi-step, creazione di più elementi, workflow): pianifica mentalmente i passi, poi eseguili uno dopo l'altro.
+- Usa i tool di lettura (get_project_info, get_available_family_types, ai_element_filter, get_selected_elements) per scoprire cosa c'è nel modello prima di agire.
+- Se l'utente dice 'gli elementi selezionati', usa get_selected_elements. Se vuoto, chiedi di selezionare.
+- Dopo ogni operazione, descrivi brevemente il risultato.
+
 REGOLE:
-1. Quando l'utente ti chiede di fare qualcosa sul modello, USA I TOOL disponibili per eseguirlo. Non limitarti a descrivere — esegui l'azione.
-2. Se ti mancano informazioni necessarie per eseguire un comando (es. quale livello, quale tipo di muro, quali elementi, dove posizionare), CHIEDI ALL'UTENTE prima di procedere. Non indovinare parametri critici.
-3. Per scoprire cosa è disponibile nel modello, usa prima i tool di lettura: get_available_family_types, get_project_info (per livelli), get_current_view_elements, get_selected_elements. Poi proponi all'utente le opzioni trovate.
-4. Se l'utente dice 'gli elementi selezionati' o 'la selezione corrente', usa get_selected_elements. Se il risultato è vuoto, chiedi all'utente di selezionare qualcosa in Revit.
-5. Dopo aver eseguito un tool, descrivi brevemente il risultato con gli ID degli elementi creati/modificati.
-
-Rispondi in italiano, sii conciso.
-
-Coordinate: tutti i valori sono in millimetri (mm).
-Categorie comuni: OST_Walls, OST_Floors, OST_Doors, OST_Windows, OST_StructuralColumns, OST_StructuralFraming, OST_Rooms.
-Fai sempre riferimento alle API e ai comandi di Revit quando spieghi cosa stai facendo.";
-
-        private bool _thinkingEnabled;
-        private int _thinkingBudget = 10000;
+- I nomi dei parametri e delle categorie Revit sono localizzati (es. 'Muri' in italiano, 'Walls' in inglese). Usa BuiltInCategory (OST_Walls, OST_Doors, ecc.) per le categorie quando possibile.
+- Coordinate in millimetri (mm).
+- Rispondi nella lingua dell'utente, sii conciso.";
 
         public string Model
         {
             get => _model;
             set => _model = value;
-        }
-
-        public bool ThinkingEnabled
-        {
-            get => _thinkingEnabled;
-            set => _thinkingEnabled = value;
-        }
-
-        public int ThinkingBudget
-        {
-            get => _thinkingBudget;
-            set => _thinkingBudget = value;
         }
 
         public ClaudeRevitClient()
@@ -206,20 +191,16 @@ Fai sempre riferimento alle API e ai comandi di Revit quando spieghi cosa stai f
             var requestBody = new JObject
             {
                 ["model"] = _model,
-                ["max_tokens"] = _thinkingEnabled ? 16000 : 2048,
+                ["max_tokens"] = 16000,
                 ["system"] = SYSTEM_PROMPT,
                 ["tools"] = GetToolDefinitions(),
-                ["messages"] = JArray.FromObject(_conversationHistory)
-            };
-
-            if (_thinkingEnabled)
-            {
-                requestBody["thinking"] = new JObject
+                ["messages"] = JArray.FromObject(_conversationHistory),
+                ["thinking"] = new JObject
                 {
                     ["type"] = "enabled",
-                    ["budget_tokens"] = _thinkingBudget
-                };
-            }
+                    ["budget_tokens"] = 10000
+                }
+            };
 
             byte[] data = Encoding.UTF8.GetBytes(requestBody.ToString());
             int maxRetries = 3;
@@ -233,7 +214,7 @@ Fai sempre riferimento alle API e ai comandi di Revit quando spieghi cosa stai f
                 request.ContentType = "application/json";
                 request.Headers.Add("x-api-key", _apiKey);
                 request.Headers.Add("anthropic-version", "2023-06-01");
-                request.Timeout = _thinkingEnabled ? 180000 : 60000;
+                request.Timeout = 180000;
 
                 using (var stream = await Task.Factory.FromAsync(request.BeginGetRequestStream, request.EndGetRequestStream, null))
                 {

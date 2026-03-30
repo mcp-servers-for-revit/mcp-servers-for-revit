@@ -19,8 +19,6 @@ namespace revit_mcp_plugin.UI
         private readonly DispatcherTimer _statusTimer;
         private ClaudeRevitClient _client;
         private bool _isProcessing;
-        private bool _planningMode;
-        private int _selectedModelIndex;
         private bool _lastStatus;
 
         private static readonly SolidColorBrush BrushOnline = new SolidColorBrush(Color.FromRgb(76, 175, 80));
@@ -29,23 +27,11 @@ namespace revit_mcp_plugin.UI
 
         public static MCPDockablePanel Instance => _instance;
 
-        private static readonly List<ModelOption> AvailableModels = new List<ModelOption>
-        {
-            new ModelOption("Opus 4.6", "claude-opus-4-6", "Il più capace per progetti ambiziosi"),
-            new ModelOption("Sonnet 4.6", "claude-sonnet-4-6", "Il più efficiente per uso quotidiano"),
-            new ModelOption("Haiku 4.5", "claude-haiku-4-5-20251001", "Il più veloce per risposte rapide"),
-        };
-
         public MCPDockablePanel()
         {
             InitializeComponent();
             _instance = this;
             ChatMessages.ItemsSource = _messages;
-
-            // Populate model selector
-            _selectedModelIndex = LoadSavedModelIndex();
-            ModelLabel.Text = AvailableModels[_selectedModelIndex].DisplayName;
-            BuildModelPopup();
 
             _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _statusTimer.Tick += (s, e) => UpdateStatus();
@@ -103,7 +89,7 @@ namespace revit_mcp_plugin.UI
             _isProcessing = true;
             SendButton.IsEnabled = false;
             TypingIndicator.Visibility = Visibility.Visible;
-            TypingText.Text = _planningMode ? "Claude sta pianificando..." : "Claude sta pensando...";
+            TypingText.Text = "Claude sta pensando...";
 
             try
             {
@@ -115,11 +101,7 @@ namespace revit_mcp_plugin.UI
                 }
 
                 if (_client == null)
-                {
                     _client = new ClaudeRevitClient();
-                    _client.Model = AvailableModels[_selectedModelIndex].ModelId;
-                    _client.ThinkingEnabled = _planningMode;
-                }
                 string response = await _client.SendMessage(input);
                 AddMessage("assistant", response);
             }
@@ -184,152 +166,6 @@ namespace revit_mcp_plugin.UI
 
         public void LogCommand(string commandName, bool success, string message, double durationMs) { }
 
-        private static readonly string SettingsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".claude", "revit_chat_settings.json");
-
-        private void ModelToggle_Click(object sender, MouseButtonEventArgs e)
-        {
-            ModelPopup.IsOpen = !ModelPopup.IsOpen;
-        }
-
-        private void BuildModelPopup()
-        {
-            ModelPopupItems.Children.Clear();
-            for (int i = 0; i < AvailableModels.Count; i++)
-            {
-                int index = i;
-                var model = AvailableModels[i];
-
-                var item = new Border
-                {
-                    CornerRadius = new CornerRadius(6),
-                    Padding = new Thickness(12, 8, 12, 8),
-                    Cursor = Cursors.Hand,
-                    Background = new SolidColorBrush(Colors.Transparent)
-                };
-
-                item.MouseEnter += (s, ev) =>
-                    ((Border)s).Background = new SolidColorBrush(Color.FromRgb(245, 244, 242));
-                item.MouseLeave += (s, ev) =>
-                    ((Border)s).Background = new SolidColorBrush(Colors.Transparent);
-
-                var grid = new Grid();
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-                var textStack = new StackPanel();
-                textStack.Children.Add(new TextBlock
-                {
-                    Text = model.DisplayName,
-                    FontSize = 13,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(Color.FromRgb(26, 26, 26))
-                });
-                textStack.Children.Add(new TextBlock
-                {
-                    Text = model.Description,
-                    FontSize = 11,
-                    Foreground = new SolidColorBrush(Color.FromRgb(136, 136, 136)),
-                    Margin = new Thickness(0, 2, 0, 0)
-                });
-                Grid.SetColumn(textStack, 0);
-                grid.Children.Add(textStack);
-
-                var check = new TextBlock
-                {
-                    Text = "✓",
-                    FontSize = 14,
-                    Foreground = new SolidColorBrush(Color.FromRgb(88, 130, 207)),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(12, 0, 0, 0),
-                    Visibility = i == _selectedModelIndex ? Visibility.Visible : Visibility.Collapsed,
-                    Tag = $"check_{i}"
-                };
-                Grid.SetColumn(check, 1);
-                grid.Children.Add(check);
-
-                item.Child = grid;
-                item.MouseLeftButtonDown += (s, ev) => SelectModel(index);
-
-                ModelPopupItems.Children.Add(item);
-            }
-        }
-
-        private void SelectModel(int index)
-        {
-            _selectedModelIndex = index;
-            var selected = AvailableModels[index];
-            ModelLabel.Text = selected.DisplayName;
-            if (_client != null)
-                _client.Model = selected.ModelId;
-            SaveModelIndex(index);
-            ModelPopup.IsOpen = false;
-
-            for (int i = 0; i < ModelPopupItems.Children.Count; i++)
-            {
-                if (ModelPopupItems.Children[i] is Border border &&
-                    border.Child is Grid grid &&
-                    grid.Children.Count > 1 &&
-                    grid.Children[1] is TextBlock check)
-                {
-                    check.Visibility = i == index ? Visibility.Visible : Visibility.Collapsed;
-                }
-            }
-        }
-
-        private static int LoadSavedModelIndex()
-        {
-            try
-            {
-                if (File.Exists(SettingsPath))
-                {
-                    var json = JObject.Parse(File.ReadAllText(SettingsPath));
-                    int idx = json["modelIndex"]?.Value<int>() ?? 1;
-                    return idx >= 0 && idx < AvailableModels.Count ? idx : 1;
-                }
-            }
-            catch { }
-            return 1; // Sonnet 4.6 default
-        }
-
-        private static void SaveModelIndex(int index)
-        {
-            try
-            {
-                string dir = Path.GetDirectoryName(SettingsPath);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-                File.WriteAllText(SettingsPath,
-                    new JObject { ["modelIndex"] = index }.ToString());
-            }
-            catch { }
-        }
-
-        private void PlanningToggle_Click(object sender, MouseButtonEventArgs e)
-        {
-            _planningMode = !_planningMode;
-            var white = new SolidColorBrush(Colors.White);
-            var gray = new SolidColorBrush(Color.FromRgb(153, 153, 153));
-
-            if (_planningMode)
-            {
-                PlanningToggle.Background = new SolidColorBrush(Color.FromRgb(217, 119, 87));
-                PlanningToggle.BorderBrush = new SolidColorBrush(Color.FromRgb(217, 119, 87));
-                PlanningLabel.Foreground = white;
-                PlanningArrow.Foreground = white;
-            }
-            else
-            {
-                PlanningToggle.Background = new SolidColorBrush(Color.FromRgb(245, 244, 242));
-                PlanningToggle.BorderBrush = new SolidColorBrush(Color.FromRgb(224, 221, 217));
-                PlanningLabel.Foreground = gray;
-                PlanningArrow.Foreground = gray;
-            }
-
-            if (_client != null)
-                _client.ThinkingEnabled = _planningMode;
-        }
 
         public void OnRetrying(int seconds)
         {
@@ -445,20 +281,6 @@ namespace revit_mcp_plugin.UI
                 ["exported"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 ["messages"] = array
             }.ToString(Newtonsoft.Json.Formatting.Indented);
-        }
-    }
-
-    public class ModelOption
-    {
-        public string DisplayName { get; }
-        public string ModelId { get; }
-        public string Description { get; }
-
-        public ModelOption(string displayName, string modelId, string description = "")
-        {
-            DisplayName = displayName;
-            ModelId = modelId;
-            Description = description;
         }
     }
 

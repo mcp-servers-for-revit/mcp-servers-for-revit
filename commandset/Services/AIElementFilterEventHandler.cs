@@ -999,7 +999,7 @@ namespace RevitMCPCommandSet.Services
                 return new ParameterInfo
                 {
                     Name = "Height",
-                    Value = $"{height}"
+                    Value = height.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
                 };
             }
             catch

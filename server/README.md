@@ -32,36 +32,20 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 
 Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
 
-## Supported Tools
+## Supported Tools (80+)
 
-| Tool | Description |
-| ---- | ----------- |
-| `get_current_view_info` | Get current active view info |
-| `get_current_view_elements` | Get elements from the current active view |
-| `get_available_family_types` | Get available family types in current project |
-| `get_selected_elements` | Get currently selected elements |
-| `get_material_quantities` | Calculate material quantities and takeoffs |
-| `ai_element_filter` | Intelligent element querying tool for AI assistants |
-| `analyze_model_statistics` | Analyze model complexity with element counts |
-| `create_point_based_element` | Create point-based elements (door, window, furniture) |
-| `create_line_based_element` | Create line-based elements (wall, beam, pipe) |
-| `create_surface_based_element` | Create surface-based elements (floor, ceiling, roof) |
-| `create_grid` | Create a grid system with smart spacing generation |
-| `create_level` | Create levels at specified elevations |
-| `create_room` | Create and place rooms at specified locations |
-| `create_dimensions` | Create dimension annotations in the current view |
-| `create_structural_framing_system` | Create a structural beam framing system |
-| `delete_element` | Delete elements by ID |
-| `operate_element` | Operate on elements (select, setColor, hide, etc.) |
-| `color_elements` | Color elements based on a parameter value |
-| `tag_all_walls` | Tag all walls in the current view |
-| `tag_all_rooms` | Tag all rooms in the current view |
-| `export_room_data` | Export all room data from the project |
-| `store_project_data` | Store project metadata in local database |
-| `store_room_data` | Store room metadata in local database |
-| `query_stored_data` | Query stored project and room data |
-| `send_code_to_revit` | Send C# code to Revit to execute |
-| `say_hello` | Display a greeting dialog in Revit (connection test) |
+See the [full tool list](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit#supported-tools-80) in the main README for the complete catalog organized by category:
+
+- **Project & Model Info** — project metadata, views, parameters, phases, worksets, links
+- **Model Analysis** — AI element filter, health check, clash detection, measurements
+- **Materials & Quantities** — material properties, takeoffs, quantities
+- **Element Creation** — walls, doors, floors, grids, levels, arrays, structural framing
+- **Element Modification** — move, rotate, copy, type swap, parameter writes, phase/workset
+- **Views & Sheets** — create views, filters, templates, sheets, viewports, schedules
+- **Annotation** — dimensions, text notes, filled regions, auto-tagging
+- **Data Export** — room data, element data (JSON/CSV), schedule export, PDF/DWG/IFC
+- **Batch Operations** — rename, renumber, purge, CAD cleanup, shared parameters
+- **Advanced** — execute C# code, local data storage
 
 ## Development
 

@@ -133,54 +133,15 @@
                     <!-- Bottom bar with send button -->
                     <Grid Grid.Row="1" Margin="8,0,8,6">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Planning mode toggle (left) -->
-                        <Border x:Name="PlanningToggle" Grid.Column="0"
-                                CornerRadius="10" Padding="8,3" Margin="4,0,0,0"
-                                Background="#F5F4F2" BorderBrush="#E0DDD9" BorderThickness="1"
-                                Cursor="Hand" MouseLeftButtonDown="PlanningToggle_Click">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="📋" FontSize="10"
-                                           Foreground="#999" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="PlanningLabel" Text="Modalità pianificazione" FontSize="10"
-                                           Foreground="#999" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="PlanningArrow" Text=" ⌄" FontSize="9" Foreground="#999"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Model selector (right) - opens popup -->
-                        <Border x:Name="ModelToggle" Grid.Column="2"
-                                CornerRadius="10" Padding="8,3" Margin="0,0,6,0"
-                                Background="#F5F4F2" BorderBrush="#E0DDD9" BorderThickness="1"
-                                Cursor="Hand" MouseLeftButtonUp="ModelToggle_Click">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock x:Name="ModelLabel" Text="Sonnet 4.6" FontSize="10"
-                                           Foreground="#666" VerticalAlignment="Center"/>
-                                <TextBlock Text=" ⌄" FontSize="9" Foreground="#999" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Model popup -->
-                        <Popup x:Name="ModelPopup" PlacementTarget="{Binding ElementName=ModelToggle}"
-                               Placement="Top" StaysOpen="False" AllowsTransparency="True">
-                            <Border Background="White" CornerRadius="8" Padding="4"
-                                    BorderBrush="#E0DDD9" BorderThickness="1"
-                                    MinWidth="240">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="12" Opacity="0.15" ShadowDepth="4"/>
-                                </Border.Effect>
-                                <StackPanel x:Name="ModelPopupItems"/>
-                            </Border>
-                        </Popup>
+                        <!-- Spacer (model and planning mode are managed automatically by Claude) -->
+                        <Border Grid.Column="0" />
 
                         <!-- Send button -->
-                        <Button x:Name="SendButton" Grid.Column="3" Click="Send_Click"
+                        <Button x:Name="SendButton" Grid.Column="1" Click="Send_Click"
                                 Background="Transparent" BorderThickness="0"
                                 Padding="0" Cursor="Hand" VerticalAlignment="Center">
                             <Border Width="28" Height="28" CornerRadius="14" Background="#D97757">
