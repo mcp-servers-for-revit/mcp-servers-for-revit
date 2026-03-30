@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-1. **Install the plugin** from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page (do NOT copy source code from the repository)
+1. **Install the plugin** from the [Releases](https://github.com/LuDattilo/revit-mcp-server/releases) page (do NOT copy source code from the repository)
 2. Open **Revit 2023/2024/2025/2026** with a project
 3. In the **Add-Ins** tab, verify you see **three buttons**: Revit MCP Switch, MCP Panel, Settings
 4. Click **Revit MCP Switch** to start the TCP server (indicator turns green)
@@ -214,7 +214,7 @@
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| **Only Switch button visible** (no MCP Panel or Settings) | Source code was copied instead of pre-built Release | Download the correct ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page — do NOT copy `.cs` files from GitHub |
+| **Only Switch button visible** (no MCP Panel or Settings) | Source code was copied instead of pre-built Release | Download the correct ZIP from the [Releases](https://github.com/LuDattilo/revit-mcp-server/releases) page — do NOT copy `.cs` files from GitHub |
 | **Plugin not in Add-Ins tab** | `.addin` file missing or in wrong folder | Verify `mcp-servers-for-revit.addin` is in `%AppData%\Autodesk\Revit\Addins\<version>\` |
 | **Plugin not in Add-Ins tab** | DLLs blocked by Windows | Right-click each `.dll` → Properties → check "Unblock" if present |
 | **Plugin not in Add-Ins tab** | Wrong Revit version ZIP | Download the ZIP matching your Revit year (e.g., Revit2025 ZIP for Revit 2025) |
@@ -241,7 +241,7 @@ Your Addins folder should contain:
     └── Commands/                     <-- command set
 ```
 
-If you see `.cs` or `.csproj` files instead of `.dll` files, you copied the source code. Download the pre-built ZIP from [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) instead.
+If you see `.cs` or `.csproj` files instead of `.dll` files, you copied the source code. Download the pre-built ZIP from [Releases](https://github.com/LuDattilo/revit-mcp-server/releases) instead.
 
 ---
 

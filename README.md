@@ -1,4 +1,4 @@
-[![Cover Image](./assets/cover.svg)](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit)
+[![Cover Image](./assets/cover.svg)](https://github.com/LuDattilo/revit-mcp-server)
 
 # mcp-servers-for-revit
 
@@ -87,7 +87,7 @@ flowchart LR
 Open PowerShell and paste this command: / Apri PowerShell e incolla questo comando:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/mcp-servers-for-revit/mcp-servers-for-revit/main/scripts/install.ps1 | iex"
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/LuDattilo/revit-mcp-server/main/scripts/install.ps1 | iex"
 ```
 
 The script: / Lo script:
@@ -112,9 +112,9 @@ The script: / Lo script:
 #### Option B: Manual install / Installazione manuale
 
 > [!IMPORTANT]
-> **Download the pre-built ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page.** Do NOT clone the repository or copy the source code — the source contains `.cs` files, not compiled `.dll` files. The plugin will not work without compiled binaries.
+> **Download the pre-built ZIP from the [Releases](https://github.com/LuDattilo/revit-mcp-server/releases) page.** Do NOT clone the repository or copy the source code — the source contains `.cs` files, not compiled `.dll` files. The plugin will not work without compiled binaries.
 >
-> **Scarica lo ZIP precompilato dalla pagina [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases).** NON clonare il repository o copiare il codice sorgente — il sorgente contiene file `.cs`, non file `.dll` compilati. Il plugin non funzionera senza i binari compilati.
+> **Scarica lo ZIP precompilato dalla pagina [Releases](https://github.com/LuDattilo/revit-mcp-server/releases).** NON clonare il repository o copiare il codice sorgente — il sorgente contiene file `.cs`, non file `.dll` compilati. Il plugin non funzionera senza i binari compilati.
 
 Extract the ZIP to: / Estrai lo ZIP in:
 
@@ -379,7 +379,7 @@ Il plugin Revit include un pannello chat agganciabile che si connette direttamen
 
 1. Close Revit / Chiudi Revit
 2. Delete the old installation from `%AppData%\Autodesk\Revit\Addins\<version>\` / Cancella la vecchia installazione
-3. Download the correct ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page / Scarica lo ZIP corretto dalla pagina Releases
+3. Download the correct ZIP from the [Releases](https://github.com/LuDattilo/revit-mcp-server/releases) page / Scarica lo ZIP corretto dalla pagina Releases
 4. Extract and verify the folder structure matches the one shown in [Step 1](#1-install-the-revit-plugin--installa-il-plugin-revit) / Estrai e verifica che la struttura corrisponda a quella mostrata nel Passo 1
 5. Restart Revit / Riavvia Revit
 

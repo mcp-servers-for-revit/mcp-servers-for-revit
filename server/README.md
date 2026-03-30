@@ -2,10 +2,10 @@
 
 MCP server for interacting with Autodesk Revit through AI assistants like Claude.
 
-This package is the MCP server component of [mcp-servers-for-revit](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit). It exposes Revit operations as MCP tools that AI clients can call. The server communicates with the [Revit plugin](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit) over WebSocket to execute commands inside Revit.
+This package is the MCP server component of [mcp-servers-for-revit](https://github.com/LuDattilo/revit-mcp-server). It exposes Revit operations as MCP tools that AI clients can call. The server communicates with the [Revit plugin](https://github.com/LuDattilo/revit-mcp-server) over WebSocket to execute commands inside Revit.
 
 > [!NOTE]
-> This server requires the mcp-servers-for-revit Revit plugin to be installed and running inside Revit. See the [full project README](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit) for setup instructions.
+> This server requires the mcp-servers-for-revit Revit plugin to be installed and running inside Revit. See the [full project README](https://github.com/LuDattilo/revit-mcp-server) for setup instructions.
 
 ## Setup
 
@@ -34,7 +34,7 @@ Restart Claude Desktop. When you see the hammer icon, the MCP server is connecte
 
 ## Supported Tools (80+)
 
-See the [full tool list](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit#supported-tools-80) in the main README for the complete catalog organized by category:
+See the [full tool list](https://github.com/LuDattilo/revit-mcp-server#supported-tools-80) in the main README for the complete catalog organized by category:
 
 - **Project & Model Info** — project metadata, views, parameters, phases, worksets, links
 - **Model Analysis** — AI element filter, health check, clash detection, measurements
@@ -56,4 +56,4 @@ npm run build
 
 ## License
 
-[MIT](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/blob/main/LICENSE)
+[MIT](https://github.com/LuDattilo/revit-mcp-server/blob/main/LICENSE)

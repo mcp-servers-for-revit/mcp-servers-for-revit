@@ -19,7 +19,7 @@
               ],
     "repository":  {
                        "type":  "git",
-                       "url":  "git+https://github.com/mcp-servers-for-revit/mcp-servers-for-revit.git"
+                       "url":  "git+https://github.com/LuDattilo/revit-mcp-server.git"
                    },
     "keywords":  [
                      "mcp",
@@ -35,9 +35,9 @@
                           "access":  "public"
                       },
     "bugs":  {
-                 "url":  "https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/issues"
+                 "url":  "https://github.com/LuDattilo/revit-mcp-server/issues"
              },
-    "homepage":  "https://github.com/mcp-servers-for-revit/mcp-servers-for-revit#readme",
+    "homepage":  "https://github.com/LuDattilo/revit-mcp-server#readme",
     "dependencies":  {
                          "@modelcontextprotocol/sdk":  "^1.7.0",
                          "better-sqlite3":  "^11.7.0",

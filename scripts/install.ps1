@@ -41,7 +41,7 @@
     # Remove the plugin from all detected Revit versions
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/mcp-servers-for-revit/mcp-servers-for-revit/main/scripts/install.ps1 | iex"
+    powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/LuDattilo/revit-mcp-server/main/scripts/install.ps1 | iex"
     # One-liner install from GitHub
 #>
 param(
@@ -63,7 +63,7 @@ $ProgressPreference = 'SilentlyContinue'  # speeds up Invoke-WebRequest signific
 # Force TLS 1.2 — required for GitHub on Windows 10 builds without modern defaults
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$repo = 'mcp-servers-for-revit/mcp-servers-for-revit'
+$repo = 'LuDattilo/revit-mcp-server'
 $pluginName = 'mcp-servers-for-revit'
 $addinFile = "$pluginName.addin"
 $pluginFolder = 'revit_mcp_plugin'
