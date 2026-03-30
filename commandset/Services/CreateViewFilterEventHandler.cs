@@ -70,18 +70,38 @@ namespace RevitMCPCommandSet.Services
             if (CategoryNames.Count == 0)
                 throw new ArgumentException("categoryNames is required for 'create' action");
 
-            // Resolve categories
+            // Resolve categories by display name, BuiltInCategory name, or OST_ prefix
             var categoryIds = new List<ElementId>();
             foreach (var catName in CategoryNames)
             {
+                // Try display name match (localized)
                 var cat = doc.Settings.Categories.Cast<Category>()
                     .FirstOrDefault(c => c.Name.Equals(catName, StringComparison.OrdinalIgnoreCase));
+
+                // Try BuiltInCategory enum name (e.g., "Walls" → OST_Walls, or "OST_Walls")
+                if (cat == null)
+                {
+                    string enumName = catName.StartsWith("OST_") ? catName : "OST_" + catName;
+                    if (Enum.TryParse<BuiltInCategory>(enumName, true, out var bic))
+                    {
+                        cat = doc.Settings.Categories.Cast<Category>()
+                            .FirstOrDefault(c => c.Id.Equals(new ElementId(bic)));
+                    }
+                }
+
+                // Try partial/contains match as last resort
+                if (cat == null)
+                {
+                    cat = doc.Settings.Categories.Cast<Category>()
+                        .FirstOrDefault(c => c.Name.IndexOf(catName, StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+
                 if (cat != null)
                     categoryIds.Add(cat.Id);
             }
 
             if (categoryIds.Count == 0)
-                throw new Exception("No valid categories found");
+                throw new Exception($"No valid categories found for: {string.Join(", ", CategoryNames)}. Use localized names (e.g., 'Muri' in Italian) or BuiltInCategory names (e.g., 'OST_Walls').");
 
             ParameterFilterElement filter;
             using (var transaction = new Transaction(doc, "Create View Filter"))

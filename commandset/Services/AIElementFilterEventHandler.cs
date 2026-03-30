@@ -873,7 +873,7 @@ namespace RevitMCPCommandSet.Services
                 return new ParameterInfo
                 {
                     Name = "Thickness",
-                    Value = $"{thicknessParam.AsDouble() * 304.8}"
+                    Value = (thicknessParam.AsDouble() * 304.8).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
                 };
             }
             return null;
@@ -1037,8 +1037,17 @@ namespace RevitMCPCommandSet.Services
                     // If current parameter is dimension-related
                     if (IsDimensionParameter(param))
                     {
-                        // Get string representation of parameter value
-                        string value = param.AsValueString();
+                        string value;
+                        if (param.StorageType == StorageType.Double)
+                        {
+                            // Convert internal feet to mm with invariant decimal format
+                            double mmValue = param.AsDouble() * 304.8;
+                            value = mmValue.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            value = param.AsValueString();
+                        }
 
                         // If value is not empty, add to list
                         if (!string.IsNullOrWhiteSpace(value))

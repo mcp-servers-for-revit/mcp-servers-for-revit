@@ -236,7 +236,17 @@ namespace RevitMCPCommandSet.Services
                         if (room == null) continue;
 
                         // Skip unplaced or not enclosed rooms
-                        if (room.Area <= 0) continue;
+                        if (room.Area <= 0)
+                        {
+                            skippedRooms.Add(new
+                            {
+                                roomId = room.Id.GetValue().ToString(),
+                                roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "Room",
+                                roomNumber = room.Number,
+                                reason = "Room has Area=0 (not enclosed by walls or not placed)"
+                            });
+                            continue;
+                        }
 
                         // Skip rooms that already have tags
                         if (roomsWithExistingTags.Contains(room.Id.GetValue()))

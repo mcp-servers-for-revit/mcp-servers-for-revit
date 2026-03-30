@@ -28,7 +28,9 @@ namespace RevitMCPCommandSet.Commands
                     _handler.TargetTypeName = parameters?["targetTypeName"]?.Value<string>() ?? "";
                     _handler.TargetFamilyName = parameters?["targetFamilyName"]?.Value<string>() ?? "";
 
-                    if (RaiseAndWaitForCompletion(15000))
+                    // Scale timeout with number of elements (3s base + 2s per element)
+                    int timeoutMs = Math.Max(15000, 3000 + _handler.ElementIds.Count * 2000);
+                    if (RaiseAndWaitForCompletion(timeoutMs))
                     {
                         return _handler.Result;
                     }

@@ -82,9 +82,30 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                                 }
                             }
 
+                            // Fallback: case-insensitive search across all parameters
                             if (param == null)
                             {
-                                paramResults.Add(new { name = paramName, success = false, message = "Parameter not found" });
+                                param = FindParameterCaseInsensitive(element, paramName);
+                                if (param == null)
+                                {
+                                    var typeId = element.GetTypeId();
+                                    if (typeId != null && typeId != ElementId.InvalidElementId)
+                                    {
+                                        var type = doc.GetElement(typeId);
+                                        if (type != null)
+                                            param = FindParameterCaseInsensitive(type, paramName);
+                                    }
+                                }
+                            }
+
+                            if (param == null)
+                            {
+                                // Suggest similar parameter names
+                                var suggestions = GetSimilarParameterNames(element, paramName);
+                                string msg = suggestions.Count > 0
+                                    ? $"Parameter not found. Did you mean: {string.Join(", ", suggestions)}?"
+                                    : "Parameter not found";
+                                paramResults.Add(new { name = paramName, success = false, message = msg });
                                 continue;
                             }
 
@@ -199,6 +220,31 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                 }
             }
             catch { return false; }
+        }
+
+        private Parameter FindParameterCaseInsensitive(Element element, string paramName)
+        {
+            foreach (Parameter p in element.Parameters)
+            {
+                if (string.Equals(p.Definition?.Name, paramName, StringComparison.OrdinalIgnoreCase))
+                    return p;
+            }
+            return null;
+        }
+
+        private List<string> GetSimilarParameterNames(Element element, string paramName)
+        {
+            var names = new List<string>();
+            string lower = paramName.ToLowerInvariant();
+            foreach (Parameter p in element.Parameters)
+            {
+                string name = p.Definition?.Name;
+                if (string.IsNullOrEmpty(name)) continue;
+                if (name.ToLowerInvariant().Contains(lower) || lower.Contains(name.ToLowerInvariant()))
+                    names.Add(name);
+            }
+            if (names.Count > 5) names = names.GetRange(0, 5);
+            return names;
         }
 
         public string GetName() => "Sync CSV Parameters";

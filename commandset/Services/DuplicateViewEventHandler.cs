@@ -47,7 +47,9 @@ namespace RevitMCPCommandSet.Services
                             if (newView != null && (!string.IsNullOrEmpty(NewNamePrefix) || !string.IsNullOrEmpty(NewNameSuffix)))
                             {
                                 string baseName = view.Name;
-                                newView.Name = $"{NewNamePrefix}{baseName}{NewNameSuffix}";
+                                string prefix = !string.IsNullOrEmpty(NewNamePrefix) ? NewNamePrefix + "_" : "";
+                                string suffix = !string.IsNullOrEmpty(NewNameSuffix) ? "_" + NewNameSuffix : "";
+                                newView.Name = $"{prefix}{baseName}{suffix}";
                             }
 
                             successCount++;

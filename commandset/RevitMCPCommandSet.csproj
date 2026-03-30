@@ -64,15 +64,24 @@
             <CommandJsonFile Include="$(ProjectDir)..\command.json" />
         </ItemGroup>
 
+        <PropertyGroup>
+            <CommandRegistryDir>$(PluginAddInRoot)Commands\</CommandRegistryDir>
+            <RevitAddinsCommandsDir>$(AppData)\Autodesk\Revit\Addins\$(RevitVersion)\revit_mcp_plugin\Commands\</RevitAddinsCommandsDir>
+        </PropertyGroup>
+
         <!-- Always: Copy to plugin's AddIn output for release packaging -->
         <MakeDir Directories="$(CommandSetPluginDir)$(RevitVersion)" />
         <Copy SourceFiles="@(CommandSetBinaries)" DestinationFolder="$(CommandSetPluginDir)$(RevitVersion)\" />
         <Copy SourceFiles="@(CommandJsonFile)" DestinationFolder="$(CommandSetPluginDir)" />
+        <!-- Also copy as commandRegistry.json to Commands/ (where plugin looks for it) -->
+        <Copy SourceFiles="$(ProjectDir)..\command.json" DestinationFiles="$(CommandRegistryDir)commandRegistry.json" />
 
         <!-- Debug only: Copy to Revit Addins folder for local development -->
         <MakeDir Directories="$(RevitAddinsDir)$(RevitVersion)" Condition="$(Configuration.Contains('Debug'))" />
         <Copy SourceFiles="@(CommandSetBinaries)" DestinationFolder="$(RevitAddinsDir)$(RevitVersion)\" Condition="$(Configuration.Contains('Debug'))" />
         <Copy SourceFiles="@(CommandJsonFile)" DestinationFolder="$(RevitAddinsDir)" Condition="$(Configuration.Contains('Debug'))" />
+        <!-- Also copy as commandRegistry.json to Commands/ in Revit Addins -->
+        <Copy SourceFiles="$(ProjectDir)..\command.json" DestinationFiles="$(RevitAddinsCommandsDir)commandRegistry.json" Condition="$(Configuration.Contains('Debug'))" />
     </Target>
 
 </Project>
