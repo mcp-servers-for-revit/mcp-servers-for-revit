@@ -11,392 +11,392 @@
     {
       "commandName": "say_hello",
       "description": "Displays a greeting dialog",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_available_family_types",
       "description": "get available family types",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_current_view_elements",
       "description": "get current view elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_current_view_info",
       "description": "get current view info",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_selected_elements",
       "description": "get selected elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_point_based_element",
       "description": "Create point-based elements like furniture",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_line_based_element",
       "description": "Create line based element such as wall",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_surface_based_element",
       "description": "Create surface-based elements like floors",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "color_splash",
       "description": "Color elements by parameter value",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "tag_walls",
       "description": "Tag all the walls in the model",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "delete_element",
       "description": "Deletes elements using ElementId",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "ai_element_filter",
       "description": "AI element filter for querying elements by criteria",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "operate_element",
       "description": "Operate on elements (select, color, hide, isolate, etc)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "export_room_data",
       "description": "Extract all rooms with detailed properties including area, volume, perimeter, and parameters",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_material_quantities",
       "description": "Calculate material quantities and takeoffs with area and volume calculations per material",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "analyze_model_statistics",
       "description": "Analyze model complexity with element counts by category, type, family, and level",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_grid",
       "description": "Create grid system with smart spacing generation for project layout (alphabetic/numeric naming)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_structural_framing_system",
       "description": "Create structural beam framing system with configurable spacing and direction",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_room",
       "description": "Create and place rooms at specified locations with custom names, numbers, and properties",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "tag_rooms",
       "description": "Create tags for all rooms in the current view displaying room name and number",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_level",
       "description": "Create levels at specified elevations with automatic floor plan view generation",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "send_code_to_revit",
       "description": "Execute dynamic C# code in Revit with access to the Document and Revit API",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_dimensions",
       "description": "Create dimension annotations between elements or points in the current view",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_element_parameters",
       "description": "Get all instance and type parameters of Revit elements by their IDs",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "set_element_parameters",
       "description": "Set parameter values on Revit elements (instance and type parameters)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "modify_element",
       "description": "Move, rotate, mirror, or copy Revit elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_view",
       "description": "Create views (FloorPlan, CeilingPlan, Section, Elevation, 3D)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_sheet",
       "description": "Create sheets with title blocks for documentation",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "place_viewport",
       "description": "Place views on sheets as viewports",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_text_note",
       "description": "Create text note annotations in views",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_project_info",
       "description": "Get project information including phases, worksets, links, and levels",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_schedule",
       "description": "Create schedule views with fields, filters, and sorting",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_schedule_data",
       "description": "Read schedule data or list all schedules in the project",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "export_schedule",
       "description": "Export schedule data to text/CSV file",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_shared_parameters",
       "description": "List all project parameters (shared and non-shared) bound to categories in the current Revit project",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "add_shared_parameter",
       "description": "Add a shared parameter from the shared parameter file to specified categories",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_worksets",
       "description": "List all worksets with properties including name, kind, open/editable status",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "set_element_workset",
       "description": "Move elements to a different workset",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_phases",
       "description": "Get all phases and phase filters from the project",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "set_element_phase",
       "description": "Set created and/or demolished phase on elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_materials",
       "description": "List all materials with properties including color, transparency, and asset availability",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_material_properties",
       "description": "Get detailed structural, thermal, and appearance properties of a material",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_warnings",
       "description": "Get all warnings/errors in the current Revit model for quality auditing",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "purge_unused",
       "description": "Identify and optionally remove unused families, types, and materials",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "batch_rename",
       "description": "Batch rename views, sheets, or elements using find/replace or prefix/suffix rules",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "load_family",
       "description": "Load family files, list loaded families, or duplicate family types",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "manage_links",
       "description": "List, reload, or unload linked Revit models",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_floor",
       "description": "Create floor elements from boundary points or room boundaries",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_view_filter",
       "description": "Create, apply, or list view filters for controlling element visibility",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "copy_elements",
       "description": "Copy elements between views within the same document",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_array",
       "description": "Create linear or radial arrays of elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "batch_export",
       "description": "Export sheets/views to PDF, DWG, or IFC format",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "renumber_elements",
       "description": "Sequentially renumber rooms, doors, windows, or parking elements by spatial order or custom sequence",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "change_element_type",
       "description": "Batch swap family types on multiple elements at once (e.g., change all doors from one type to another)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "apply_view_template",
       "description": "List, apply, or remove view templates on views for consistent drawing standards",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "duplicate_view",
       "description": "Duplicate views with options: independent, dependent, or with detailing",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "override_graphics",
       "description": "Set per-element graphic overrides in a view (line color, fill color, transparency, halftone, lineweight)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_filled_region",
       "description": "Create 2D filled regions (hatched areas) in views with specified boundaries and fill patterns",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_revision",
       "description": "List, create revisions, or add revisions to sheets for documentation tracking",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "match_element_properties",
       "description": "Copy parameter values from a source element to multiple target elements (match properties)",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "clash_detection",
       "description": "Detect geometric intersections between element categories or specific elements for coordination",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "cad_link_cleanup",
       "description": "List, audit, and delete CAD imports and links from the model for cleanup",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "check_model_health",
       "description": "Comprehensive BIM model health audit with scoring and recommendations",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "measure_between_elements",
       "description": "Measure distance between elements, points, or mixed references",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "sync_csv_parameters",
       "description": "Import parameter values into elements from structured data with dry-run support",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "batch_create_sheets",
       "description": "Create multiple sheets with title blocks and optional view placement",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "section_box_from_selection",
       "description": "Create 3D view with section box fitted to selected elements with configurable offset",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "bulk_modify_parameter_values",
       "description": "Bulk modify parameter values: set, prefix, suffix, find/replace, or clear on multiple elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "duplicate_sheet_with_content",
       "description": "Duplicate sheets with all content: views, legends, schedules in exact positions",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_views_from_rooms",
       "description": "Auto-create callout, section, or elevation views from rooms with naming patterns",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "align_viewports",
       "description": "Align viewports across sheets to match a reference viewport position",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "get_elements_in_spatial_volume",
       "description": "Find elements contained within rooms, areas, or custom bounding boxes",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "audit_families",
       "description": "Comprehensive family audit with health score, unused detection, and recommendations",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "batch_modify_view_range",
       "description": "Batch modify view range settings on multiple plan views at once",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "transfer_parameters",
       "description": "Transfer parameter values from a source element to multiple target elements",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "export_elements_data",
       "description": "Export elements by category with selected parameters, filtering, and CSV/JSON output. Core SheetLink feature.",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "manage_project_parameters",
       "description": "Manage project parameters (CRUD): list, create, delete, or modify category bindings. Inspired by DiRoots ParaManager.",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     },
     {
       "commandName": "create_color_legend",
       "description": "Colorize elements by parameter value with auto/gradient/custom schemes and generate a legend view. Inspired by DiRootsOne OneFilter Visualize.",
-      "assemblyPath": "RevitMCPCommandSet.dll"
+      "assemblyPath": "RevitMCPCommandSet/{VERSION}/RevitMCPCommandSet.dll"
     }
   ]
 }
