@@ -82,29 +82,74 @@ flowchart LR
 
 ### 1. Install the Revit plugin / Installa il plugin Revit
 
-Download the ZIP for your Revit version from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page and extract to:
+#### Option A: Automatic install (recommended) / Installazione automatica (consigliata)
 
-Scarica lo ZIP per la tua versione di Revit dalla pagina [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) e estrai in:
+Open PowerShell and paste this command: / Apri PowerShell e incolla questo comando:
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/mcp-servers-for-revit/mcp-servers-for-revit/main/scripts/install.ps1 | iex"
+```
+
+The script: / Lo script:
+- Detects installed Revit versions automatically / Rileva automaticamente le versioni di Revit installate
+- Downloads the correct pre-built Release from GitHub / Scarica la Release precompilata corretta da GitHub
+- Extracts to the right folder and unblocks all DLLs / Estrae nella cartella giusta e sblocca tutte le DLL
+- Verifies all dependencies are present / Verifica che tutte le dipendenze siano presenti
+- Checks for Node.js (required for MCP server) and offers to install it / Controlla Node.js (necessario per il server MCP) e offre di installarlo
+- Configures Claude Desktop if installed / Configura Claude Desktop se installato
+
+```powershell
+# Install for a specific Revit version / Installa per una versione specifica
+.\install.ps1 -RevitVersion 2025
+
+# Install a specific release / Installa una release specifica
+.\install.ps1 -Tag v1.2.0
+
+# Uninstall / Disinstalla
+.\install.ps1 -Uninstall
+```
+
+#### Option B: Manual install / Installazione manuale
+
+> [!IMPORTANT]
+> **Download the pre-built ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page.** Do NOT clone the repository or copy the source code — the source contains `.cs` files, not compiled `.dll` files. The plugin will not work without compiled binaries.
+>
+> **Scarica lo ZIP precompilato dalla pagina [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases).** NON clonare il repository o copiare il codice sorgente — il sorgente contiene file `.cs`, non file `.dll` compilati. Il plugin non funzionera senza i binari compilati.
+
+Extract the ZIP to: / Estrai lo ZIP in:
 
 ```
 %AppData%\Autodesk\Revit\Addins\<your Revit version>\
 ```
 
-After extraction / Dopo l'estrazione:
+To open this folder quickly, press `Win+R` and type: / Per aprire questa cartella rapidamente, premi `Win+R` e digita:
+```
+%AppData%\Autodesk\Revit\Addins
+```
+
+After extraction your folder **must** look like this / Dopo l'estrazione la cartella **deve** apparire cosi:
 
 ```
 Addins/2025/
-├── mcp-servers-for-revit.addin
-└── revit_mcp_plugin/
-    ├── RevitMCPPlugin.dll
+├── mcp-servers-for-revit.addin          <-- manifest file (required)
+└── revit_mcp_plugin/                    <-- subfolder (required)
+    ├── RevitMCPPlugin.dll               <-- main plugin (required)
+    ├── RevitMCPSDK.dll                  <-- SDK dependency (required)
+    ├── Newtonsoft.Json.dll              <-- JSON dependency (required)
     ├── tool_schemas.json
     └── Commands/
+        ├── commandRegistry.json
         └── RevitMCPCommandSet/
             ├── command.json
             └── 2025/
                 ├── RevitMCPCommandSet.dll
                 └── ...
 ```
+
+> [!WARNING]
+> If `RevitMCPPlugin.dll` is missing or the `revit_mcp_plugin/` subfolder is not present, the plugin will not load. Check that you extracted the **contents** of the ZIP, not the ZIP file itself.
+>
+> Se `RevitMCPPlugin.dll` manca o la sottocartella `revit_mcp_plugin/` non e presente, il plugin non si carichera. Verifica di aver estratto il **contenuto** dello ZIP, non il file ZIP stesso.
 
 ### 2. Configure the MCP server / Configura il server MCP
 
@@ -131,9 +176,24 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 
 ### 3. Start Revit / Avvia Revit
 
-The plugin loads automatically. Click **"Revit MCP Switch"** in the ribbon to start the TCP server. When the status indicator turns green, the connection is active.
+The plugin loads automatically. In the **Add-Ins** ribbon tab you should see **three buttons** in the "Revit MCP Plugin" panel:
 
-Il plugin si carica automaticamente. Clicca **"Revit MCP Switch"** nel ribbon per avviare il server TCP. Quando l'indicatore di stato diventa verde, la connessione e attiva.
+Il plugin si carica automaticamente. Nella scheda ribbon **Add-Ins** dovresti vedere **tre pulsanti** nel pannello "Revit MCP Plugin":
+
+| Button | Function / Funzione |
+|--------|---------------------|
+| **Revit MCP Switch** | Start/stop the TCP server / Avvia/ferma il server TCP |
+| **MCP Panel** | Show/hide the built-in chat panel / Mostra/nascondi il pannello chat integrato |
+| **Settings** | Plugin settings / Impostazioni del plugin |
+
+Click **"Revit MCP Switch"** to start the TCP server. When the status indicator turns green, the connection is active.
+
+Clicca **"Revit MCP Switch"** per avviare il server TCP. Quando l'indicatore di stato diventa verde, la connessione e attiva.
+
+> [!TIP]
+> If you only see the **Switch** button but not **MCP Panel** or **Settings**, the plugin did not load correctly. See [Troubleshooting](#troubleshooting--risoluzione-problemi) below.
+>
+> Se vedi solo il pulsante **Switch** ma non **MCP Panel** o **Settings**, il plugin non si e caricato correttamente. Vedi [Risoluzione problemi](#troubleshooting--risoluzione-problemi) sotto.
 
 ![Architecture](./assets/architecture.svg)
 
@@ -306,6 +366,43 @@ Il plugin Revit include un pannello chat agganciabile che si connette direttamen
 | **I nomi dei parametri sono localizzati** | I nomi dei parametri Revit dipendono dalla lingua dell'interfaccia. Usa i nomi BuiltInCategory (es. `OST_Walls`) per le categorie. Il command set risolve le categorie automaticamente, ma i nomi dei parametri devono corrispondere alla lingua di Revit |
 | **Nessuno streaming** | I risultati dei tool vengono restituiti come risposta singola; risultati grandi (es. esportazione di migliaia di elementi) possono richiedere tempo |
 | **Chiave API Anthropic** | Il pannello chat integrato richiede una chiave API Anthropic. I client MCP esterni (Claude Code, Claude Desktop) usano la propria autenticazione |
+
+## Troubleshooting / Risoluzione problemi
+
+### Only the Switch button appears (no MCP Panel or Settings) / Compare solo il pulsante Switch
+
+**Cause:** The plugin was not installed correctly — usually because source code was copied instead of the pre-built Release, or files are missing.
+
+**Causa:** Il plugin non e stato installato correttamente — di solito perche e stato copiato il codice sorgente invece della Release precompilata, oppure mancano dei file.
+
+**Fix / Soluzione:**
+
+1. Close Revit / Chiudi Revit
+2. Delete the old installation from `%AppData%\Autodesk\Revit\Addins\<version>\` / Cancella la vecchia installazione
+3. Download the correct ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page / Scarica lo ZIP corretto dalla pagina Releases
+4. Extract and verify the folder structure matches the one shown in [Step 1](#1-install-the-revit-plugin--installa-il-plugin-revit) / Estrai e verifica che la struttura corrisponda a quella mostrata nel Passo 1
+5. Restart Revit / Riavvia Revit
+
+### Plugin does not appear in Add-Ins tab / Il plugin non compare nella scheda Add-Ins
+
+- Verify that `mcp-servers-for-revit.addin` exists directly inside `%AppData%\Autodesk\Revit\Addins\<version>\` (not in a subfolder) / Verifica che il file `.addin` sia direttamente in quella cartella (non in una sottocartella)
+- Verify the ZIP version matches your Revit version (e.g., Revit2025 ZIP for Revit 2025) / Verifica che la versione dello ZIP corrisponda alla tua versione di Revit
+- Check that Revit did not block the DLLs: right-click each `.dll` → Properties → if you see "Unblock" at the bottom, check it and click OK / Controlla che Revit non abbia bloccato le DLL: tasto destro su ogni `.dll` → Proprieta → se vedi "Sblocca" in basso, spuntalo e clicca OK
+
+### "Connection refused" when using Claude Desktop or Claude Code
+
+- Ensure Revit is open and the MCP Switch is **ON** (green indicator) / Assicurati che Revit sia aperto e l'MCP Switch sia **acceso** (indicatore verde)
+- Check that port 8080 is not used by another application: `netstat -an | findstr 8080` / Controlla che la porta 8080 non sia usata da un'altra applicazione
+
+### Other common issues / Altri problemi comuni
+
+| Issue / Problema | Solution / Soluzione |
+|------------------|----------------------|
+| "Element not found" | Verify element ID with `get_current_view_elements` |
+| "Parameter not found" | Check exact name with `get_element_parameters` — names are localized |
+| "Family type not found" | Use `get_available_family_types` for exact names |
+| "Tool not available" in Claude Desktop | Restart Claude Desktop to refresh the MCP tool list |
+| Timeout on large operations | Try with fewer elements or a simpler filter |
 
 ## Development / Sviluppo
 

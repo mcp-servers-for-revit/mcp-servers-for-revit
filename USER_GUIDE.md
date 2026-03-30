@@ -2,11 +2,12 @@
 
 ## Quick Start
 
-1. Open **Revit 2023/2024/2025/2026** with a project
-2. Ensure the **RevitMCPCommandSet** plugin is loaded (check Add-ins tab)
-3. Open **Claude Desktop** (or Claude.ai with MCP enabled)
-4. The MCP server auto-connects to Revit via `localhost:8080`
-5. Start asking Claude to interact with your Revit model
+1. **Install the plugin** from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page (do NOT copy source code from the repository)
+2. Open **Revit 2023/2024/2025/2026** with a project
+3. In the **Add-Ins** tab, verify you see **three buttons**: Revit MCP Switch, MCP Panel, Settings
+4. Click **Revit MCP Switch** to start the TCP server (indicator turns green)
+5. Open **Claude Desktop** (or Claude Code / Claude.ai with MCP enabled)
+6. Start asking Claude to interact with your Revit model
 
 ---
 
@@ -209,20 +210,44 @@
 
 ## Troubleshooting
 
+### Installation Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **Only Switch button visible** (no MCP Panel or Settings) | Source code was copied instead of pre-built Release | Download the correct ZIP from the [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) page — do NOT copy `.cs` files from GitHub |
+| **Plugin not in Add-Ins tab** | `.addin` file missing or in wrong folder | Verify `mcp-servers-for-revit.addin` is in `%AppData%\Autodesk\Revit\Addins\<version>\` |
+| **Plugin not in Add-Ins tab** | DLLs blocked by Windows | Right-click each `.dll` → Properties → check "Unblock" if present |
+| **Plugin not in Add-Ins tab** | Wrong Revit version ZIP | Download the ZIP matching your Revit year (e.g., Revit2025 ZIP for Revit 2025) |
+
+### Connection & Runtime Issues
+
 | Issue | Solution |
 |-------|----------|
-| "Connection refused" | Ensure Revit is open with the MCP plugin loaded |
+| "Connection refused" | Ensure Revit is open and MCP Switch is ON (green indicator) |
 | "Element not found" | Verify element ID exists with `get_current_view_elements` |
-| "Parameter not found" | Check exact name with `get_element_parameters` |
-| "Family type not found" | Use `get_available_family_types` for exact names |
+| "Parameter not found" | Check exact name with `get_element_parameters` — names depend on Revit language |
+| "Family type not found" | Use `get_available_family_types` for exact type names |
 | "Tool not available" | Restart Claude Desktop to refresh MCP tool list |
 | "Timeout" | Large operations may take time, try with fewer elements |
+
+### Verifying Your Installation
+
+Your Addins folder should contain:
+```
+%AppData%\Autodesk\Revit\Addins\<version>\
+├── mcp-servers-for-revit.addin       <-- must be here
+└── revit_mcp_plugin/                 <-- subfolder with DLLs
+    ├── RevitMCPPlugin.dll            <-- main plugin DLL
+    └── Commands/                     <-- command set
+```
+
+If you see `.cs` or `.csproj` files instead of `.dll` files, you copied the source code. Download the pre-built ZIP from [Releases](https://github.com/mcp-servers-for-revit/mcp-servers-for-revit/releases) instead.
 
 ---
 
 ## Requirements
 
 - **Revit**: 2023, 2024, 2025, or 2026
-- **Plugin**: RevitMCPCommandSet loaded in Revit
+- **Plugin**: Pre-built Release ZIP installed (see [README](README.md#1-install-the-revit-plugin--installa-il-plugin-revit))
 - **Server**: Node.js MCP server running (auto-started by Claude Desktop)
 - **Connection**: localhost:8080 (Revit plugin listens, MCP server connects)
