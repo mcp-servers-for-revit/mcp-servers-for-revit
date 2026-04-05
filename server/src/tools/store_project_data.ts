@@ -14,7 +14,7 @@ export function registerStoreProjectDataTool(server: McpServer) {
       client_name: z.string().optional().describe("Client name"),
       project_status: z.string().optional().describe("Project status (e.g., Active, Completed, On Hold)"),
       author: z.string().optional().describe("Project author or creator"),
-      metadata: z.record(z.any()).optional().describe("Additional project metadata as key-value pairs")
+      metadata: z.record(z.string()).optional().describe("Additional project metadata as key-value pairs")
     },
     async (args: any) => {
       try {
