@@ -2,6 +2,13 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
 
+const transactionModeSchema = z
+  .enum(["auto", "none"])
+  .default("auto")
+  .describe(
+    "How the snippet should interact with Revit transactions. Use 'auto' to wrap the snippet in a transaction, or 'none' when the called code manages its own transactions."
+  );
+
 export function registerSendCodeToRevitTool(server: McpServer) {
   server.tool(
     "send_code_to_revit",
@@ -18,11 +25,13 @@ export function registerSendCodeToRevitTool(server: McpServer) {
         .describe(
           "Optional execution parameters that will be passed to your code"
         ),
+      transactionMode: transactionModeSchema,
     },
     async (args, extra) => {
       const params = {
         code: args.code,
         parameters: args.parameters || [],
+        transactionMode: args.transactionMode,
       };
 
       try {

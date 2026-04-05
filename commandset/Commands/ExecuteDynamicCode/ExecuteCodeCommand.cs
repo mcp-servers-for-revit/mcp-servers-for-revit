@@ -32,9 +32,10 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
                 string code = parameters["code"].Value<string>();
                 JArray parametersArray = parameters["parameters"] as JArray;
                 object[] executionParameters = parametersArray?.ToObject<object[]>() ?? Array.Empty<object>();
+                string transactionMode = parameters["transactionMode"]?.Value<string>() ?? ExecuteCodeEventHandler.TransactionModeAuto;
 
                 // 设置执行参数
-                _handler.SetExecutionParameters(code, executionParameters);
+                _handler.SetExecutionParameters(code, executionParameters, transactionMode);
 
                 // 触发外部事件并等待完成
                 if (RaiseAndWaitForCompletion(60000)) // 1分钟超时
