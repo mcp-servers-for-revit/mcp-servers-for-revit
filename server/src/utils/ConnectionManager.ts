@@ -20,7 +20,13 @@ export async function withRevitConnection<T>(
   });
   await previousMutex;
 
-  const revitClient = new RevitClientConnection("localhost", 8080);
+  // Default to 127.0.0.1 rather than "localhost": on Windows, "localhost"
+  // resolves to ::1 first, so if any other process holds [::1]:8080 the client
+  // connects to that instead of the Revit add-in, which binds IPv4 (IPAddress.Any).
+  // Host and port can be overridden via REVIT_MCP_HOST / REVIT_MCP_PORT.
+  const revitHost = process.env.REVIT_MCP_HOST || "127.0.0.1";
+  const revitPort = Number(process.env.REVIT_MCP_PORT) || 8080;
+  const revitClient = new RevitClientConnection(revitHost, revitPort);
 
   try {
     // 连接到Revit客户端
