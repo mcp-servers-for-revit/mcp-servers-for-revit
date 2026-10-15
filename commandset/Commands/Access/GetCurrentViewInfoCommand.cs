@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RevitMCPCommandSet.Commands.Access
 {
-    public class GetCurrentViewInfoCommand : ExternalEventCommandBase
+    public class GetCurrentViewInfoCommand : RevitCommandBase
     {
         private GetCurrentViewInfoEventHandler _handler => (GetCurrentViewInfoEventHandler)Handler;
 

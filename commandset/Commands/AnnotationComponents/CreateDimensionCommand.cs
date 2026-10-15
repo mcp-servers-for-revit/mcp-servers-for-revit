@@ -32,7 +32,7 @@ namespace RevitMCPCommandSet.Commands.AnnotationComponents;
 /// <summary>
 ///     Command to create dimensions
 /// </summary>
-public class CreateDimensionCommand : ExternalEventCommandBase
+public class CreateDimensionCommand : RevitCommandBase
 {
     /// <summary>
     ///     Constructor

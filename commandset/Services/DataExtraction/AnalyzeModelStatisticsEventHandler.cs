@@ -1,6 +1,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.DataExtraction;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services.DataExtraction
@@ -80,18 +81,19 @@ namespace RevitMCPCommandSet.Services.DataExtraction
 
                     categoryStats[catName].ElementCount++;
 
-                    // Track type information
-                    if (elem is FamilyInstance fi)
+                    // totalFamilies counts loadable families only; system families such as Basic Wall aren't included.
+                    if (elem is FamilyInstance fi && !string.IsNullOrEmpty(fi.Symbol?.Family?.Name))
                     {
-                        string familyName = fi.Symbol?.Family?.Name;
-                        string typeName = fi.Symbol?.Name;
+                        familyNames.Add(fi.Symbol.Family.Name);
+                    }
 
-                        if (!string.IsNullOrEmpty(familyName))
-                        {
-                            familyNames.Add(familyName);
-                        }
+                    // Track type information for every typed element, including system families (walls, floors, roofs).
+                    if (_includeDetailedTypes && doc.GetElement(elem.GetTypeId()) is ElementType elementType)
+                    {
+                        string familyName = elementType.FamilyName;
+                        string typeName = elementType.Name;
 
-                        if (_includeDetailedTypes && !string.IsNullOrEmpty(typeName))
+                        if (!string.IsNullOrEmpty(typeName))
                         {
                             var existingType = categoryStats[catName].Types
                                 .FirstOrDefault(t => t.TypeName == typeName && t.FamilyName == familyName);
@@ -137,7 +139,7 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                     levelStats.Add(new LevelStatistics
                     {
                         LevelName = level.Name,
-                        Elevation = level.Elevation,
+                        Elevation = Math.Round(UnitConversion.ToMillimeters(level.Elevation), 1),
                         ElementCount = elementCount
                     });
                 }

@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerGetSelectedElementsTool(server: McpServer) {
   server.tool(
     "get_selected_elements",
-    "Get elements currently selected in Revit. You can limit the number of returned elements.",
+    "Get elements currently selected in Revit, with their family, type, level, and location (in mm). You can limit the number of returned elements.",
     {
       limit: z
         .number()
@@ -29,6 +30,7 @@ export function registerGetSelectedElementsTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -40,6 +42,7 @@ export function registerGetSelectedElementsTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

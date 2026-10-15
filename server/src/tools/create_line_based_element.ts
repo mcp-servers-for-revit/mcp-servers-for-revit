@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerCreateLineBasedElementTool(server: McpServer) {
   server.tool(
     "create_line_based_element",
-    "Create one or more line-based elements in Revit such as walls, beams, or pipes. Supports batch creation with detailed parameters including family type ID, start and end points, thickness, height, and level information. All units are in millimeters (mm).",
+    "Create one or more line-based elements in Revit such as walls, beams, or pipes. Supports batch creation with detailed parameters including family type ID, start and end points, height, and level (levelId). All units are in millimeters (mm).",
     {
       data: z
         .array(
@@ -33,14 +34,29 @@ export function registerCreateLineBasedElementTool(server: McpServer) {
               .describe("The line defining the element's location"),
             thickness: z
               .number()
+              .optional()
               .describe(
-                "Thickness/width of the element (e.g., wall thickness)"
+                "Not used: thickness comes from the element type (e.g. the wall type). Pick a typeId with the thickness you need."
               ),
             height: z
               .number()
-              .describe("Height of the element (e.g., wall height)"),
-            baseLevel: z.number().describe("Base level height"),
-            baseOffset: z.number().describe("Offset from the base level"),
+              .describe("Height of the element in mm (e.g., wall height)"),
+            levelId: z
+              .number()
+              .optional()
+              .describe(
+                "ID of the level to place the element on (e.g. from ai_element_filter with filterCategory OST_Levels). Preferred over baseLevel."
+              ),
+            baseLevel: z
+              .number()
+              .optional()
+              .describe(
+                "Only used when levelId isn't given: an elevation in mm, and the nearest level is used"
+              ),
+            baseOffset: z
+              .number()
+              .optional()
+              .describe("Offset in mm above the level (default 0)"),
           })
         )
         .describe("Array of line-based elements to create"),
@@ -63,6 +79,7 @@ export function registerCreateLineBasedElementTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -74,6 +91,7 @@ export function registerCreateLineBasedElementTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

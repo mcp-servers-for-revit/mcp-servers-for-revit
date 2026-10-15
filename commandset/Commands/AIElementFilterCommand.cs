@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class AIElementFilterCommand : ExternalEventCommandBase
+    public class AIElementFilterCommand : RevitCommandBase
     {
         private AIElementFilterEventHandler _handler => (AIElementFilterEventHandler)Handler;
 
@@ -37,7 +37,7 @@ namespace RevitMCPCommandSet.Commands
                 // 解析参数
                 data = parameters["data"].ToObject<FilterSetting>();
                 if (data == null)
-                    throw new ArgumentNullException(nameof(data), "AI传入数据为空");
+                    throw new ArgumentNullException(nameof(data), "No data was provided");
 
                 // 设置AI过滤器参数
                 _handler.SetParameters(data);
@@ -49,12 +49,12 @@ namespace RevitMCPCommandSet.Commands
                 }
                 else
                 {
-                    throw new TimeoutException("获取元素信息操作超时");
+                    throw new TimeoutException("Getting element information timed out");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"获取元素信息失败: {ex.Message}");
+                throw new Exception($"Failed to get element information: {ex.Message}");
             }
         }
     }

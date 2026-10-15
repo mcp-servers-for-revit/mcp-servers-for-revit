@@ -41,9 +41,9 @@ namespace RevitMCPCommandSet.Utils
         {
             // 基本参数检查
             if (doc == null)
-                throw new ArgumentNullException($"必要参数{typeof(Document)} {nameof(doc)}缺失！");
+                throw new ArgumentException($"{nameof(doc)} is required to place this family.");
             if (familySymbol == null)
-                throw new ArgumentNullException($"必要参数{typeof(FamilySymbol)} {nameof(familySymbol)}缺失！");
+                throw new ArgumentException($"{nameof(familySymbol)} is required to place this family.");
 
             // 激活族模型
             if (!familySymbol.IsActive)
@@ -57,7 +57,7 @@ namespace RevitMCPCommandSet.Utils
                 // 基于单个标高的族（如：公制常规模型）
                 case FamilyPlacementType.OneLevelBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentException($"{nameof(locationPoint)} is required to place this family.");
                     // 带标高信息
                     if (baseLevel != null)
                     {
@@ -80,7 +80,7 @@ namespace RevitMCPCommandSet.Utils
                 // 基于单个标高和主体的族（如：门、窗）
                 case FamilyPlacementType.OneLevelBasedHosted:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentException($"{nameof(locationPoint)} is required to place this family.");
 
                     Element host = explicitHost;
                     XYZ placementPoint = locationPoint;
@@ -116,7 +116,7 @@ namespace RevitMCPCommandSet.Utils
                     }
 
                     if (host == null)
-                        throw new ArgumentNullException($"找不到合规的的宿主信息！");
+                        throw new InvalidOperationException("No suitable host (wall, floor, ceiling or face) was found at the location for this hosted family.");
 
                     if (baseLevel != null)
                     {
@@ -150,9 +150,9 @@ namespace RevitMCPCommandSet.Utils
                 // 基于两个标高的族（如：柱子）
                 case FamilyPlacementType.TwoLevelsBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentException($"{nameof(locationPoint)} is required to place this family.");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Level)} {nameof(baseLevel)}缺失！");
+                        throw new ArgumentException($"{nameof(baseLevel)} is required to place this family.");
                     // 判断是结构柱还是建筑柱
                     StructuralType structuralType = StructuralType.NonStructural;
                     if (familySymbol.Category.Id.GetIntValue() == (int)BuiltInCategory.OST_StructuralColumns)
@@ -206,7 +206,7 @@ namespace RevitMCPCommandSet.Utils
                 // 族是视图专有的（例如，详图注释）
                 case FamilyPlacementType.ViewBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentException($"{nameof(locationPoint)} is required to place this family.");
                     instance = doc.Create.NewFamilyInstance(
                         locationPoint,  // 族实例的原点。如果创建在平面视图（ViewPlan）上，该原点将被投影到平面视图上
                         familySymbol,   // 表示要插入的实例类型的族符号对象
@@ -216,11 +216,11 @@ namespace RevitMCPCommandSet.Utils
                 // 基于工作平面的族（如：基于面的公制常规模型，包括基于面、基于墙等）
                 case FamilyPlacementType.WorkPlaneBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentException($"{nameof(locationPoint)} is required to place this family.");
                     // 获取最近的宿主面
                     Reference hostFace = doc.GetNearestFaceReference(locationPoint, 1000 / 304.8);
                     if (hostFace == null)
-                        throw new ArgumentNullException($"找不到合规的的宿主信息！");
+                        throw new InvalidOperationException("No suitable host (wall, floor, ceiling or face) was found at the location for this hosted family.");
                     if (faceDirection == null || faceDirection == XYZ.Zero)
                     {
                         var result = doc.GenerateDefaultOrientation(hostFace);
@@ -237,7 +237,7 @@ namespace RevitMCPCommandSet.Utils
                 // 基于线且在工作平面上的族（如：基于线的公制常规模型）
                 case FamilyPlacementType.CurveBased:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentException($"{nameof(locationLine)} is required to place this family.");
 
                     // 获取最近的宿主面（不允许有误差）
                     Reference lineHostFace = doc.GetNearestFaceReference(locationLine.Evaluate(0.5, true), 1e-5);
@@ -275,9 +275,9 @@ namespace RevitMCPCommandSet.Utils
                 // 基于线且在特定视图中的族（如：详图组件）
                 case FamilyPlacementType.CurveBasedDetail:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentException($"{nameof(locationLine)} is required to place this family.");
                     if (view == null)
-                        throw new ArgumentNullException($"必要参数{typeof(View)} {nameof(view)}缺失！");
+                        throw new ArgumentException($"{nameof(view)} is required to place this family.");
                     instance = doc.Create.NewFamilyInstance(
                         locationLine,   // 族实例的线位置。该线必须位于视图平面内
                         familySymbol,   // 表示要插入的实例类型的族符号对象
@@ -287,9 +287,9 @@ namespace RevitMCPCommandSet.Utils
                 // 结构曲线驱动的族（如：梁、支撑或斜柱）
                 case FamilyPlacementType.CurveDrivenStructural:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentException($"{nameof(locationLine)} is required to place this family.");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Level)} {nameof(baseLevel)}缺失！");
+                        throw new ArgumentException($"{nameof(baseLevel)} is required to place this family.");
                     instance = doc.Create.NewFamilyInstance(
                         locationLine,                   // 族实例基于的曲线
                         familySymbol,                   // 一个FamilySymbol对象，表示要插入的实例的类型。请注意，此Symbol必须表示其 FamilyPlacementType 为 WorkPlaneBased 或 CurveBased 的族
@@ -299,7 +299,7 @@ namespace RevitMCPCommandSet.Utils
 
                 // 适应性族（如：自适应公制常规模型、幕墙嵌板）
                 case FamilyPlacementType.Adaptive:
-                    throw new NotImplementedException("未实现FamilyPlacementType.Adaptive创建方法！");
+                    throw new NotSupportedException("Adaptive component families are not supported.");
 
                 default:
                     break;
@@ -422,8 +422,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("错误", "无法创建或获取3D视图");
-                    return null;
+                    throw new InvalidOperationException("Could not find or create a 3D view to search from.");
                 }
 
                 // 设置6个方向的射线
@@ -481,8 +480,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("错误", $"获取最近面时发生错误：{ex.Message}");
-                return null;
+                throw new InvalidOperationException($"Failed to find the nearest face: {ex.Message}", ex);
             }
         }
 
@@ -539,8 +537,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("错误", "无法创建或获取3D视图");
-                    return null;
+                    throw new InvalidOperationException("Could not find or create a 3D view to search from.");
                 }
 
                 // 根据宿主行为创建类型过滤器
@@ -604,8 +601,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("错误", $"获取最近宿主元素时发生错误：{ex.Message}");
-                return null;
+                throw new InvalidOperationException($"Failed to find the nearest host element: {ex.Message}", ex);
             }
         }
 
@@ -696,9 +692,9 @@ namespace RevitMCPCommandSet.Utils
                 .Cast<FillPatternElement>()
                 .FirstOrDefault(x => x.GetFillPattern().IsSolidFill);
 
+            // Highlighting is cosmetic; skip it if the model has no solid fill pattern.
             if (solidFill == null)
             {
-                TaskDialog.Show("错误", "未找到实心填充图案");
                 return;
             }
 

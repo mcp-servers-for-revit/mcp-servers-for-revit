@@ -6,7 +6,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class CreateStructuralFramingSystemCommand : ExternalEventCommandBase
+    public class CreateStructuralFramingSystemCommand : RevitCommandBase
     {
         private CreateStructuralFramingSystemEventHandler _handler => (CreateStructuralFramingSystemEventHandler)Handler;
 

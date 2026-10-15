@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RevitMCPCommandSet.Commands.Access
 {
-    public class GetSelectedElementsCommand : ExternalEventCommandBase
+    public class GetSelectedElementsCommand : RevitCommandBase
     {
         private static readonly object _executionLock = new object();
         private GetSelectedElementsEventHandler _handler => (GetSelectedElementsEventHandler)Handler;

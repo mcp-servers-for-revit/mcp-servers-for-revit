@@ -2,6 +2,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.DataExtraction;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services.DataExtraction
@@ -64,10 +65,10 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                         Name = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "",
                         Number = room.Number ?? "",
                         Level = room.Level?.Name ?? "No Level",
-                        Area = room.Area, // Already in square feet
-                        Volume = room.Volume, // Already in cubic feet
-                        Perimeter = room.Perimeter, // Already in feet
-                        UnboundedHeight = room.UnboundedHeight, // Already in feet
+                        Area = Math.Round(UnitConversion.ToSquareMeters(room.Area), 2),
+                        Volume = Math.Round(UnitConversion.ToCubicMeters(room.Volume), 2),
+                        Perimeter = Math.Round(UnitConversion.ToMillimeters(room.Perimeter), 1),
+                        UnboundedHeight = Math.Round(UnitConversion.ToMillimeters(room.UnboundedHeight), 1),
                         Department = room.get_Parameter(BuiltInParameter.ROOM_DEPARTMENT)?.AsString() ?? "",
                         Comments = room.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.AsString() ?? "",
                         Phase = doc.GetElement(room.get_Parameter(BuiltInParameter.ROOM_PHASE)?.AsElementId())?.Name ?? "",
@@ -75,13 +76,13 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                     };
 
                     rooms.Add(roomData);
-                    totalArea += room.Area;
+                    totalArea += UnitConversion.ToSquareMeters(room.Area);
                 }
 
                 ResultInfo = new ExportRoomDataResult
                 {
                     TotalRooms = rooms.Count,
-                    TotalArea = totalArea,
+                    TotalArea = Math.Round(totalArea, 2),
                     Rooms = rooms,
                     Success = true,
                     Message = $"Successfully exported {rooms.Count} rooms"

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerGetAvailableFamilyTypesTool(server: McpServer) {
   server.tool(
@@ -44,6 +45,7 @@ export function registerGetAvailableFamilyTypesTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -55,6 +57,7 @@ export function registerGetAvailableFamilyTypesTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

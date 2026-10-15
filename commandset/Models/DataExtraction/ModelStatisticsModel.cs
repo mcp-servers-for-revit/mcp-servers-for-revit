@@ -47,7 +47,7 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         public string LevelName { get; set; }
 
         [JsonProperty("elevation")]
-        public double Elevation { get; set; }
+        public double Elevation { get; set; } // mm
 
         [JsonProperty("elementCount")]
         public int ElementCount { get; set; }

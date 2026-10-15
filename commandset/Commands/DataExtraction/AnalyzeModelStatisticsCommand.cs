@@ -5,7 +5,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands.DataExtraction
 {
-    public class AnalyzeModelStatisticsCommand : ExternalEventCommandBase
+    public class AnalyzeModelStatisticsCommand : RevitCommandBase
     {
         private AnalyzeModelStatisticsEventHandler _handler => (AnalyzeModelStatisticsEventHandler)Handler;
 

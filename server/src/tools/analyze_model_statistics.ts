@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerAnalyzeModelStatisticsTool(server: McpServer) {
   server.tool(
     "analyze_model_statistics",
-    "Analyze model complexity with element counts. Returns detailed statistics about the Revit model including total element counts, total types, total families, views, sheets, counts by category (with type/family breakdown), and level-by-level element distribution. Useful for model auditing, performance analysis, and understanding model composition.",
+    "Analyze model complexity with element counts. Returns detailed statistics about the Revit model including total element counts, total types, total families, views, sheets, counts by category (with type/family breakdown), and level-by-level element distribution. Level elevations are in mm. Useful for model auditing, performance analysis, and understanding model composition.",
     {
       includeDetailedTypes: z
         .boolean()
@@ -30,6 +31,7 @@ export function registerAnalyzeModelStatisticsTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -39,6 +41,7 @@ export function registerAnalyzeModelStatisticsTool(server: McpServer) {
               text: `Analyze model statistics failed: ${error instanceof Error ? error.message : String(error)}`,
             },
           ],
+          isError: true,
         };
       }
     }

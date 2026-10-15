@@ -1,6 +1,7 @@
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
 using RevitMCPSDK.API.Interfaces;
+using RevitMCPCommandSet.Utils;
 
 namespace RevitMCPCommandSet.Services
 {
@@ -30,11 +31,7 @@ namespace RevitMCPCommandSet.Services
 
                 ResultInfo = new CurrentViewInfo
                 {
-#if REVIT2024_OR_GREATER
-                    Id = (int)activeView.Id.Value,
-#else
-                    Id = activeView.Id.IntegerValue,
-#endif
+                    Id = activeView.Id.GetValue(),
                     UniqueId = activeView.UniqueId,
                     Name = activeView.Name,
                     ViewType = activeView.ViewType.ToString(),
@@ -43,10 +40,7 @@ namespace RevitMCPCommandSet.Services
                     DetailLevel = activeView.DetailLevel.ToString(),
                 };
             }
-            catch (Exception ex)
-            {
-                TaskDialog.Show("error", "获取信息失败");
-            }
+            // Exceptions propagate to RevitCommandBase, which reports them to the caller.
             finally
             {
                 TaskCompleted = true;

@@ -23,7 +23,7 @@ namespace RevitMCPCommandSet.Services
         /// <summary>
         /// 执行结果（传出数据）
         /// </summary>
-        public AIResult<List<int>> Result { get; private set; }
+        public AIResult<List<long>> Result { get; private set; }
         private List<string> _warnings = new List<string>();
 
         public string _wallName = "常规 - ";
@@ -43,221 +43,225 @@ namespace RevitMCPCommandSet.Services
 
             try
             {
-                var elementIds = new List<int>();
+                var elementIds = new List<long>();
+                var failures = new List<string>();
                 _warnings.Clear();
-                foreach (var data in CreatedInfo)
+                for (int i = 0; i < CreatedInfo.Count; i++)
                 {
-                    int requestedTypeId = data.TypeId;
-
-                    // Step0 获取构件类型
-                    BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
-                    Enum.TryParse(data.Category.Replace(".", ""), true, out builtInCategory);
-
-                    // Step1 获取标高和偏移
-                    Level baseLevel = null;
-                    Level topLevel = null;
-                    double topOffset = -1;  // ft
-                    double baseOffset = -1; // ft
-                    baseLevel = doc.FindNearestLevel(data.BaseLevel / 304.8);
-                    baseOffset = (data.BaseOffset + data.BaseLevel) / 304.8 - baseLevel.Elevation;
-                    topLevel = doc.FindNearestLevel((data.BaseLevel + data.BaseOffset + data.Height) / 304.8);
-                    topOffset = (data.BaseLevel + data.BaseOffset + data.Height) / 304.8 - topLevel.Elevation;
-                    if (baseLevel == null)
-                        continue;
-
-                    // Step2 获取族类型
-                    FamilySymbol symbol = null;
-                    WallType wallType = null;
-                    DuctType ductType = null;
-
-                    if (data.TypeId != -1 && data.TypeId != 0)
+                    LineElement data = CreatedInfo[i];
+                    try
                     {
-                        ElementId typeELeId = new ElementId(data.TypeId);
-                        if (typeELeId != null)
-                        {
-                            Element typeEle = doc.GetElement(typeELeId);
-                            if (typeEle != null && typeEle is FamilySymbol)
-                            {
-                                symbol = typeEle as FamilySymbol;
-                                // 获取symbol的Category对象并转换为BuiltInCategory枚举
-                                builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
-                            }
-                            else if (typeEle != null && typeEle is WallType)
-                            {
-                                wallType = typeEle as WallType;
-                                builtInCategory = (BuiltInCategory)wallType.Category.Id.GetIntValue();
-                            }
-                            else if (typeEle != null && typeEle is DuctType)
-                            {
-                                ductType = typeEle as DuctType;
-                                builtInCategory = (BuiltInCategory)ductType.Category.Id.GetIntValue();
-                            }
-                        }
+                        elementIds.Add(CreateElement(data));
                     }
-                    if (builtInCategory == BuiltInCategory.INVALID)
-                        continue;
-                    switch (builtInCategory)
+                    catch (Exception ex)
                     {
-                        case BuiltInCategory.OST_Walls:
-                            if (wallType == null)
-                            {
-                                // Requested typeId was invalid or not provided, fall back to first available
-                                wallType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(WallType))
-                                    .Cast<WallType>()
-                                    .FirstOrDefault();
-                                if (wallType == null)
-                                {
-                                    _warnings.Add($"No wall types available in project.");
-                                    continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested wall typeId {requestedTypeId} not found. Defaulted to '{wallType.Name}' (ID: {wallType.Id.GetValue()})");
-                                }
-                            }
-                            break;
-                        case BuiltInCategory.OST_DuctCurves:
-                            if (ductType == null)
-                            {
-                                // Requested typeId was invalid or not provided, fall back to first available rectangular duct
-                                ductType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(DuctType))
-                                    .Cast<DuctType>()
-                                    .FirstOrDefault(d => d.Shape == ConnectorProfileType.Rectangular);
-                                if (ductType == null)
-                                {
-                                    _warnings.Add($"No rectangular duct types available in project.");
-                                    continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested duct typeId {requestedTypeId} not found. Defaulted to '{ductType.Name}' (ID: {ductType.Id.GetValue()})");
-                                }
-                            }
-                            break;
-                        default:
-                            if (symbol == null)
-                            {
-                                symbol = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(FamilySymbol))
-                                    .OfCategory(builtInCategory)
-                                    .Cast<FamilySymbol>()
-                                    .FirstOrDefault(fs => fs.IsActive); // 获取激活的类型作为默认类型
-                                if (symbol == null)
-                                {
-                                    symbol = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(FamilySymbol))
-                                    .OfCategory(builtInCategory)
-                                    .Cast<FamilySymbol>()
-                                    .FirstOrDefault();
-                                }
-                                if (symbol == null)
-                                {
-                                    _warnings.Add($"No family types available for category {builtInCategory}.");
-                                    continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested typeId {requestedTypeId} not found. Defaulted to '{symbol.FamilyName}: {symbol.Name}' (ID: {symbol.Id.GetValue()})");
-                                }
-                            }
-                            break;
-                    }
-
-                    // Step3 调用通用方法创建族实例
-                    using (Transaction transaction = new Transaction(doc, "创建点状构件"))
-                    {
-                        transaction.Start();
-                        switch (builtInCategory)
-                        {
-                            case BuiltInCategory.OST_Walls:
-                                Wall wall = null;
-                                wall = Wall.Create
-                                (
-                                  doc,
-                                  JZLine.ToLine(data.LocationLine),
-                                  wallType.Id,
-                                  baseLevel.Id,
-                                  data.Height / 304.8,
-                                  baseOffset,
-                                  false,
-                                  false
-                                );
-                                if (wall != null)
-                                {
-                                    elementIds.Add(wall.Id.GetIntValue());
-                                }
-                                break;
-                            case BuiltInCategory.OST_DuctCurves:
-                                Duct duct = null;
-                                // 获取MEP系统类型（必需）
-                                MEPSystemType mepSystemType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(MEPSystemType))
-                                    .Cast<MEPSystemType>()
-                                    .FirstOrDefault(m => m.SystemClassification == MEPSystemClassification.SupplyAir);
-
-                                if (mepSystemType != null)
-                                {
-                                    duct = Duct.Create(
-                                        doc,
-                                        mepSystemType.Id,
-                                        ductType.Id,
-                                        baseLevel.Id,
-                                        JZLine.ToLine(data.LocationLine).GetEndPoint(0),
-                                        JZLine.ToLine(data.LocationLine).GetEndPoint(1)
-                                    );
-
-                                    if (duct != null)
-                                    {
-                                        // 设置高度偏移
-                                        Parameter offsetParam = duct.get_Parameter(BuiltInParameter.RBS_OFFSET_PARAM);
-                                        if (offsetParam != null)
-                                            offsetParam.Set(baseOffset);
-                                        elementIds.Add(duct.Id.GetIntValue());
-                                    }
-                                }
-                                break;
-                            default:
-                                if (!symbol.IsActive)
-                                    symbol.Activate();
-
-                                // 调用FamilyInstance通用创建方法
-                                var instance = doc.CreateInstance(symbol, null, JZLine.ToLine(data.LocationLine), baseLevel, topLevel, baseOffset, topOffset);
-                                if (instance != null)
-                                {
-                                    elementIds.Add(instance.Id.GetIntValue());
-                                }
-                                break;
-                        }
-                        //doc.Refresh();
-                        transaction.Commit();
+                        failures.Add($"Element {i + 1} ({data.Category}): {ex.Message}");
                     }
                 }
-                string message = $"Successfully created {elementIds.Count} element(s).";
+
+                string message = $"Created {elementIds.Count} of {CreatedInfo.Count} element(s).";
+                if (failures.Count > 0)
+                {
+                    message += "\n\nNot created:\n  • " + string.Join("\n  • ", failures);
+                }
                 if (_warnings.Count > 0)
                 {
                     message += "\n\n⚠ Warnings:\n  • " + string.Join("\n  • ", _warnings);
                 }
-                Result = new AIResult<List<int>>
+                Result = new AIResult<List<long>>
                 {
-                    Success = true,
+                    Success = elementIds.Count > 0,
                     Message = message,
                     Response = elementIds,
                 };
             }
             catch (Exception ex)
             {
-                Result = new AIResult<List<int>>
+                Result = new AIResult<List<long>>
                 {
                     Success = false,
-                    Message = $"创建线状构件时出错: {ex.Message}",
+                    Message = $"Error creating line-based elements: {ex.Message}",
                 };
-                TaskDialog.Show("错误", $"创建线状构件时出错: {ex.Message}");
             }
             finally
             {
                 _resetEvent.Set(); // 通知等待线程操作已完成
+            }
+        }
+
+        /// <summary>
+        /// Creates one element and returns its id. Throws with the reason when it can't be created.
+        /// </summary>
+        private long CreateElement(LineElement data)
+        {
+            long requestedTypeId = data.TypeId;
+
+            // Step0 获取构件类型
+            BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
+            Enum.TryParse(data.Category.Replace(".", ""), true, out builtInCategory);
+
+            // Step1 获取标高和偏移 (offsets in ft)
+            var (baseLevel, baseOffset, topLevel, topOffset) =
+                LevelPlacement.Resolve(doc, data.LevelId, data.BaseLevel, data.BaseOffset, data.Height);
+
+            // Step2 获取族类型
+            FamilySymbol symbol = null;
+            WallType wallType = null;
+            DuctType ductType = null;
+
+            if (data.TypeId != -1 && data.TypeId != 0)
+            {
+                ElementId typeELeId = data.TypeId.ToRevitElementId();
+                if (typeELeId != null)
+                {
+                    Element typeEle = doc.GetElement(typeELeId);
+                    if (typeEle != null && typeEle is FamilySymbol)
+                    {
+                        symbol = typeEle as FamilySymbol;
+                        // 获取symbol的Category对象并转换为BuiltInCategory枚举
+                        builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
+                    }
+                    else if (typeEle != null && typeEle is WallType)
+                    {
+                        wallType = typeEle as WallType;
+                        builtInCategory = (BuiltInCategory)wallType.Category.Id.GetIntValue();
+                    }
+                    else if (typeEle != null && typeEle is DuctType)
+                    {
+                        ductType = typeEle as DuctType;
+                        builtInCategory = (BuiltInCategory)ductType.Category.Id.GetIntValue();
+                    }
+                }
+            }
+            if (builtInCategory == BuiltInCategory.INVALID)
+            {
+                throw new ArgumentException(
+                    $"Unknown category '{data.Category}'. Use a built-in category such as OST_Walls, OST_StructuralFraming or OST_DuctCurves.");
+            }
+            switch (builtInCategory)
+            {
+                case BuiltInCategory.OST_Walls:
+                    if (wallType == null)
+                    {
+                        // Requested typeId was invalid or not provided, fall back to first available
+                        wallType = new FilteredElementCollector(doc)
+                            .OfClass(typeof(WallType))
+                            .Cast<WallType>()
+                            .FirstOrDefault()
+                            ?? throw new InvalidOperationException("No wall types are available in the model.");
+                        if (requestedTypeId != -1 && requestedTypeId != 0)
+                        {
+                            _warnings.Add($"Requested wall typeId {requestedTypeId} not found. Defaulted to '{wallType.Name}' (ID: {wallType.Id.GetValue()})");
+                        }
+                    }
+                    break;
+                case BuiltInCategory.OST_DuctCurves:
+                    if (ductType == null)
+                    {
+                        // Requested typeId was invalid or not provided, fall back to first available rectangular duct
+                        ductType = new FilteredElementCollector(doc)
+                            .OfClass(typeof(DuctType))
+                            .Cast<DuctType>()
+                            .FirstOrDefault(d => d.Shape == ConnectorProfileType.Rectangular)
+                            ?? throw new InvalidOperationException("No rectangular duct types are available in the model.");
+                        if (requestedTypeId != -1 && requestedTypeId != 0)
+                        {
+                            _warnings.Add($"Requested duct typeId {requestedTypeId} not found. Defaulted to '{ductType.Name}' (ID: {ductType.Id.GetValue()})");
+                        }
+                    }
+                    break;
+                default:
+                    if (symbol == null)
+                    {
+                        symbol = new FilteredElementCollector(doc)
+                            .OfClass(typeof(FamilySymbol))
+                            .OfCategory(builtInCategory)
+                            .Cast<FamilySymbol>()
+                            .FirstOrDefault(fs => fs.IsActive); // 获取激活的类型作为默认类型
+                        if (symbol == null)
+                        {
+                            symbol = new FilteredElementCollector(doc)
+                            .OfClass(typeof(FamilySymbol))
+                            .OfCategory(builtInCategory)
+                            .Cast<FamilySymbol>()
+                            .FirstOrDefault();
+                        }
+                        if (symbol == null)
+                        {
+                            throw new InvalidOperationException(
+                                $"No family types for {builtInCategory} are loaded in the model. Load a family of that category first.");
+                        }
+                        if (requestedTypeId != -1 && requestedTypeId != 0)
+                        {
+                            _warnings.Add($"Requested typeId {requestedTypeId} not found. Defaulted to '{symbol.FamilyName}: {symbol.Name}' (ID: {symbol.Id.GetValue()})");
+                        }
+                    }
+                    break;
+            }
+
+            // Step3 调用通用方法创建族实例
+            using (Transaction transaction = new Transaction(doc, "Create line-based element"))
+            {
+                transaction.Start();
+                Element created;
+                switch (builtInCategory)
+                {
+                    case BuiltInCategory.OST_Walls:
+                        created = Wall.Create
+                        (
+                          doc,
+                          JZLine.ToLine(data.LocationLine),
+                          wallType.Id,
+                          baseLevel.Id,
+                          data.Height / 304.8,
+                          baseOffset,
+                          false,
+                          false
+                        );
+                        break;
+                    case BuiltInCategory.OST_DuctCurves:
+                        // 获取MEP系统类型（必需）
+                        MEPSystemType mepSystemType = new FilteredElementCollector(doc)
+                            .OfClass(typeof(MEPSystemType))
+                            .Cast<MEPSystemType>()
+                            .FirstOrDefault(m => m.SystemClassification == MEPSystemClassification.SupplyAir)
+                            ?? throw new InvalidOperationException("Ducts need a supply air system type, and the model has none.");
+
+                        Duct duct = Duct.Create(
+                            doc,
+                            mepSystemType.Id,
+                            ductType.Id,
+                            baseLevel.Id,
+                            JZLine.ToLine(data.LocationLine).GetEndPoint(0),
+                            JZLine.ToLine(data.LocationLine).GetEndPoint(1)
+                        );
+
+                        if (duct != null)
+                        {
+                            // 设置高度偏移
+                            Parameter offsetParam = duct.get_Parameter(BuiltInParameter.RBS_OFFSET_PARAM);
+                            if (offsetParam != null)
+                                offsetParam.Set(baseOffset);
+                        }
+                        created = duct;
+                        break;
+                    default:
+                        if (!symbol.IsActive)
+                            symbol.Activate();
+
+                        // 调用FamilyInstance通用创建方法
+                        created = doc.CreateInstance(symbol, null, JZLine.ToLine(data.LocationLine), baseLevel, topLevel, baseOffset, topOffset);
+                        break;
+                }
+
+                if (created == null)
+                {
+                    throw new InvalidOperationException($"Revit could not create the {builtInCategory} element on that line.");
+                }
+
+                //doc.Refresh();
+                transaction.Commit();
+                return created.Id.GetValue();
             }
         }
 

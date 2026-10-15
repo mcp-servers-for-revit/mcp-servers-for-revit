@@ -61,6 +61,11 @@ namespace RevitMCPCommandSet.Models.Common
         /// 重置隔离（显示所有图元）
         /// </summary>
         ResetIsolate,
+
+        /// <summary>
+        /// SetColor with red, regardless of colorValue
+        /// </summary>
+        Highlight,
     }
 
 
@@ -73,7 +78,7 @@ namespace RevitMCPCommandSet.Models.Common
         /// 需要操作的元素ID列表
         /// </summary>
         [JsonProperty("elementIds")]
-        public List<int> ElementIds = new List<int>();
+        public List<long> ElementIds = new List<long>();
 
         /// <summary>
         /// 需要执行的动作，存储ElementOperationType枚举的string类型的值

@@ -22,7 +22,7 @@ public class PointElement
     ///     类型Id
     /// </summary>
     [JsonProperty("typeId")]
-    public int TypeId { get; set; } = -1;
+    public long TypeId { get; set; } = -1;
 
     /// <summary>
     ///     定位点坐标
@@ -49,6 +49,12 @@ public class PointElement
     public double Height { get; set; }
 
     /// <summary>
+    /// Id of the level to place on. When set, baseLevel is ignored and baseOffset is measured from this level.
+    /// </summary>
+    [JsonProperty("levelId")]
+    public long LevelId { get; set; } = -1;
+
+    /// <summary>
     ///     底部标高
     /// </summary>
     [JsonProperty("baseLevel")]
@@ -70,7 +76,7 @@ public class PointElement
     ///     显式宿主墙体ElementId，-1表示自动检测
     /// </summary>
     [JsonProperty("hostWallId")]
-    public int HostWallId { get; set; } = -1;
+    public long HostWallId { get; set; } = -1;
 
     /// <summary>
     ///     是否翻转门窗朝向

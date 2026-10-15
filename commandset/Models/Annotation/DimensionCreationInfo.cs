@@ -38,7 +38,7 @@ public class DimensionCreationInfo
     {
         StartPoint = new JZPoint(0, 0, 0);
         EndPoint = new JZPoint(0, 0, 0);
-        ElementIds = new List<int>();
+        ElementIds = new List<long>();
         Options = new Dictionary<string, object>();
     }
 
@@ -64,7 +64,7 @@ public class DimensionCreationInfo
     ///     Elements to dimension
     /// </summary>
     [JsonProperty("elementIds")]
-    public List<int> ElementIds { get; set; }
+    public List<long> ElementIds { get; set; }
 
     /// <summary>
     ///     Dimension type
@@ -76,13 +76,13 @@ public class DimensionCreationInfo
     ///     Dimension style ID
     /// </summary>
     [JsonProperty("dimensionStyleId")]
-    public int DimensionStyleId { get; set; } = -1;
+    public long DimensionStyleId { get; set; } = -1;
 
     /// <summary>
     ///     View ID - view to create dimension in
     /// </summary>
     [JsonProperty("viewId")]
-    public int ViewId { get; set; } = -1;
+    public long ViewId { get; set; } = -1;
 
     /// <summary>
     ///     Additional options

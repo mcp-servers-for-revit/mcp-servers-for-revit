@@ -5,6 +5,7 @@ using Autodesk.Revit.UI;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
@@ -79,12 +80,19 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
                 }
 
                 ResultInfo.Success = true;
-                ResultInfo.Result = JsonConvert.SerializeObject(result);
+                ResultInfo.Result = ToJson(result);
             }
             catch (Exception ex)
             {
+                // Reflection wraps exceptions thrown by the snippet; report the snippet's own exception.
                 ResultInfo.Success = false;
-                ResultInfo.ErrorMessage = $"执行失败: {ex.Message}";
+                ResultInfo.ErrorMessage = ex is TargetInvocationException { InnerException: { } inner }
+                    ? $"The snippet threw {inner.GetType().Name}: {inner.Message}"
+                    : ex.Message;
+                if (_transactionMode != TransactionModeNone)
+                {
+                    ResultInfo.ErrorMessage += " (the transaction was rolled back, so the model is unchanged)";
+                }
             }
             finally
             {
@@ -96,6 +104,7 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
         private object CompileAndExecuteCode(string code, Document doc, object[] parameters)
         {
             // 包装代码以规范入口点
+            // The #line directives make compiler errors refer to lines of the snippet, not of this template.
             var wrappedCode = $@"
 using System;
 using System.Linq;
@@ -110,7 +119,9 @@ namespace AIGeneratedCode
         public static object Execute(Document document, object[] parameters)
         {{
             // 用户代码入口
-            {code}
+#line 1 ""snippet""
+{code}
+#line default
         }}
     }}
 }}";
@@ -141,8 +152,8 @@ namespace AIGeneratedCode
                 {
                     var errors = string.Join("\n", result.Diagnostics
                         .Where(d => d.Severity == DiagnosticSeverity.Error)
-                        .Select(d => $"Line {d.Location.GetLineSpan().StartLinePosition.Line}: {d.GetMessage()}"));
-                    throw new Exception($"代码编译错误:\n{errors}");
+                        .Select(DescribeCompileError));
+                    throw new Exception($"Compilation failed:\n{errors}");
                 }
 
                 // 反射调用执行方法
@@ -153,6 +164,40 @@ namespace AIGeneratedCode
 
                 return executeMethod.Invoke(null, new object[] { doc, parameters });
             }
+        }
+
+        /// <summary>
+        /// Returns the snippet's result as JSON, once. Revit objects such as Elements can't be serialized
+        /// (and by now any changes are committed), so those fall back to their string form instead of failing.
+        /// </summary>
+        private static JToken ToJson(object result)
+        {
+            if (result == null)
+            {
+                return JValue.CreateNull();
+            }
+
+            try
+            {
+                return JToken.FromObject(result);
+            }
+            catch (Exception)
+            {
+                return new JValue(result.ToString());
+            }
+        }
+
+        private static string DescribeCompileError(Diagnostic diagnostic)
+        {
+            FileLinePositionSpan span = diagnostic.Location.GetMappedLineSpan();
+            if (span.HasMappedPath)
+            {
+                return $"Line {span.StartLinePosition.Line + 1}: {diagnostic.GetMessage()}";
+            }
+
+            // Errors outside the snippet come from the template; the usual one is a missing return statement.
+            string hint = diagnostic.Id == "CS0161" ? " The snippet must end with a return statement, e.g. 'return null;'." : "";
+            return $"Template: {diagnostic.GetMessage()}{hint}";
         }
 
         public string GetName()
@@ -168,7 +213,7 @@ namespace AIGeneratedCode
         public bool Success { get; set; }
 
         [JsonProperty("result")]
-        public string Result { get; set; }
+        public JToken Result { get; set; }
 
         [JsonProperty("errorMessage")]
         public string ErrorMessage { get; set; } = string.Empty;

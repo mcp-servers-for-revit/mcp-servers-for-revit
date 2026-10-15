@@ -1,11 +1,12 @@
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
+using RevitMCPCommandSet.Models.Common;
 using RevitMCPCommandSet.Services;
 using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands.Delete
 {
-    public class DeleteElementCommand : ExternalEventCommandBase
+    public class DeleteElementCommand : RevitCommandBase
     {
         private static readonly object _executionLock = new object();
         private DeleteElementEventHandler _handler => (DeleteElementEventHandler)Handler;
@@ -24,35 +25,47 @@ namespace RevitMCPCommandSet.Commands.Delete
                 try
                 {
                     // 解析数组参数
-                    var elementIds = parameters?["elementIds"]?.ToObject<string[]>();
+                    // Numeric strings from older clients still convert.
+                    var elementIds = parameters?["elementIds"]?.ToObject<long[]>();
                     if (elementIds == null || elementIds.Length == 0)
                     {
-                        throw new ArgumentException("元素ID列表不能为空");
+                        throw new ArgumentException("elementIds must contain at least one element id");
                     }
 
                     // 设置要删除的元素ID数组
                     _handler.ElementIds = elementIds;
 
                     // 触发外部事件并等待完成
-                    if (RaiseAndWaitForCompletion(15000))
+                    RaiseAndWaitForCompletion(15000);
+
+                    // deletedCount/deletedIds include dependents Revit removed too, such as doors hosted in a deleted wall.
+                    int deletedRequested = elementIds.Length - _handler.SkippedIds.Count;
+                    string message = $"Deleted {deletedRequested} of {elementIds.Length} requested element(s)";
+                    if (_handler.DeletedCount > deletedRequested)
                     {
-                        if (_handler.IsSuccess)
-                        {
-                            return new { deleted = true, count = _handler.DeletedCount };
-                        }
-                        else
-                        {
-                            throw new Exception("删除元素失败");
-                        }
+                        message += $", plus {_handler.DeletedCount - deletedRequested} dependent element(s)";
                     }
-                    else
+                    if (_handler.SkippedIds.Count > 0)
                     {
-                        throw new TimeoutException("删除元素操作超时");
+                        message += $". Not found: {string.Join(", ", _handler.SkippedIds)}";
                     }
+
+                    return new AIResult<object>
+                    {
+                        Success = _handler.IsSuccess,
+                        Message = message,
+                        Response = new
+                        {
+                            requestedCount = elementIds.Length,
+                            deletedCount = _handler.DeletedCount,
+                            deletedIds = _handler.DeletedIds,
+                            skippedIds = _handler.SkippedIds
+                        }
+                    };
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"删除元素失败: {ex.Message}");
+                    throw new Exception($"Failed to delete elements: {ex.Message}", ex);
                 }
             }
         }

@@ -22,7 +22,7 @@ public class LineElement
     ///     类型Id
     /// </summary>
     [JsonProperty("typeId")]
-    public int TypeId { get; set; } = -1;
+    public long TypeId { get; set; } = -1;
 
     /// <summary>
     ///     路径曲线
@@ -41,6 +41,12 @@ public class LineElement
     /// </summary>
     [JsonProperty("height")]
     public double Height { get; set; }
+
+    /// <summary>
+    /// Id of the level to place on. When set, baseLevel is ignored and baseOffset is measured from this level.
+    /// </summary>
+    [JsonProperty("levelId")]
+    public long LevelId { get; set; } = -1;
 
     /// <summary>
     ///     底部标高

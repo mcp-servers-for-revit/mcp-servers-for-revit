@@ -5,7 +5,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class TagWallsCommand : ExternalEventCommandBase
+    public class TagWallsCommand : RevitCommandBase
     {
         private TagWallsEventHandler _handler => (TagWallsEventHandler)Handler;
 
@@ -50,12 +50,12 @@ namespace RevitMCPCommandSet.Commands
                 }
                 else
                 {
-                    throw new TimeoutException("标记墙操作超时");
+                    throw new TimeoutException("Tagging walls timed out");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"标记墙失败: {ex.Message}");
+                throw new Exception($"Failed to tag walls: {ex.Message}");
             }
         }
     }

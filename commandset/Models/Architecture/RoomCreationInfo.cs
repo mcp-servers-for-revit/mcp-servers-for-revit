@@ -68,7 +68,7 @@ public class RoomCreationInfo
     ///     Level ID in Revit
     /// </summary>
     [JsonProperty("levelId")]
-    public int LevelId { get; set; }
+    public long LevelId { get; set; }
 
     /// <summary>
     ///     Room height (mm)
@@ -80,13 +80,13 @@ public class RoomCreationInfo
     ///     Room phase ID
     /// </summary>
     [JsonProperty("phaseId")]
-    public int PhaseId { get; set; }
+    public long PhaseId { get; set; }
 
     /// <summary>
     ///     Upper limit level ID
     /// </summary>
     [JsonProperty("upperLimitId")]
-    public int UpperLimitId { get; set; }
+    public long UpperLimitId { get; set; }
 
     /// <summary>
     ///     Offset from upper limit (mm)

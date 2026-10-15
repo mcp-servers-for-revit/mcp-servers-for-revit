@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerCreatePointBasedElementTool(server: McpServer) {
   server.tool(
@@ -13,6 +14,12 @@ export function registerCreatePointBasedElementTool(server: McpServer) {
             name: z
               .string()
               .describe("Description of the element (e.g., door, window)"),
+            category: z
+              .string()
+              .optional()
+              .describe(
+                "Revit built-in category (e.g., OST_Doors, OST_Windows, OST_Furniture). Required when typeId isn't given; the first type of this category is used."
+              ),
             typeId: z
               .number()
               .optional()
@@ -29,8 +36,22 @@ export function registerCreatePointBasedElementTool(server: McpServer) {
             width: z.number().describe("Width of the element in mm"),
             depth: z.number().optional().describe("Depth of the element in mm"),
             height: z.number().describe("Height of the element in mm"),
-            baseLevel: z.number().describe("Base level height"),
-            baseOffset: z.number().describe("Offset from the base level"),
+            levelId: z
+              .number()
+              .optional()
+              .describe(
+                "ID of the level to place the element on (e.g. from ai_element_filter with filterCategory OST_Levels). Preferred over baseLevel."
+              ),
+            baseLevel: z
+              .number()
+              .optional()
+              .describe(
+                "Only used when levelId isn't given: an elevation in mm, and the nearest level is used"
+              ),
+            baseOffset: z
+              .number()
+              .optional()
+              .describe("Offset in mm above the level (default 0)"),
             rotation: z
               .number()
               .optional()
@@ -72,6 +93,7 @@ export function registerCreatePointBasedElementTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -83,6 +105,7 @@ export function registerCreatePointBasedElementTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

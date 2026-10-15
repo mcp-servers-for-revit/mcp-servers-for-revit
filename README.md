@@ -20,12 +20,12 @@ flowchart LR
     Revit["Revit API"]
 
     Client <-->|stdio| Server
-    Server <-->|WebSocket| Plugin
+    Server <-->|TCP, localhost only| Plugin
     Plugin -->|loads| CommandSet
     CommandSet -->|executes| Revit
 ```
 
-The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSocket messages. The **Revit Plugin** (C#) runs inside Revit, listens for those messages, and dispatches them to the **Command Set** (C#), which executes the actual Revit API operations and returns results back up the chain.
+The **MCP Server** (TypeScript) translates tool calls from AI clients into JSON-RPC messages sent over a local TCP socket. The **Revit Plugin** (C#) runs inside Revit, listens for those messages, and dispatches them to the **Command Set** (C#), which executes the actual Revit API operations and returns results back up the chain.
 
 ## Requirements
 
@@ -99,6 +99,15 @@ If using a release ZIP, the plugin is already included. For manual installation:
 1. Build the plugin from `plugin/` (see [Development](#development))
 2. Copy `mcp-servers-for-revit.addin` to `%AppData%\Autodesk\Revit\Addins\<version>\`
 3. Copy the `revit_mcp_plugin/` folder to the same addins directory
+
+### Connection security
+
+The plugin can run arbitrary C# through `send_code_to_revit`, so it only accepts local, authenticated connections:
+
+- It listens on `127.0.0.1:8080` only, so other machines on the network can't reach it.
+- Each time you switch the service on, it writes a new random token to `%LOCALAPPDATA%\mcp-servers-for-revit\connection.json`. The MCP server reads that file and sends the token with every request. Requests without it are rejected.
+
+The MCP server therefore has to run on the same machine, as the same Windows user, as Revit. Update the plugin and the MCP server together: an older MCP server gets an `Unauthorized` error from a newer plugin.
 
 ## Command Set Setup
 
@@ -249,7 +258,7 @@ mcp-servers-for-revit/
 ├── mcp-servers-for-revit.sln    # Combined solution (plugin + commandset + tests)
 ├── command.json     # Command set manifest
 ├── server/          # MCP server (TypeScript) - tools exposed to AI clients
-├── plugin/          # Revit add-in (C#) - WebSocket bridge inside Revit
+├── plugin/          # Revit add-in (C#) - TCP bridge inside Revit
 ├── commandset/      # Command implementations (C#) - Revit API operations
 ├── tests/           # Integration tests (C#) - TUnit tests against live Revit
 ├── assets/          # Images for documentation

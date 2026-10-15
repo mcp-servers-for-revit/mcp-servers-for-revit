@@ -39,6 +39,19 @@ export function registerSendCodeToRevitTool(server: McpServer) {
           return await revitClient.sendCommand("send_code_to_revit", params);
         });
 
+        // Compile errors and exceptions thrown by the snippet come back as a normal response.
+        if (response?.success === false) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Code execution failed: ${response.errorMessage}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
         return {
           content: [
             {
@@ -61,6 +74,7 @@ export function registerSendCodeToRevitTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

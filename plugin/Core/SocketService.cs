@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Autodesk.Revit.UI;
@@ -16,8 +18,15 @@ namespace revit_mcp_plugin.Core
 {
     public class SocketService
     {
+        // Far larger than any real request; it only stops a misbehaving client from exhausting memory.
+        private const int MaxMessageLength = 16 * 1024 * 1024;
+
+        // JSON-RPC reserves -32000 to -32099 for server-defined errors.
+        private const int UnauthorizedErrorCode = -32001;
+
         private static SocketService _instance;
         private TcpListener _listener;
+        private string _token;
         private Thread _listenerThread;
         private bool _isRunning;
         private int _port = 8080;
@@ -102,18 +111,29 @@ namespace revit_mcp_plugin.Core
             try
             {
                 _isRunning = true;
-                _listener = new TcpListener(IPAddress.Any, _port);
+
+                // Loopback only: send_code_to_revit runs arbitrary C#, so nothing on the network may reach this port.
+                _listener = new TcpListener(IPAddress.Loopback, _port);
                 _listener.Start();
+
+                // A fresh token per session stops other local users (e.g. on a shared Citrix host) from sending commands.
+                _token = GenerateToken();
+                ConnectionInfoFile.Write(_port, _token);
 
                 _listenerThread = new Thread(ListenForClients)
                 {
                     IsBackground = true
                 };
-                _listenerThread.Start();              
+                _listenerThread.Start();
             }
             catch (Exception)
             {
                 _isRunning = false;
+                _listener?.Stop();
+                _listener = null;
+
+                // Let the ribbon button report the failure (e.g. port already in use) instead of claiming success.
+                throw;
             }
         }
 
@@ -127,6 +147,9 @@ namespace revit_mcp_plugin.Core
 
                 _listener?.Stop();
                 _listener = null;
+
+                ConnectionInfoFile.Delete();
+                _token = null;
 
                 if(_listenerThread!=null && _listenerThread.IsAlive)
                 {
@@ -172,6 +195,7 @@ namespace revit_mcp_plugin.Core
             try
             {
                 byte[] buffer = new byte[8192];
+                var framer = new MessageFramer(MaxMessageLength);
 
                 while (_isRunning && tcpClient.Connected)
                 {
@@ -197,15 +221,32 @@ namespace revit_mcp_plugin.Core
                         break;
                     }
 
-                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    System.Diagnostics.Trace.WriteLine($"收到消息: {message}\nReceived message: {message}");
+                    List<string> messages;
+                    try
+                    {
+                        messages = framer.Append(buffer, bytesRead);
+                    }
+                    catch (InvalidDataException ex)
+                    {
+                        WriteResponse(stream, CreateErrorResponse(null, JsonRPCErrorCodes.InvalidRequest, ex.Message));
+                        break;
+                    }
 
-                    string response = ProcessJsonRPCRequest(message);
+                    foreach (string message in messages)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"收到消息: {message}\nReceived message: {message}");
 
-                    // 发送响应
-                    // Send response.
-                    byte[] responseData = Encoding.UTF8.GetBytes(response);
-                    stream.Write(responseData, 0, responseData.Length);
+                        string response = ProcessJsonRPCRequest(message, out bool closeConnection);
+
+                        // 发送响应
+                        // Send response.
+                        WriteResponse(stream, response);
+
+                        if (closeConnection)
+                        {
+                            return;
+                        }
+                    }
                 }
             }
             catch(Exception)
@@ -218,15 +259,32 @@ namespace revit_mcp_plugin.Core
             }
         }
 
-        private string ProcessJsonRPCRequest(string requestJson)
+        private string ProcessJsonRPCRequest(string requestJson, out bool closeConnection)
         {
+            closeConnection = false;
             JsonRPCRequest request;
 
             try
             {
                 // 解析JSON-RPC请求
                 // Parse JSON-RPC requests.
-                request = JsonConvert.DeserializeObject<JsonRPCRequest>(requestJson);
+                JObject requestObject = JObject.Parse(requestJson);
+
+                // "auth" isn't part of JSON-RPC, so it's checked here before the request is handed to a command.
+                if (!IsAuthorized((requestObject["auth"] as JValue)?.Value as string))
+                {
+                    _logger.Warning("Rejected a request without a valid session token.");
+                    closeConnection = true;
+                    return CreateErrorResponse(
+                        (requestObject["id"] as JValue)?.Value?.ToString(),
+                        UnauthorizedErrorCode,
+                        "Unauthorized: the request did not include this Revit session's token. " +
+                        "Update the MCP server to the latest mcp-server-for-revit release; it reads the token from " +
+                        ConnectionInfoFile.FilePath + "."
+                    );
+                }
+
+                request = requestObject.ToObject<JsonRPCRequest>();
 
                 // 验证请求格式是否有效
                 // Verify that the request format is valid.
@@ -264,6 +322,9 @@ namespace revit_mcp_plugin.Core
             {
                 // JSON解析错误
                 // JSON parsing error.
+
+                // Anything that isn't JSON, such as an HTTP request a web page sent to this port, ends the connection.
+                closeConnection = true;
                 return CreateErrorResponse(
                     null,
                     JsonRPCErrorCodes.ParseError,
@@ -307,6 +368,42 @@ namespace revit_mcp_plugin.Core
             };
 
             return response.ToJson();
+        }
+
+        private bool IsAuthorized(string token)
+        {
+            string expected = _token;
+            if (token == null || expected == null || token.Length != expected.Length)
+            {
+                return false;
+            }
+
+            // Compare every character so response timing doesn't reveal how much of the token matched.
+            int difference = 0;
+            for (int i = 0; i < token.Length; i++)
+            {
+                difference |= token[i] ^ expected[i];
+            }
+            return difference == 0;
+        }
+
+        private static string GenerateToken()
+        {
+            byte[] bytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(bytes);
+            }
+            return BitConverter.ToString(bytes).Replace("-", "");
+        }
+
+        private static void WriteResponse(NetworkStream stream, string response)
+        {
+            // The SDK emits compact JSON today, but its version floats. JSON escapes line breaks inside strings,
+            // so any raw line break is formatting and can be dropped to keep the response on one line.
+            string line = response.Replace("\r", "").Replace("\n", "") + "\n";
+            byte[] responseData = Encoding.UTF8.GetBytes(line);
+            stream.Write(responseData, 0, responseData.Length);
         }
     }
 }

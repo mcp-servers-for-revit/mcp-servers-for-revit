@@ -17,10 +17,10 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         public string MaterialClass { get; set; }
 
         [JsonProperty("area")]
-        public double Area { get; set; } // Square feet
+        public double Area { get; set; } // m²
 
         [JsonProperty("volume")]
-        public double Volume { get; set; } // Cubic feet
+        public double Volume { get; set; } // m³
 
         [JsonProperty("elementCount")]
         public int ElementCount { get; set; }
@@ -38,10 +38,10 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         public int TotalMaterials { get; set; }
 
         [JsonProperty("totalArea")]
-        public double TotalArea { get; set; }
+        public double TotalArea { get; set; } // m²
 
         [JsonProperty("totalVolume")]
-        public double TotalVolume { get; set; }
+        public double TotalVolume { get; set; } // m³
 
         [JsonProperty("materials")]
         public List<MaterialQuantityModel> Materials { get; set; } = new List<MaterialQuantityModel>();

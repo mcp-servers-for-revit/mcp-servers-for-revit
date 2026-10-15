@@ -1,6 +1,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.DataExtraction;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services.DataExtraction
@@ -98,8 +99,8 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                         }
 
                         // Get material area and volume for this element
-                        double area = element.GetMaterialArea(matId, false);
-                        double volume = element.GetMaterialVolume(matId);
+                        double area = UnitConversion.ToSquareMeters(element.GetMaterialArea(matId, false));
+                        double volume = UnitConversion.ToCubicMeters(element.GetMaterialVolume(matId));
 
                         materialData[matId].Area += area;
                         materialData[matId].Volume += volume;
@@ -122,11 +123,18 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                 double totalArea = materials.Sum(m => m.Area);
                 double totalVolume = materials.Sum(m => m.Volume);
 
+                // Round only for reporting, after summing, so rounding errors don't add up.
+                foreach (var material in materials)
+                {
+                    material.Area = Math.Round(material.Area, 2);
+                    material.Volume = Math.Round(material.Volume, 2);
+                }
+
                 ResultInfo = new GetMaterialQuantitiesResult
                 {
                     TotalMaterials = materials.Count,
-                    TotalArea = totalArea,
-                    TotalVolume = totalVolume,
+                    TotalArea = Math.Round(totalArea, 2),
+                    TotalVolume = Math.Round(totalVolume, 2),
                     Materials = materials,
                     Success = true,
                     Message = $"Successfully calculated quantities for {materials.Count} materials"

@@ -54,12 +54,12 @@ namespace RevitMCPCommandSet.Services
 
         private bool _useLeader;
         private string _tagTypeId;
-        private List<int> _roomIds;
+        private List<long> _roomIds;
 
         /// <summary>
         /// Set the tagging parameters
         /// </summary>
-        public void SetParameters(bool useLeader, string tagTypeId, List<int> roomIds = null)
+        public void SetParameters(bool useLeader, string tagTypeId, List<long> roomIds = null)
         {
             _useLeader = useLeader;
             _tagTypeId = tagTypeId;
@@ -81,7 +81,7 @@ namespace RevitMCPCommandSet.Services
                 if (_roomIds != null && _roomIds.Count > 0)
                 {
                     // Get level from specified rooms
-                    var firstRoom = _doc.GetElement(new ElementId(_roomIds[0])) as Room;
+                    var firstRoom = _doc.GetElement(_roomIds[0].ToRevitElementId()) as Room;
                     if (firstRoom != null)
                     {
                         targetLevel = _doc.GetElement(firstRoom.LevelId) as Level;
@@ -163,7 +163,7 @@ namespace RevitMCPCommandSet.Services
                 {
                     // Get specific rooms by ID
                     rooms = _roomIds
-                        .Select(id => _doc.GetElement(new ElementId(id)))
+                        .Select(id => _doc.GetElement(id.ToRevitElementId()))
                         .Where(e => e != null && e is Room)
                         .ToList();
                 }
@@ -334,7 +334,6 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error tagging rooms: {ex.Message}");
                 TaggingResults = new
                 {
                     success = false,
@@ -372,9 +371,9 @@ namespace RevitMCPCommandSet.Services
         private FamilySymbol FindRoomTagType(Document doc)
         {
             // If specific tag type ID was specified, try to use it
-            if (!string.IsNullOrEmpty(_tagTypeId) && int.TryParse(_tagTypeId, out int id))
+            if (!string.IsNullOrEmpty(_tagTypeId) && long.TryParse(_tagTypeId, out long id))
             {
-                ElementId elementId = new ElementId(id);
+                ElementId elementId = id.ToRevitElementId();
                 Element element = doc.GetElement(elementId);
 
                 if (element != null && element is FamilySymbol symbol &&

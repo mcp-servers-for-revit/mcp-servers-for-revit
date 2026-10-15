@@ -6,7 +6,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class CreateGridCommand : ExternalEventCommandBase
+    public class CreateGridCommand : RevitCommandBase
     {
         private CreateGridEventHandler _handler => (CreateGridEventHandler)Handler;
 

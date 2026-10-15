@@ -54,7 +54,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
     /// <summary>
     ///     Result of the execution
     /// </summary>
-    public AIResult<List<int>> Result { get; private set; }
+    public AIResult<List<long>> Result { get; private set; }
 
     #endregion
 
@@ -79,7 +79,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
         _uiApp = app;
         try
         {
-            var createdDimensionIds = new List<int>();
+            var createdDimensionIds = new List<long>();
 
             // Process each dimension in the list
             foreach (var dimInfo in DimensionsToCreate)
@@ -88,7 +88,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                 View view = null;
                 if (dimInfo.ViewId > 0)
                 {
-                    var element = Doc.GetElement(new ElementId(dimInfo.ViewId));
+                    var element = Doc.GetElement(dimInfo.ViewId.ToRevitElementId());
                     view = element as View;
                 }
 
@@ -138,7 +138,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                             var references = new ReferenceArray();
                             foreach (var elementId in dimInfo.ElementIds)
                             {
-                                var element = Doc.GetElement(new ElementId(elementId));
+                                var element = Doc.GetElement(elementId.ToRevitElementId());
                                 if (element != null)
                                 {
                                     // Get appropriate reference for this element
@@ -180,7 +180,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                             // Apply dimension style if specified
                             if (dimInfo.DimensionStyleId > 0)
                             {
-                                var dimensionType = Doc.GetElement(new ElementId(dimInfo.DimensionStyleId)) as DimensionType;
+                                var dimensionType = Doc.GetElement(dimInfo.DimensionStyleId.ToRevitElementId()) as DimensionType;
                                 if (dimensionType != null)
                                 {
                                     dimension.DimensionType = dimensionType;
@@ -190,7 +190,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                             // Apply additional parameters
                             ApplyDimensionParameters(dimension, dimInfo);
 
-                            createdDimensionIds.Add(dimension.Id.GetIntValue());
+                            createdDimensionIds.Add(dimension.Id.GetValue());
                         }
 
                         transaction.Commit();
@@ -204,7 +204,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
             }
 
             // Set successful result
-            Result = new AIResult<List<int>>
+            Result = new AIResult<List<long>>
             {
                 Success = true,
                 Message = $"Successfully created {createdDimensionIds.Count} dimensions. ElementIds saved in Response.",
@@ -214,13 +214,12 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
         catch (Exception ex)
         {
             // Set error result
-            Result = new AIResult<List<int>>
+            Result = new AIResult<List<long>>
             {
                 Success = false,
                 Message = $"Error creating dimensions: {ex.Message}",
-                Response = new List<int>()
+                Response = new List<long>()
             };
-            TaskDialog.Show("Error", $"Error creating dimensions: {ex.Message}");
         }
         finally
         {
@@ -463,8 +462,8 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
         }
         catch (Exception ex)
         {
-            // Log error but continue processing
-            TaskDialog.Show("Debug", $"Error finding reference at point: {ex.Message}");
+            // Not every point hits a referenceable element; log and fall through to "no reference"
+            System.Diagnostics.Debug.WriteLine($"Error finding reference at point: {ex.Message}");
         }
 
         return null;

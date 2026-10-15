@@ -113,7 +113,7 @@ namespace RevitMCPCommandSet.Services.Architecture
                         if (roomInfo.LevelId > 0)
                         {
                             // Use specified level ID
-                            level = _doc.GetElement(new ElementId(roomInfo.LevelId)) as Level;
+                            level = _doc.GetElement(roomInfo.LevelId.ToRevitElementId()) as Level;
                         }
 
                         if (level == null && roomInfo.Location != null)
@@ -201,7 +201,7 @@ namespace RevitMCPCommandSet.Services.Architecture
                             Parameter upperLimitParam = room.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL);
                             if (upperLimitParam != null && !upperLimitParam.IsReadOnly)
                             {
-                                upperLimitParam.Set(new ElementId(roomInfo.UpperLimitId));
+                                upperLimitParam.Set(roomInfo.UpperLimitId.ToRevitElementId());
                             }
                         }
 
@@ -250,14 +250,14 @@ namespace RevitMCPCommandSet.Services.Architecture
                         // Add to result list
                         createdRooms.Add(new RoomResultInfo
                         {
-                            Id = room.Id.GetIntValue(),
+                            Id = room.Id.GetValue(),
                             UniqueId = room.UniqueId,
                             Name = roomInfo.Name ?? "Room",
                             Number = roomNumber, // Use the actual assigned number (may differ from requested if made unique)
                             RequestedNumber = roomInfo.Number, // Original requested number
                             LevelName = level.Name,
-                            Area = room.Area,
-                            Perimeter = room.Perimeter
+                            Area = Math.Round(UnitConversion.ToSquareMeters(room.Area), 2),
+                            Perimeter = Math.Round(UnitConversion.ToMillimeters(room.Perimeter), 1)
                         });
                     }
                 }
@@ -276,7 +276,6 @@ namespace RevitMCPCommandSet.Services.Architecture
                     Success = false,
                     Message = $"Error creating rooms: {ex.Message}",
                 };
-                TaskDialog.Show("Error", $"Error creating rooms: {ex.Message}");
             }
             finally
             {
@@ -469,13 +468,13 @@ namespace RevitMCPCommandSet.Services.Architecture
     /// </summary>
     public class RoomResultInfo
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string UniqueId { get; set; }
         public string Name { get; set; }
         public string Number { get; set; }
         public string RequestedNumber { get; set; } // Original requested number (may differ from Number if made unique)
         public string LevelName { get; set; }
-        public double Area { get; set; }
-        public double Perimeter { get; set; }
+        public double Area { get; set; } // m²
+        public double Perimeter { get; set; } // mm
     }
 }

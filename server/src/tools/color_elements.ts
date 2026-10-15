@@ -36,36 +36,27 @@ export function registerColorElementsTool(server: McpServer) {
             return await revitClient.sendCommand("color_splash", params);
           });
 
-          // Format the response into a more user-friendly output
-          if (response.success) {
-            const coloredGroups = response.results || [];
+          // Same { Success, Message, Response } shape as the other tools; the add-in returns lowercase fields.
+          const { success, message, ...details } = response;
+          const result = {
+            Success: success === true,
+            Message:
+              message ??
+              (success
+                ? `Colored ${details.totalElements} elements in ${details.coloredGroups} groups`
+                : "Color operation failed"),
+            Response: success ? details : null,
+          };
 
-            let resultText = `Successfully colored ${response.totalElements} elements across ${response.coloredGroups} groups.\n\n`;
-            resultText += "Parameter Value Groups:\n";
-
-            coloredGroups.forEach((group: any) => {
-              const rgb = group.color;
-              resultText += `- "${group.parameterValue}": ${group.count} elements colored with RGB(${rgb.r}, ${rgb.g}, ${rgb.b})\n`;
-            });
-
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: resultText,
-                },
-              ],
-            };
-          } else {
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Color operation failed: ${response.message}`,
-                },
-              ],
-            };
-          }
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(result, null, 2),
+              },
+            ],
+            isError: !result.Success,
+          };
         } catch (error) {
           return {
             content: [
@@ -76,6 +67,7 @@ export function registerColorElementsTool(server: McpServer) {
                 }`,
               },
             ],
+            isError: true,
           };
         }
       }

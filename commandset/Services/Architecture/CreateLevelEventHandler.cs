@@ -80,7 +80,7 @@ namespace RevitMCPCommandSet.Services.Architecture
 
                                     createdLevels.Add(new LevelResultInfo
                                     {
-                                        Id = existingLevel.Id.GetIntValue(),
+                                        Id = existingLevel.Id.GetValue(),
                                         UniqueId = existingLevel.UniqueId,
                                         Name = existingLevel.Name,
                                         Elevation = existingLevel.Elevation * 304.8, // Convert to mm
@@ -166,7 +166,7 @@ namespace RevitMCPCommandSet.Services.Architecture
 
                                 createdLevels.Add(new LevelResultInfo
                                 {
-                                    Id = newLevel.Id.GetIntValue(),
+                                    Id = newLevel.Id.GetValue(),
                                     UniqueId = newLevel.UniqueId,
                                     Name = newLevel.Name,
                                     Elevation = levelInfo.Elevation,
@@ -257,7 +257,7 @@ namespace RevitMCPCommandSet.Services.Architecture
     /// </summary>
     public class LevelResultInfo
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string UniqueId { get; set; }
         public string Name { get; set; }
         public double Elevation { get; set; }

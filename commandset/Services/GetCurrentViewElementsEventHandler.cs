@@ -1,5 +1,6 @@
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services
@@ -144,7 +145,7 @@ namespace RevitMCPCommandSet.Services
                     UniqueId = e.UniqueId,
                     Name = e.Name,
                     Category = e.Category?.Name ?? "unknow",
-                    Properties = GetElementProperties(e)
+                    Properties = ElementProperties.GetBasic(e)
                 }).ToList();
 
                 ResultInfo = new ViewElementsResult
@@ -160,68 +161,12 @@ namespace RevitMCPCommandSet.Services
                     Elements = elementInfos
                 };
             }
-            catch (Exception ex)
-            {
-                TaskDialog.Show("error", ex.Message);
-            }
+            // Exceptions propagate to RevitCommandBase, which reports them to the caller.
             finally
             {
                 TaskCompleted = true;
                 _resetEvent.Set();
             }
-        }
-
-        private Dictionary<string, string> GetElementProperties(Element element)
-        {
-            var properties = new Dictionary<string, string>();
-
-            // 添加通用属性
-#if REVIT2024_OR_GREATER
-            properties.Add("ElementId", element.Id.Value.ToString());
-#else
-            properties.Add("ElementId", element.Id.IntegerValue.ToString());
-#endif
-            if (element.Location != null)
-            {
-                if (element.Location is LocationPoint locationPoint)
-                {
-                    var point = locationPoint.Point;
-                    properties.Add("LocationX", point.X.ToString("F2"));
-                    properties.Add("LocationY", point.Y.ToString("F2"));
-                    properties.Add("LocationZ", point.Z.ToString("F2"));
-                }
-                else if (element.Location is LocationCurve locationCurve)
-                {
-                    var curve = locationCurve.Curve;
-                    properties.Add("Start", $"{curve.GetEndPoint(0).X:F2}, {curve.GetEndPoint(0).Y:F2}, {curve.GetEndPoint(0).Z:F2}");
-                    properties.Add("End", $"{curve.GetEndPoint(1).X:F2}, {curve.GetEndPoint(1).Y:F2}, {curve.GetEndPoint(1).Z:F2}");
-                    properties.Add("Length", curve.Length.ToString("F2"));
-                }
-            }
-
-            // 获取常用参数值
-            var commonParams = new[] { "Comments", "Mark", "Level", "Family", "Type" };
-            foreach (var paramName in commonParams)
-            {
-                Parameter param = element.LookupParameter(paramName);
-                if (param != null && !param.IsReadOnly)
-                {
-                    if (param.StorageType == StorageType.String)
-                        properties.Add(paramName, param.AsString() ?? "");
-                    else if (param.StorageType == StorageType.Double)
-                        properties.Add(paramName, param.AsDouble().ToString("F2"));
-                    else if (param.StorageType == StorageType.Integer)
-                        properties.Add(paramName, param.AsInteger().ToString());
-                    else if (param.StorageType == StorageType.ElementId)
-#if REVIT2024_OR_GREATER
-                        properties.Add(paramName, param.AsElementId().Value.ToString());
-#else
-                        properties.Add(paramName, param.AsElementId().IntegerValue.ToString());
-#endif
-                }
-            }
-
-            return properties;
         }
 
         public string GetName()

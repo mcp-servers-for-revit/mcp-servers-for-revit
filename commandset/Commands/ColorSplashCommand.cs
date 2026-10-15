@@ -5,7 +5,7 @@ using RevitMCPCommandSet.Services;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class ColorSplashCommand : ExternalEventCommandBase
+    public class ColorSplashCommand : RevitCommandBase
     {
         private ColorSplashEventHandler _handler => (ColorSplashEventHandler)Handler;
 

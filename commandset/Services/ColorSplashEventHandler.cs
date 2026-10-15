@@ -197,7 +197,7 @@ namespace RevitMCPCommandSet.Services
                             parameterValue = paramValue,
                             count = elementIds.Count,
                             color = new { r = rgb[0], g = rgb[1], b = rgb[2] },
-                            elementIds = elementIds.Select(id => id.GetValue().ToString()).ToList()
+                            elementIds = elementIds.Select(id => id.GetValue()).ToList()
                         });
                     }
 

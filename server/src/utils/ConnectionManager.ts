@@ -1,4 +1,5 @@
 import { RevitClientConnection } from "./SocketClient.js";
+import { readConnectionInfo } from "./connectionInfo.js";
 
 // Mutex to serialize all Revit connections - prevents race conditions
 // when multiple requests are made in parallel
@@ -20,34 +21,42 @@ export async function withRevitConnection<T>(
   });
   await previousMutex;
 
-  const revitClient = new RevitClientConnection("localhost", 8080);
+  // Read on every call: the plugin issues a new token each time its listener starts.
+  const { port, token } = readConnectionInfo();
+
+  // The plugin listens on IPv4 loopback only; "localhost" can resolve to ::1 first.
+  const revitClient = new RevitClientConnection("127.0.0.1", port, token);
 
   try {
     // 连接到Revit客户端
     if (!revitClient.isConnected) {
       await new Promise<void>((resolve, reject) => {
-        const onConnect = () => {
+        const cleanup = () => {
+          clearTimeout(timer);
           revitClient.socket.removeListener("connect", onConnect);
           revitClient.socket.removeListener("error", onError);
+        };
+
+        const onConnect = () => {
+          cleanup();
           resolve();
         };
 
-        const onError = (error: any) => {
-          revitClient.socket.removeListener("connect", onConnect);
-          revitClient.socket.removeListener("error", onError);
-          reject(new Error("connect to revit client failed"));
+        const onError = () => {
+          cleanup();
+          reject(
+            new Error(
+              `Could not connect to Revit on port ${port}. Make sure Revit is open and the MCP service is switched on (Revit MCP Switch button).`
+            )
+          );
         };
+
+        const timer = setTimeout(onError, 5000);
 
         revitClient.socket.on("connect", onConnect);
         revitClient.socket.on("error", onError);
 
         revitClient.connect();
-
-        setTimeout(() => {
-          revitClient.socket.removeListener("connect", onConnect);
-          revitClient.socket.removeListener("error", onError);
-          reject(new Error("连接到Revit客户端失败"));
-        }, 5000);
       });
     }
 

@@ -7,7 +7,7 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
     /// <summary>
     /// 处理代码执行的命令类
     /// </summary>
-    public class ExecuteCodeCommand : ExternalEventCommandBase
+    public class ExecuteCodeCommand : RevitCommandBase
     {
         private ExecuteCodeEventHandler _handler => (ExecuteCodeEventHandler)Handler;
 

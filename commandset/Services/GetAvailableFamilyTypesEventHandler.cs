@@ -122,10 +122,7 @@ namespace RevitMCPCommandSet.Services
                     };
                 }).ToList();
             }
-            catch (Exception ex)
-            {
-                TaskDialog.Show("Error", "获取族类型失败: " + ex.Message);
-            }
+            // Exceptions propagate to RevitCommandBase, which reports them to the caller.
             finally
             {
                 TaskCompleted = true;

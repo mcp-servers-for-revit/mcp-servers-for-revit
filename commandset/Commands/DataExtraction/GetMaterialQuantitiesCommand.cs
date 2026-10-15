@@ -5,7 +5,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands.DataExtraction
 {
-    public class GetMaterialQuantitiesCommand : ExternalEventCommandBase
+    public class GetMaterialQuantitiesCommand : RevitCommandBase
     {
         private GetMaterialQuantitiesEventHandler _handler => (GetMaterialQuantitiesEventHandler)Handler;
 

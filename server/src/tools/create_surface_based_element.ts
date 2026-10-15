@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerCreateSurfaceBasedElementTool(server: McpServer) {
   server.tool(
     "create_surface_based_element",
-    "Create one or more surface-based elements in Revit such as floors, ceilings, or roofs. Supports batch creation with detailed parameters including family type ID, boundary lines, thickness, and level information. All units are in millimeters (mm).",
+    "Create one or more surface-based elements in Revit such as floors, ceilings, or roofs. Supports batch creation with detailed parameters including family type ID, boundary lines, and level (levelId). All units are in millimeters (mm).",
     {
       data: z
         .array(
@@ -42,9 +43,28 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
                   .describe("Array of line segments defining the boundary"),
               })
               .describe("Boundary definition with outer loop"),
-            thickness: z.number().describe("Thickness of the element"),
-            baseLevel: z.number().describe("Base level height"),
-            baseOffset: z.number().describe("Offset from the base level"),
+            thickness: z
+              .number()
+              .optional()
+              .describe(
+                "Not used: thickness comes from the floor, roof or ceiling type. Pick a typeId with the thickness you need."
+              ),
+            levelId: z
+              .number()
+              .optional()
+              .describe(
+                "ID of the level to place the element on (e.g. from ai_element_filter with filterCategory OST_Levels). Preferred over baseLevel."
+              ),
+            baseLevel: z
+              .number()
+              .optional()
+              .describe(
+                "Only used when levelId isn't given: an elevation in mm, and the nearest level is used"
+              ),
+            baseOffset: z
+              .number()
+              .optional()
+              .describe("Offset in mm above the level (default 0)"),
           })
         )
         .describe("Array of surface-based elements to create"),
@@ -66,6 +86,7 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -77,6 +98,7 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

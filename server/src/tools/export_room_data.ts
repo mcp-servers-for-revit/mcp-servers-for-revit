@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { reportsFailure } from "../utils/toolResults.js";
 
 export function registerExportRoomDataTool(server: McpServer) {
   server.tool(
     "export_room_data",
-    "Export all room data from the current Revit project. Returns detailed information about each room including name, number, level, area, volume, perimeter, department, and more. Useful for generating room schedules, space analysis, and facility management data.",
+    "Export all room data from the current Revit project. Returns detailed information about each room including name, number, level, area, volume, perimeter, department, and more. Areas are in m², volumes in m³, and perimeter and height in mm. Volume is 0 unless the project computes room volumes (Area and Volume Computations → Areas and Volumes). Useful for generating room schedules, space analysis, and facility management data.",
     {
       includeUnplacedRooms: z
         .boolean()
@@ -36,6 +37,7 @@ export function registerExportRoomDataTool(server: McpServer) {
               text: JSON.stringify(response, null, 2),
             },
           ],
+          isError: reportsFailure(response),
         };
       } catch (error) {
         return {
@@ -47,6 +49,7 @@ export function registerExportRoomDataTool(server: McpServer) {
               }`,
             },
           ],
+          isError: true,
         };
       }
     }

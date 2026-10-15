@@ -22,7 +22,7 @@ public class SurfaceElement
     ///     类型Id
     /// </summary>
     [JsonProperty("typeId")]
-    public int TypeId { get; set; } = -1;
+    public long TypeId { get; set; } = -1;
 
     /// <summary>
     ///     壳形轮廓边界
@@ -35,6 +35,12 @@ public class SurfaceElement
     /// </summary>
     [JsonProperty("thickness")]
     public double Thickness { get; set; }
+
+    /// <summary>
+    /// Id of the level to place on. When set, baseLevel is ignored and baseOffset is measured from this level.
+    /// </summary>
+    [JsonProperty("levelId")]
+    public long LevelId { get; set; } = -1;
 
     /// <summary>
     ///     底部标高

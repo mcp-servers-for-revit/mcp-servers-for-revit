@@ -37,12 +37,12 @@ export async function registerTools(server: McpServer) {
 
       if (registerFunctionName) {
         module[registerFunctionName](server);
-        console.error(`已注册工具: ${file}`);
+        console.error(`Registered tool: ${file}`);
       } else {
-        console.warn(`警告: 在文件 ${file} 中未找到注册函数`);
+        console.warn(`Warning: no register function found in ${file}`);
       }
     } catch (error) {
-      console.error(`注册工具 ${file} 时出错:`, error);
+      console.error(`Error registering tool ${file}:`, error);
     }
   }
 }

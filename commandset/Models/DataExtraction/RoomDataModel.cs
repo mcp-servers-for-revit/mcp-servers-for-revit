@@ -23,16 +23,16 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         public string Level { get; set; }
 
         [JsonProperty("area")]
-        public double Area { get; set; } // Square feet
+        public double Area { get; set; } // m²
 
         [JsonProperty("volume")]
-        public double Volume { get; set; } // Cubic feet
+        public double Volume { get; set; } // m³
 
         [JsonProperty("perimeter")]
-        public double Perimeter { get; set; } // Feet
+        public double Perimeter { get; set; } // mm
 
         [JsonProperty("unboundedHeight")]
-        public double UnboundedHeight { get; set; } // Feet
+        public double UnboundedHeight { get; set; } // mm
 
         [JsonProperty("department")]
         public string Department { get; set; }
@@ -56,7 +56,7 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         public int TotalRooms { get; set; }
 
         [JsonProperty("totalArea")]
-        public double TotalArea { get; set; }
+        public double TotalArea { get; set; } // m²
 
         [JsonProperty("rooms")]
         public List<RoomDataModel> Rooms { get; set; } = new List<RoomDataModel>();

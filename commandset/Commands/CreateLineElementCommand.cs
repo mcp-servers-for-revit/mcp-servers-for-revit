@@ -6,7 +6,7 @@ using RevitMCPSDK.API.Base;
 
 namespace RevitMCPCommandSet.Commands
 {
-    public class CreateLineElementCommand : ExternalEventCommandBase
+    public class CreateLineElementCommand : RevitCommandBase
     {
         private CreateLineElementEventHandler _handler => (CreateLineElementEventHandler)Handler;
 
