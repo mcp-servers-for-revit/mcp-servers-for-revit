@@ -73,6 +73,13 @@ namespace RevitMCPCommandSet.Models.Common
         [JsonProperty("includeDetails")]
         public bool IncludeDetails { get; set; } = false;
         /// <summary>
+        /// Haalt op of stelt in of bij elk geretourneerd elementtype wordt meegegeven hoe vaak het in het project
+        /// is geplaatst (InstanceCount). Alleen van toepassing als IncludeTypes true is. De telling geldt voor het
+        /// hele project en houdt geen rekening met het zichtbaarheids- of ruimtelijke bereikfilter.
+        /// </summary>
+        [JsonProperty("includeInstanceCount")]
+        public bool IncludeInstanceCount { get; set; } = false;
+        /// <summary>
         /// Valideert de geldigheid van de filterinstellingen en controleert op mogelijke conflicten
         /// </summary>
         /// <returns>Retourneert true als de instellingen geldig zijn, anders false</returns>

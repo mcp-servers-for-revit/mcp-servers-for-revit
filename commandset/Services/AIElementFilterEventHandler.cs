@@ -71,10 +71,15 @@ namespace RevitMCPCommandSet.Services
                     }
                 }
 
+                // Tel desgewenst per type hoe vaak het in het project is geplaatst
+                Dictionary<ElementId, int> instanceCounts = null;
+                if (FilterSetting.IncludeInstanceCount && FilterSetting.IncludeTypes)
+                    instanceCounts = GetInstanceCountsByType(doc, FilterSetting);
+
                 // Haal de informatie op van de elementen met de opgegeven Id's (standaard alleen basisinformatie)
                 elementInfoList = FilterSetting.IncludeDetails
-                    ? GetElementFullInfo(doc, elementList)
-                    : GetElementBaseInfo(elementList);
+                    ? GetElementFullInfo(doc, elementList, instanceCounts)
+                    : GetElementBaseInfo(elementList, instanceCounts);
 
                 Result = new AIResult<List<object>>
                 {
@@ -104,7 +109,6 @@ namespace RevitMCPCommandSet.Services
         /// <returns>Of de bewerking is voltooid vóór de time-out</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -290,9 +294,46 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
+        /// Telt per type-Id hoeveel instanties er in het project zijn geplaatst. Is er een categorie opgegeven,
+        /// dan worden alleen instanties van die categorie geteld (types en hun instanties delen de categorie).
+        /// Zichtbaarheids- en ruimtelijke bereikfilters worden bewust niet toegepast: het gaat om gebruik in het hele project.
+        /// </summary>
+        public static Dictionary<ElementId, int> GetInstanceCountsByType(Document doc, FilterSetting settings)
+        {
+            var counts = new Dictionary<ElementId, int>();
+            FilteredElementCollector collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+            if (!string.IsNullOrWhiteSpace(settings.FilterCategory) &&
+                Enum.TryParse(settings.FilterCategory, true, out BuiltInCategory category))
+            {
+                collector = collector.OfCategory(category);
+            }
+
+            foreach (Element instance in collector)
+            {
+                ElementId typeId = instance.GetTypeId();
+                if (typeId == null || typeId == ElementId.InvalidElementId)
+                    continue;
+                counts.TryGetValue(typeId, out int current);
+                counts[typeId] = current + 1;
+            }
+            return counts;
+        }
+
+        /// <summary>
+        /// Geeft het aantal geplaatste instanties van een type terug, of null als er niet geteld wordt
+        /// of het element geen type is
+        /// </summary>
+        private static int? GetInstanceCount(Element element, IDictionary<ElementId, int> instanceCounts)
+        {
+            if (instanceCounts == null || !(element is ElementType))
+                return null;
+            return instanceCounts.TryGetValue(element.Id, out int count) ? count : 0;
+        }
+
+        /// <summary>
         /// Haalt per element alleen de basisinformatie op (standaard, lichte response)
         /// </summary>
-        public static List<object> GetElementBaseInfo(IList<Element> elementCollector)
+        public static List<object> GetElementBaseInfo(IList<Element> elementCollector, IDictionary<ElementId, int> instanceCounts = null)
         {
             List<object> infoList = new List<object>();
             foreach (var element in elementCollector)
@@ -300,6 +341,7 @@ namespace RevitMCPCommandSet.Services
                 var info = CreateBaseInfo(element);
                 if (info != null)
                 {
+                    info.InstanceCount = GetInstanceCount(element, instanceCounts);
                     infoList.Add(info);
                 }
             }
@@ -346,7 +388,7 @@ namespace RevitMCPCommandSet.Services
         /// <summary>
         /// Haalt per element de uitgebreide informatie op, afhankelijk van het soort element
         /// </summary>
-        public static List<object> GetElementFullInfo(Document doc, IList<Element> elementCollector)
+        public static List<object> GetElementFullInfo(Document doc, IList<Element> elementCollector, IDictionary<ElementId, int> instanceCounts = null)
         {
             List<object> infoList = new List<object>();
 
@@ -360,6 +402,7 @@ namespace RevitMCPCommandSet.Services
                     var info = CreateTypeFullInfo(doc, elementType);
                     if (info != null)
                     {
+                        info.InstanceCount = GetInstanceCount(elementType, instanceCounts);
                         infoList.Add(info);
                     }
                 }
@@ -1201,6 +1244,11 @@ namespace RevitMCPCommandSet.Services
         public string FamilyName { get; set; }
         public string Category { get; set; }
         public string BuiltInCategory { get; set; }
+        /// <summary>
+        /// Aantal geplaatste instanties van dit type in het project; alleen gevuld bij types met includeInstanceCount
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? InstanceCount { get; set; }
     }
 
     /// <summary>
@@ -1284,6 +1332,11 @@ namespace RevitMCPCommandSet.Services
         /// Ingebouwde categorie-ID
         /// </summary>
         public string BuiltInCategory { get; set; }
+        /// <summary>
+        /// Aantal geplaatste instanties van dit type in het project; alleen gevuld met includeInstanceCount
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? InstanceCount { get; set; }
         /// <summary>
         /// Typeparameters
         /// </summary>

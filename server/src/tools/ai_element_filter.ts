@@ -70,6 +70,10 @@ export function registerAIElementFilterTool(server: McpServer) {
           .boolean()
           .optional()
           .describe("When true, returns extended information per element depending on its kind: level, bounding box (mm), thickness/height, type dimension parameters, room area/volume, view properties, annotation text/dimension values, group/link info. Defaults to false: only Id, Name, FamilyName, Category and BuiltInCategory are returned, which keeps the response small. Only request details when the question actually needs them. FamilyName is omitted when the element itself is a family (its Name already is the family name)."),
+        includeInstanceCount: z
+          .boolean()
+          .optional()
+          .describe("Only applies when includeTypes is true. When true, every returned element type gets an InstanceCount: the number of placed instances of that type in the whole project (0 = unused type). The count ignores filterVisibleInCurrentView and bounding box filters. Use this with {\"includeTypes\": true, \"includeInstances\": false} to find which types are actually used (InstanceCount > 0) without fetching every instance, e.g. before running follow-up operations only on used types."),
       })
         .describe("Configuration parameters for the Revit element filter tool. These settings determine which elements will be selected from the Revit project based on various filtering criteria. Multiple filters can be combined to achieve precise element selection. All spatial coordinates should be provided in millimeters."),
     },
