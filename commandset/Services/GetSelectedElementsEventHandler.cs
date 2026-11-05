@@ -21,10 +21,23 @@ namespace RevitMCPCommandSet.Services
         // Beperk het aantal geretourneerde elementen
         public int? Limit { get; set; }
 
+        // Foutmelding bij mislukken (wordt teruggegeven in de response i.p.v. een dialoog te tonen)
+        public string ErrorMessage { get; private set; }
+
+        /// <summary>
+        /// Zet de wachtstatus terug. Moet vóór het raisen van het externe event worden aangeroepen,
+        /// zodat een snel afgeronde handler zijn signaal niet kwijtraakt.
+        /// </summary>
+        public void ResetCompletion()
+        {
+            TaskCompleted = false;
+            ErrorMessage = null;
+            _resetEvent.Reset();
+        }
+
         // Implementatie van de IWaitableExternalEventHandler-interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -60,7 +73,7 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", "Ophalen van geselecteerde elementen mislukt: " + ex.Message);
+                ErrorMessage = "Ophalen van geselecteerde elementen mislukt: " + ex.Message;
                 ResultElements = new List<Models.Common.ElementInfo>();
             }
             finally

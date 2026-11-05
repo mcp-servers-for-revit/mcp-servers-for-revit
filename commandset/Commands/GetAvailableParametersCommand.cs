@@ -32,11 +32,14 @@ namespace RevitMCPCommandSet.Commands
                     throw new ArgumentException("Lijst met element-ID's mag niet leeg zijn");
                 }
 
+                _handler.ResetCompletion();
                 _handler.ElementIds = elementIds;
 
                 // Extern event activeren en wachten op voltooiing
                 if (RaiseAndWaitForCompletion(60000)) // 60 seconden time-out
                 {
+                    if (_handler.ErrorMessage != null)
+                        throw new Exception(_handler.ErrorMessage);
                     return _handler.Result;
                 }
                 else

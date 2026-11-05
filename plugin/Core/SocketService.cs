@@ -98,7 +98,7 @@ namespace revit_mcp_plugin.Core
             try
             {
                 _isRunning = true;
-                _listener = new TcpListener(IPAddress.Any, _port);
+                _listener = new TcpListener(IPAddress.Loopback, _port); // alleen lokaal: anders kan iedereen op het netwerk code in Revit laten uitvoeren
                 _listener.Start();
 
                 _listenerThread = new Thread(ListenForClients)

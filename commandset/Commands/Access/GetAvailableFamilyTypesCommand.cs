@@ -29,6 +29,7 @@ namespace RevitMCPCommandSet.Commands.Access
                     int? limit = parameters?["limit"]?.Value<int>();
 
                     // Queryparameters instellen
+                    _handler.ResetCompletion();
                     _handler.CategoryList = categoryList;
                     _handler.FamilyNameFilter = familyNameFilter;
                     _handler.Limit = limit;
@@ -36,6 +37,8 @@ namespace RevitMCPCommandSet.Commands.Access
                     // Extern event activeren en wachten op voltooiing, maximaal 15 seconden wachten
                     if (RaiseAndWaitForCompletion(15000))
                     {
+                        if (_handler.ErrorMessage != null)
+                            throw new Exception(_handler.ErrorMessage);
                         return _handler.ResultFamilyTypes;
                     }
                     else

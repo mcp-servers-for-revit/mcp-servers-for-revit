@@ -46,9 +46,8 @@ namespace RevitMCPCommandSet.Commands
                     throw new ArgumentException("Voor 'update' is een niet-lege lijst 'updates' nodig");
                 }
 
+                _handler.ResetCompletion();
                 _handler.Request = request;
-                _handler.Result = null;
-                _handler.Error = null;
 
                 // Extern event activeren en wachten op voltooiing
                 if (!RaiseAndWaitForCompletion(120000)) // 120 seconden time-out

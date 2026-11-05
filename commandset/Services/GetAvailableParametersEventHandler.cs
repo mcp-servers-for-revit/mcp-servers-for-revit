@@ -18,10 +18,23 @@ namespace RevitMCPCommandSet.Services
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
+        // Foutmelding bij mislukken (wordt teruggegeven in de response i.p.v. een dialoog te tonen)
+        public string ErrorMessage { get; private set; }
+
+        /// <summary>
+        /// Zet de wachtstatus terug. Moet vóór het raisen van het externe event worden aangeroepen,
+        /// zodat een snel afgeronde handler zijn signaal niet kwijtraakt.
+        /// </summary>
+        public void ResetCompletion()
+        {
+            TaskCompleted = false;
+            ErrorMessage = null;
+            _resetEvent.Reset();
+        }
+
         // Implementatie van de IWaitableExternalEventHandler-interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -98,7 +111,7 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Fout", "Ophalen van beschikbare parameters mislukt: " + ex.Message);
+                ErrorMessage = "Ophalen van beschikbare parameters mislukt: " + ex.Message;
             }
             finally
             {

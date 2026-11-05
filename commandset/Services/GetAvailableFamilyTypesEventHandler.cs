@@ -18,10 +18,24 @@ namespace RevitMCPCommandSet.Services
         public string FamilyNameFilter { get; set; }
         public int? Limit { get; set; }
 
+        // Foutmelding bij mislukken (wordt teruggegeven in de response i.p.v. een dialoog te tonen)
+        public string ErrorMessage { get; private set; }
+
+        /// <summary>
+        /// Zet de wachtstatus en het vorige resultaat terug. Moet vóór het raisen van het externe event
+        /// worden aangeroepen, zodat een snel afgeronde handler zijn signaal niet kwijtraakt.
+        /// </summary>
+        public void ResetCompletion()
+        {
+            TaskCompleted = false;
+            ResultFamilyTypes = null;
+            ErrorMessage = null;
+            _resetEvent.Reset();
+        }
+
         // Uitvoeringstijd, iets korter dan de time-out van de aanroep
         public bool WaitForCompletion(int timeoutMilliseconds = 12500)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -124,7 +138,7 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", "Ophalen van familietypen mislukt: " + ex.Message);
+                ErrorMessage = "Ophalen van familietypen mislukt: " + ex.Message;
             }
             finally
             {

@@ -30,6 +30,7 @@ namespace RevitMCPCommandSet.Commands.Test
                         message = parameters["message"].ToString();
                     }
 
+                    _handler.ResetCompletion();
                     _handler.Message = message;
 
                     if (RaiseAndWaitForCompletion(15000))

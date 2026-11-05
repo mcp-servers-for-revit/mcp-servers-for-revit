@@ -42,7 +42,6 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
         // Wachten op voltooiing van de uitvoering - implementatie van de IWaitableExternalEventHandler-interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 

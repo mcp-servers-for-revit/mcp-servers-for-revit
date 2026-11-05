@@ -31,6 +31,7 @@ namespace RevitMCPCommandSet.Commands.Delete
                     }
 
                     // Stel de array met te verwijderen element-ID's in
+                    _handler.ResetCompletion();
                     _handler.ElementIds = elementIds;
 
                     // Extern event activeren en wachten op voltooiing
@@ -38,11 +39,11 @@ namespace RevitMCPCommandSet.Commands.Delete
                     {
                         if (_handler.IsSuccess)
                         {
-                            return new { deleted = true, count = _handler.DeletedCount };
+                            return new { deleted = true, count = _handler.DeletedCount, warning = _handler.Warning };
                         }
                         else
                         {
-                            throw new Exception("Verwijderen van element mislukt");
+                            throw new Exception(_handler.ErrorMessage ?? "Verwijderen van element mislukt");
                         }
                     }
                     else

@@ -33,11 +33,14 @@ namespace RevitMCPCommandSet.Commands.Access
                     int? limit = parameters?["limit"]?.Value<int>();
 
                     // Stel het maximumaantal in
+                    _handler.ResetCompletion();
                     _handler.Limit = limit;
 
                     // Extern event activeren en wachten op voltooiing
                     if (RaiseAndWaitForCompletion(15000))
                     {
+                        if (_handler.ErrorMessage != null)
+                            throw new Exception(_handler.ErrorMessage);
                         return _handler.ResultElements;
                     }
                     else

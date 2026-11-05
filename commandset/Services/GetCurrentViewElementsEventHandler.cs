@@ -60,13 +60,18 @@ namespace RevitMCPCommandSet.Services
             _includeHidden = includeHidden;
             _limit = limit;
             TaskCompleted = false;
+            ResultInfo = null;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 
-        // Implementatie van de IWaitableExternalEventHandler-interface
+        // Foutmelding bij mislukken (wordt teruggegeven in de response i.p.v. een dialoog te tonen)
+        public string ErrorMessage { get; private set; }
+
+        // Implementatie van de IWaitableExternalEventHandler-interface.
+        // Geen Reset() hier: dat gebeurt in SetQueryParameters, vóór het raisen van het event.
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -163,7 +168,7 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("error", ex.Message);
+                ErrorMessage = "Ophalen van weergave-elementen mislukt: " + ex.Message;
             }
             finally
             {

@@ -284,7 +284,6 @@ namespace RevitMCPCommandSet.Services
                     Success = false,
                     Message = $"Fout bij het aanmaken van vlakelement: {ex.Message}",
                 };
-                TaskDialog.Show("Fout", $"Fout bij het aanmaken van vlakelement: {ex.Message}");
             }
             finally
             {
@@ -299,7 +298,6 @@ namespace RevitMCPCommandSet.Services
         /// <returns>Of de bewerking is voltooid vóór de time-out</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 

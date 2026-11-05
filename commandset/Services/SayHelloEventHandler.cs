@@ -9,10 +9,18 @@ namespace RevitMCPCommandSet.Services
 
         public string Message { get; set; } = "Hello MCP!";
 
-        public bool WaitForCompletion(int timeoutMilliseconds = 10000)
+        /// <summary>
+        /// Zet de wachtstatus terug. Moet vóór het raisen van het externe event worden aangeroepen,
+        /// zodat een snel afgeronde handler zijn signaal niet kwijtraakt.
+        /// </summary>
+        public void ResetCompletion()
         {
             _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+        }
+
+        public bool WaitForCompletion(int timeoutMilliseconds = 10000)
+        {
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
         public void Execute(UIApplication app)

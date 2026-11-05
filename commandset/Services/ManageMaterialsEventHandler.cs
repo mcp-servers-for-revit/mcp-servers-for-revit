@@ -32,10 +32,21 @@ namespace RevitMCPCommandSet.Services
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
+        /// <summary>
+        /// Zet de wachtstatus en het vorige resultaat terug. Moet vóór het raisen van het externe event
+        /// worden aangeroepen, zodat een snel afgeronde handler zijn signaal niet kwijtraakt.
+        /// </summary>
+        public void ResetCompletion()
+        {
+            TaskCompleted = false;
+            Result = null;
+            Error = null;
+            _resetEvent.Reset();
+        }
+
         // Implementatie van de IWaitableExternalEventHandler-interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 

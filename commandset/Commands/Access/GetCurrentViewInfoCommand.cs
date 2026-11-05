@@ -24,9 +24,13 @@ namespace RevitMCPCommandSet.Commands.Access
 
         public override object Execute(JObject parameters, string requestId)
         {
+            _handler.ResetCompletion();
+
             // Extern event activeren en wachten op voltooiing
             if (RaiseAndWaitForCompletion(10000)) // 10 seconden time-out
             {
+                if (_handler.ErrorMessage != null)
+                    throw new Exception(_handler.ErrorMessage);
                 return _handler.ResultInfo;
             }
             else

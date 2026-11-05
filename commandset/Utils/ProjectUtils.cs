@@ -422,7 +422,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Fout", "Kan geen 3D-aanzicht maken of ophalen");
+                    System.Diagnostics.Trace.TraceWarning("Kan geen 3D-aanzicht maken of ophalen"); // geen dialoog: zou het MCP-verzoek blokkeren
                     return null;
                 }
 
@@ -481,7 +481,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Fout", $"Er is een fout opgetreden bij het ophalen van het dichtstbijzijnde vlak: {ex.Message}");
+                System.Diagnostics.Trace.TraceWarning($"Er is een fout opgetreden bij het ophalen van het dichtstbijzijnde vlak: {ex.Message}"); // geen dialoog: zou het MCP-verzoek blokkeren
                 return null;
             }
         }
@@ -539,7 +539,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Fout", "Kan geen 3D-aanzicht maken of ophalen");
+                    System.Diagnostics.Trace.TraceWarning("Kan geen 3D-aanzicht maken of ophalen"); // geen dialoog: zou het MCP-verzoek blokkeren
                     return null;
                 }
 
@@ -604,7 +604,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Fout", $"Er is een fout opgetreden bij het ophalen van het dichtstbijzijnde hostelement: {ex.Message}");
+                System.Diagnostics.Trace.TraceWarning($"Er is een fout opgetreden bij het ophalen van het dichtstbijzijnde hostelement: {ex.Message}"); // geen dialoog: zou het MCP-verzoek blokkeren
                 return null;
             }
         }
@@ -698,7 +698,7 @@ namespace RevitMCPCommandSet.Utils
 
             if (solidFill == null)
             {
-                TaskDialog.Show("Fout", "Geen patroon voor volledige vulling gevonden");
+                System.Diagnostics.Trace.TraceWarning("Geen patroon voor volledige vulling gevonden"); // geen dialoog: zou het MCP-verzoek blokkeren
                 return;
             }
 
