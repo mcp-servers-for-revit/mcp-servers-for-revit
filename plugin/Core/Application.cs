@@ -33,13 +33,6 @@ namespace revit_mcp_plugin.Core
                 Assembly.GetExecutingAssembly().Location, "revit_mcp_plugin.Core.MCPServiceConnection");
             pushButtonData.ToolTip = "Open / Close mcp server";
 
-            
-
-            Stream manifestResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("revit_mcp_plugin.Core.Resources.mcp-server-black-16.png");
-            PngBitmapDecoder pngBitmapDecoder = new PngBitmapDecoder(manifestResourceStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-            pushButtonData.Image = pngBitmapDecoder.Frames[0];
-
-
             _toggleButton = mcpPanel.AddItem(pushButtonData) as PushButton;
 
             // Toon direct de juiste icoon-status: de server start niet automatisch op, dus dicht (zwart).
@@ -81,10 +74,28 @@ namespace revit_mcp_plugin.Core
 
             string color = isRunning ? "orange" : "black";
 
-            _toggleButton.Image = new BitmapImage(new Uri(
-                $"/RevitMCPPlugin;component/Core/Resources/mcp-server-{color}-16.png", UriKind.RelativeOrAbsolute));
-            _toggleButton.LargeImage = new BitmapImage(new Uri(
-                $"/RevitMCPPlugin;component/Core/Resources/mcp-server-{color}-32.png", UriKind.RelativeOrAbsolute));
+            _toggleButton.Image = LoadIcon($"mcp-server-{color}-16.png");
+            _toggleButton.LargeImage = LoadIcon($"mcp-server-{color}-32.png");
+        }
+
+        /// <summary>
+        /// Laadt een icoon uit de embedded resources (Core/Resources, build action EmbeddedResource).
+        /// Geen pack-URI's gebruiken: die vinden alleen bestanden met build action 'Resource'.
+        /// </summary>
+        private static BitmapSource LoadIcon(string fileName)
+        {
+            string resourceName = $"revit_mcp_plugin.Core.Resources.{fileName}";
+            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new InvalidOperationException($"Icoon '{resourceName}' niet gevonden in de embedded resources.");
+
+                // OnLoad: de afbeelding direct volledig inlezen, zodat de stream daarna gesloten kan worden.
+                var decoder = new PngBitmapDecoder(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                BitmapSource frame = decoder.Frames[0];
+                frame.Freeze();
+                return frame;
+            }
         }
     }
 }
