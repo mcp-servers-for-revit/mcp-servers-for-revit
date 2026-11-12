@@ -122,6 +122,11 @@
       "commandName": "create_dimensions",
       "description": "Create dimension annotations between elements or points in the current view",
       "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "dimension_grids",
+      "description": "Add overall and bay-by-bay dimension strings to the grids in the active plan view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
     }
   ]
 }

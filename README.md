@@ -127,6 +127,7 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `create_level` | Create levels at specified elevations |
 | `create_room` | Create and place rooms at specified locations |
 | `create_dimensions` | Create dimension annotations in the current view |
+| `dimension_grids` | Add overall and bay-by-bay grid dimensions to the active plan view at chosen sides |
 | `create_structural_framing_system` | Create a structural beam framing system |
 | `delete_element` | Delete elements by ID |
 | `operate_element` | Operate on elements (select, setColor, hide, etc.) |
