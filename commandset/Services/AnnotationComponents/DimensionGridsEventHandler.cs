@@ -5,21 +5,31 @@ using RevitMCPSDK.API.Interfaces;
 namespace RevitMCPCommandSet.Services.AnnotationComponents;
 
 /// <summary>
-///     Options for <see cref="DimensionGridsEventHandler" />. Offsets are in millimetres, measured
-///     from the grid ends where the grid lines start, toward the building.
+///     Options for <see cref="DimensionGridsEventHandler" />. Offsets are paper millimetres (as printed),
+///     measured from the grid ends toward the building; they are multiplied by the view scale.
 /// </summary>
 public class DimensionGridsOptions
 {
+    public static readonly string[] VerticalChoices = { "top", "bottom", "both", "bubble" };
+    public static readonly string[] HorizontalChoices = { "left", "right", "both", "bubble" };
+
+    /// <summary>Where to dimension grids that run up/down on screen: top, bottom, both or bubble.</summary>
+    public string VerticalGridsAt { get; set; }
+
+    /// <summary>Where to dimension grids that run left/right on screen: left, right, both or bubble.</summary>
+    public string HorizontalGridsAt { get; set; }
+
     public bool IncludeOverall { get; set; } = true;
     public bool IncludeBays { get; set; } = true;
-    public double OverallOffsetMm { get; set; } = 600;
-    public double BayOffsetMm { get; set; } = 1800;
+    public double OverallOffsetMm { get; set; } = 10;
+    public double BayOffsetMm { get; set; } = 18;
     public bool SkipIfExisting { get; set; } = true;
 }
 
 /// <summary>
 ///     Groups the straight grids visible in the active plan view by direction and, for each group of
-///     parallel grids, creates an overall dimension (first to last grid) and a bay string (every grid).
+///     parallel grids, creates an overall dimension (first to last grid) and a bay string (every grid)
+///     at the screen side(s) the caller chose.
 /// </summary>
 public class DimensionGridsEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
 {
@@ -101,8 +111,12 @@ public class DimensionGridsEventHandler : IExternalEventHandler, IWaitableExtern
             else group.Add(item);
         }
 
-        var created = new List<object>();
+        // Screen directions of this view, so "top" and "right" mean what the user sees even in a rotated view.
+        var up = Flatten(view.UpDirection);
+        var right = Flatten(view.RightDirection);
+        var paperToModelFeet = MmToFeet * view.Scale;
         var z = view.GenLevel?.Elevation ?? 0;
+        var created = new List<object>();
 
         using var tx = new Transaction(doc, "Dimension Grids");
         tx.Start();
@@ -116,54 +130,108 @@ public class DimensionGridsEventHandler : IExternalEventHandler, IWaitableExtern
             }
 
             // d = along the grids, n = across them (the direction the dimension line runs).
-            var d0 = group[0].Line.Direction;
-            var d = new XYZ(d0.X, d0.Y, 0).Normalize();
+            var d = Flatten(group[0].Line.Direction);
             var n = new XYZ(-d.Y, d.X, 0);
 
+            // A group "runs vertically" on screen if it is closer to the view's up direction than to its right.
+            var runsVertically = Math.Abs(d.DotProduct(up)) >= Math.Abs(d.DotProduct(right));
+            var screenAxis = runsVertically ? up : right;           // the screen direction the grids run along
+            var highEndSign = d.DotProduct(screenAxis) >= 0 ? 1 : -1; // +1: high end along d is top/right
+            var choice = runsVertically ? _options.VerticalGridsAt : _options.HorizontalGridsAt;
+            string NameOf(int end) => runsVertically
+                ? (end == highEndSign ? "top" : "bottom")
+                : (end == highEndSign ? "right" : "left");
+
+            var ends = new List<int>();
+            string note = null;
+            switch (choice)
+            {
+                case "top":
+                case "right":
+                    ends.Add(highEndSign);
+                    break;
+                case "bottom":
+                case "left":
+                    ends.Add(-highEndSign);
+                    break;
+                case "both":
+                    ends.Add(highEndSign);
+                    ends.Add(-highEndSign);
+                    break;
+                default: // bubble
+                    var bubbleEnd = BubbleEnd(group, view, d);
+                    if (bubbleEnd.HasValue)
+                    {
+                        ends.Add(bubbleEnd.Value);
+                    }
+                    else
+                    {
+                        // No visible bubbles: fall back to top for vertical grids, left for horizontal grids.
+                        ends.Add(runsVertically ? highEndSign : -highEndSign);
+                        note = "No grid bubbles visible; used fallback side";
+                    }
+                    break;
+            }
+
             var sorted = group.OrderBy(g => g.Line.Origin.DotProduct(n)).ToList();
-            var minAlong = group
+            var alongValues = group
                 .SelectMany(g => new[] { g.Line.GetEndPoint(0), g.Line.GetEndPoint(1) })
-                .Min(p => p.DotProduct(d));
+                .Select(p => p.DotProduct(d))
+                .ToList();
+            var minAlong = alongValues.Min();
+            var maxAlong = alongValues.Max();
             var a = sorted.First().Line.Origin.DotProduct(n);
             var b = sorted.Last().Line.Origin.DotProduct(n);
 
-            Line DimLine(double offsetMm)
+            foreach (var end in ends)
             {
-                var along = minAlong + offsetMm * MmToFeet;
-                var p0 = d * along + n * a;
-                var p1 = d * along + n * b;
-                return Line.CreateBound(new XYZ(p0.X, p0.Y, z), new XYZ(p1.X, p1.Y, z));
-            }
-
-            if (_options.IncludeOverall)
-            {
-                var refs = new ReferenceArray();
-                refs.Append(new Reference(sorted.First().Grid));
-                refs.Append(new Reference(sorted.Last().Grid));
-                var dim = doc.Create.NewDimension(view, DimLine(_options.OverallOffsetMm), refs);
-                created.Add(new
+                // Start at the chosen grid end and step inward (toward the building) by the paper offset.
+                Line DimLine(double paperMm)
                 {
-                    id = IdValue(dim.Id),
-                    kind = "overall",
-                    grids = new[] { sorted.First().Grid.Name, sorted.Last().Grid.Name },
-                    value = dim.ValueString
-                });
-            }
+                    var along = end > 0
+                        ? maxAlong - paperMm * paperToModelFeet
+                        : minAlong + paperMm * paperToModelFeet;
+                    var p0 = d * along + n * a;
+                    var p1 = d * along + n * b;
+                    return Line.CreateBound(new XYZ(p0.X, p0.Y, z), new XYZ(p1.X, p1.Y, z));
+                }
 
-            if (_options.IncludeBays && sorted.Count > 2)
-            {
-                var refs = new ReferenceArray();
-                foreach (var g in sorted) refs.Append(new Reference(g.Grid));
-                var dim = doc.Create.NewDimension(view, DimLine(_options.BayOffsetMm), refs);
-                var segments = new List<string>();
-                foreach (DimensionSegment s in dim.Segments) segments.Add(s.ValueString);
-                created.Add(new
+                var side = NameOf(end);
+
+                if (_options.IncludeOverall)
                 {
-                    id = IdValue(dim.Id),
-                    kind = "bays",
-                    grids = sorted.Select(g => g.Grid.Name).ToArray(),
-                    segments
-                });
+                    var refs = new ReferenceArray();
+                    refs.Append(new Reference(sorted.First().Grid));
+                    refs.Append(new Reference(sorted.Last().Grid));
+                    var dim = doc.Create.NewDimension(view, DimLine(_options.OverallOffsetMm), refs);
+                    created.Add(new
+                    {
+                        id = IdValue(dim.Id),
+                        kind = "overall",
+                        side,
+                        note,
+                        grids = new[] { sorted.First().Grid.Name, sorted.Last().Grid.Name },
+                        value = dim.ValueString
+                    });
+                }
+
+                if (_options.IncludeBays && sorted.Count > 2)
+                {
+                    var refs = new ReferenceArray();
+                    foreach (var g in sorted) refs.Append(new Reference(g.Grid));
+                    var dim = doc.Create.NewDimension(view, DimLine(_options.BayOffsetMm), refs);
+                    var segments = new List<string>();
+                    foreach (DimensionSegment s in dim.Segments) segments.Add(s.ValueString);
+                    created.Add(new
+                    {
+                        id = IdValue(dim.Id),
+                        kind = "bays",
+                        side,
+                        note,
+                        grids = sorted.Select(g => g.Grid.Name).ToArray(),
+                        segments
+                    });
+                }
             }
         }
 
@@ -183,9 +251,46 @@ public class DimensionGridsEventHandler : IExternalEventHandler, IWaitableExtern
         {
             Success = true,
             Message = $"Created {created.Count} grid dimension(s) in view '{view.Name}'.",
-            Response = new { view = view.Name, viewId = IdValue(view.Id), created, skipped }
+            Response = new
+            {
+                view = view.Name,
+                viewId = IdValue(view.Id),
+                scale = view.Scale,
+                verticalGridsAt = _options.VerticalGridsAt,
+                horizontalGridsAt = _options.HorizontalGridsAt,
+                overallOffsetPaperMm = _options.OverallOffsetMm,
+                bayOffsetPaperMm = _options.BayOffsetMm,
+                created,
+                skipped
+            }
         };
     }
+
+    /// <summary>
+    ///     Returns +1 if most visible bubbles in the group are at the high end along <paramref name="d" />,
+    ///     -1 if at the low end, or null if no bubbles are visible in the view.
+    /// </summary>
+    private static int? BubbleEnd(List<(Grid Grid, Line Line)> group, View view, XYZ d)
+    {
+        int high = 0, low = 0;
+        foreach (var (grid, _) in group)
+        {
+            // DatumEnds.End0/End1 refer to the grid's own curve, so measure against that curve.
+            var curve = grid.Curve;
+            var mid = (curve.GetEndPoint(0) + curve.GetEndPoint(1)).DotProduct(d) / 2;
+            foreach (var (end, index) in new[] { (DatumEnds.End0, 0), (DatumEnds.End1, 1) })
+            {
+                if (!grid.IsBubbleVisibleInView(end, view)) continue;
+                if (curve.GetEndPoint(index).DotProduct(d) > mid) high++;
+                else low++;
+            }
+        }
+
+        if (high == 0 && low == 0) return null;
+        return high >= low ? 1 : -1;
+    }
+
+    private static XYZ Flatten(XYZ v) => new XYZ(v.X, v.Y, 0).Normalize();
 
     private static List<long> FindExistingGridDimensions(Document doc, View view)
     {
