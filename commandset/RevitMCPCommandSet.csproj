@@ -72,7 +72,7 @@
         <CommandsRootDir>C:\Users\t.vwolferen\revit-mcp\Commands\</CommandsRootDir>
     </PropertyGroup>
     <PropertyGroup Condition="$(Configuration.Contains('Release'))">
-        <CommandsRootDir>O:\02 - Software\021 - Revit\0221 - API\MCP\Commands\</CommandsRootDir>
+        <CommandsRootDir>\\hendriks.ad\company\BIM\02 - Software\021 - Revit\0221 - API\MCP\Commands\</CommandsRootDir>
     </PropertyGroup>
 
     <Target Name="DeployCommandSet" AfterTargets="Build">

@@ -17,7 +17,7 @@
         "build:debug": "npm run build",
         "postbuild:debug": "xcopy /E /I /Y build \"C:\\Users\\t.vwolferen\\revit-mcp\\build\"",
         "build:release": "npm run build",
-        "postbuild:release": "xcopy /E /I /Y build \"O:\\02 - Software\\021 - Revit\\0221 - API\\MCP\\Server\\build\"",
+        "postbuild:release": "xcopy /E /I /Y build \"\\\\hendriks.ad\\company\\BIM\\02 - Software\\021 - Revit\\0221 - API\\MCP\\Server\\build\"",
         "prepublishOnly": "npm run build"
     },
     "files": [

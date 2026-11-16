@@ -79,7 +79,7 @@
          addins vandaan komen, zonder het .addin-bestand (dat wordt daar los/anders beheerd). -->
     <Target Name="CopyToNetworkAddinFolder" AfterTargets="Build" Condition="$(Configuration.Contains('Release'))">
         <PropertyGroup>
-            <NetworkAddinDir>O:\02 - Software\021 - Revit\0221 - API\AddinFiles\$(RevitVersion)\ModuleFabriqueAddin\</NetworkAddinDir>
+            <NetworkAddinDir>\\hendriks.ad\company\BIM\02 - Software\021 - Revit\0221 - API\AddinFiles\$(RevitVersion)\ModuleFabriqueAddin\</NetworkAddinDir>
         </PropertyGroup>
 
         <ItemGroup>
