@@ -20,7 +20,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          # Node 18 has no better-sqlite3 prebuilds and node-gyp 10 cannot find
+          # the Visual Studio version on current windows-latest runners
+          node-version: 22
 
       - name: Setup .NET 8 and .NET 10
         uses: actions/setup-dotnet@v4
