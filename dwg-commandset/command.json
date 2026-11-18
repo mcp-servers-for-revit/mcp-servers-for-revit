@@ -1,0 +1,37 @@
+{
+  "name": "DwgCommandSet",
+  "description": "DWG import/link interrogation toolkit for Revit: extract curve geometry from imported or linked DWG files",
+  "developer": {
+    "name": "Scott Mitchell Studio",
+    "email": "chris@scottmitchellstudio.com",
+    "website": "https://scottmitchellstudio.com",
+    "organization": "Scott Mitchell Studio"
+  },
+  "commands": [
+    {
+      "commandName": "extract_dwg_curves",
+      "description": "Extract curve geometry (layer, type, endpoints, arc/ellipse parameters, tessellated polyline) from an imported or linked DWG. Omit dwgNameOrId to list available DWGs.",
+      "assemblyPath": "DwgCommandSet.dll"
+    },
+    {
+      "commandName": "create_model_lines_from_dwg_layer",
+      "description": "Draw one DWG layer's curves as Revit model lines (lines, 3-point arcs, or tessellated polylines) on a sketch plane at the layer's median elevation.",
+      "assemblyPath": "DwgCommandSet.dll"
+    },
+    {
+      "commandName": "create_grids_from_dwg_layer",
+      "description": "Generate Revit grids from long straight lines on one DWG layer, ordered by angle then position and labeled with a single alphabetic/numeric sequence.",
+      "assemblyPath": "DwgCommandSet.dll"
+    },
+    {
+      "commandName": "create_walls_from_dwg_layer",
+      "description": "Generate Revit walls from paired face lines on one or more DWG layers (comma-separated): collinear fragments merge into rails, duplicate pen lines are removed, parallel rail pairs within a thickness range map to the nearest wall type by thickness; short jamb pairs and door-swing spans are rejected.",
+      "assemblyPath": "DwgCommandSet.dll"
+    },
+    {
+      "commandName": "create_walls_from_dwg_poche",
+      "description": "Generate Revit walls from the hatch fills of a DWG (poche regions): hatch entities are the flat volume-zero solids in the import, their source layer lives on Face.GraphicsStyleId, faces on the requested layer (or all layers) supply boundary loops, collinear edges merge into straight runs, runs pair as wall faces with exact corners, and collinear pieces across loops merge independently; collinear gaps up to 8ft (door openings) bridge with thickness agreement + jamb-run evidence so walls stay continuous across openings; thickness maps to the nearest wall type. For line/polyline work use create_walls_from_dwg_layer.",
+      "assemblyPath": "DwgCommandSet.dll"
+    }
+  ]
+}

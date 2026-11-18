@@ -1,11 +1,13 @@
-import { z } from "zod";
+import { errorMessage } from "../utils/errorUtils.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerTagAllWallsTool(server: McpServer) {
   server.tool(
     "tag_all_walls",
-    "Create tags for all walls in the current active view. Tags will be placed at the middle point of each wall.",
+    "Tag walls in the current view with wall tags.",
     {
       useLeader: z
         .boolean()
@@ -15,7 +17,7 @@ export function registerTagAllWallsTool(server: McpServer) {
       tagTypeId: z
         .string()
         .optional()
-        .describe("The ID of the specific wall tag family type to use. If not provided, the default wall tag type will be used"),
+        .describe("The ID of the specific wall tag family type to use."),
     },
     async (args, extra) => {
       const params = args;
@@ -24,25 +26,11 @@ export function registerTagAllWallsTool(server: McpServer) {
           return await revitClient.sendCommand("tag_walls", params);
         });
         
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("tag_all_walls", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Wall tagging failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("tag_all_walls", `Wall tagging failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

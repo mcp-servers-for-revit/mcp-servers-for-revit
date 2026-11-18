@@ -32,7 +32,7 @@ namespace RevitMCPCommandSet.Commands.Architecture
             try
             {
                 // Parse parameters
-                List<RoomCreationInfo> data = parameters["data"].ToObject<List<RoomCreationInfo>>();
+                List<RoomCreationInfo> data = parameters?["data"]?.ToObject<List<RoomCreationInfo>>();
                 if (data == null)
                     throw new ArgumentNullException(nameof(data), "No room data provided");
 

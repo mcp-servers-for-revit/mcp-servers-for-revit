@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Geometry core lives with the command set (Revit-targeted) but is
+         Revit-free, so the test project compiles the same source file
+         directly (link) instead of referencing the net48 assembly. -->
+    <Compile Include="..\..\dwg-commandset\Geometry\PocheGeometryCore.cs" Link="PocheGeometryCore.cs" />
+    <Compile Include="..\..\dwg-commandset\Geometry\WallComparator.cs" Link="WallComparator.cs" />
+    <PackageReference Include="TUnit" Version="0.4.*" />
+  </ItemGroup>
+</Project>

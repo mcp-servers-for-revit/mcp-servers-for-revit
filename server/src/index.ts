@@ -2,22 +2,36 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerTools } from "./tools/register.js";
+import { withRevitConnection } from "./utils/ConnectionManager.js";
+import * as ToolAvailability from "./utils/ToolAvailability.js";
 
-// 创建服务器实例
+// Create a server instance
 const server = new McpServer({
   name: "mcp-server-for-revit",
   version: "1.0.0",
 });
 
-// 启动服务器
+// Start the server
 async function main() {
-  // 注册工具
-  await registerTools(server);
+  // Register tools
+  const toolHandles = await registerTools(server);
+  ToolAvailability.init(server, toolHandles);
 
-  // 连接到传输层
+  // Connect to the transport layer
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Revit MCP Server start success");
+
+  // Dynamic tool advertisement: if Revit is already online, fold its
+  // registered-command list into the advertised tools shortly after startup.
+  // Fire-and-forget - while Revit is unreachable the full tool list stays
+  // advertised (stdio client UX must not depend on plugin connectivity).
+  if (process.argv.includes("--offline")) return;
+  withRevitConnection(async () => {})
+    .then(() => console.error("Tool advertisement synced with Revit"))
+    .catch(() =>
+      console.error("Revit not reachable at startup; advertising all tools")
+    );
 }
 
 main().catch((error) => {

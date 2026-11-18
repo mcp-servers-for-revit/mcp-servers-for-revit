@@ -1,3 +1,4 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
@@ -8,11 +9,12 @@ import {
   getAllRoomsWithProject,
   getStats
 } from "../database/service.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerQueryStoredDataTool(server: McpServer) {
   server.tool(
     "query_stored_data",
-    "Query stored Revit project and room data from the local database. Supports various query types: get all projects, get project by ID/name, get rooms by project, get all rooms, or get database statistics.",
+    "Query data previously stored via store_project_data.",
     {
       query_type: z.enum([
         "all_projects",
@@ -26,9 +28,9 @@ export function registerQueryStoredDataTool(server: McpServer) {
       project_id: z.number().optional().describe("Project ID (required for 'project_by_id' and 'rooms_by_project_id')"),
       project_name: z.string().optional().describe("Project name (required for 'project_by_name' and 'rooms_by_project_name')")
     },
-    async (args: any) => {
+    async (args) => {
       try {
-        let result: any;
+        let result: unknown;
 
         switch (args.query_type) {
           case "all_projects":
@@ -41,17 +43,10 @@ export function registerQueryStoredDataTool(server: McpServer) {
             }
             result = getProjectById(args.project_id);
             if (!result) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: JSON.stringify({
-                      success: false,
-                      error: `Project with ID ${args.project_id} not found`
-                    }, null, 2)
-                  }
-                ]
-              };
+              return rawToolResponse("query_stored_data", {
+                success: false,
+                error: `Project with ID ${args.project_id} not found`
+              });
             }
             break;
 
@@ -61,17 +56,10 @@ export function registerQueryStoredDataTool(server: McpServer) {
             }
             result = getProjectByName(args.project_name);
             if (!result) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: JSON.stringify({
-                      success: false,
-                      error: `Project "${args.project_name}" not found`
-                    }, null, 2)
-                  }
-                ]
-              };
+              return rawToolResponse("query_stored_data", {
+                success: false,
+                error: `Project "${args.project_name}" not found`
+              });
             }
             break;
 
@@ -88,17 +76,10 @@ export function registerQueryStoredDataTool(server: McpServer) {
             }
             const project = getProjectByName(args.project_name);
             if (!project) {
-              return {
-                content: [
-                  {
-                    type: "text",
-                    text: JSON.stringify({
-                      success: false,
-                      error: `Project "${args.project_name}" not found`
-                    }, null, 2)
-                  }
-                ]
-              };
+              return rawToolResponse("query_stored_data", {
+                success: false,
+                error: `Project "${args.project_name}" not found`
+              });
             }
             result = getRoomsByProjectId(project.id);
             break;
@@ -115,31 +96,13 @@ export function registerQueryStoredDataTool(server: McpServer) {
             throw new Error(`Unknown query type: ${args.query_type}`);
         }
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                query_type: args.query_type,
-                data: result
-              }, null, 2)
-            }
-          ]
-        };
-      } catch (error: any) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: false,
-                error: error.message
-              }, null, 2)
-            }
-          ],
-          isError: true
-        };
+        return rawToolResponse("query_stored_data", {
+          success: true,
+          query_type: args.query_type,
+          data: result
+        });
+      } catch (error) {
+        return rawToolError("query_stored_data", `Query failed: ${errorMessage(error)}`);
       }
     }
   );

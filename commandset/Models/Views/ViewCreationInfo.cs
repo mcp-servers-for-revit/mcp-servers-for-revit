@@ -22,6 +22,7 @@
 //
 
 using Newtonsoft.Json;
+using RevitMCPCommandSet.Models.Common;
 
 namespace RevitMCPCommandSet.Models.Views;
 
@@ -84,7 +85,7 @@ public class ViewCreationInfo
     ///     View direction for elevation/section views
     /// </summary>
     [JsonProperty("direction")]
-    public Point Direction { get; set; }
+    public JZPoint Direction { get; set; }
 
     /// <summary>
     ///     Additional parameters

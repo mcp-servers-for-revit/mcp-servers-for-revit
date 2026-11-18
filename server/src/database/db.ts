@@ -1,22 +1,44 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import type { DatabaseSync } from 'node:sqlite';
+import { createRequire } from 'node:module';
+import { existsSync, mkdirSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+const legacyFile = join(dirname(fileURLToPath(import.meta.url)), '..', 'revit-data.db');
+const filename = existsSync(legacyFile) ? legacyFile : join(homedir(), '.mcp-revit', 'revit-data.db');
 
-// Database path (stored in project root)
-const DB_PATH = join(__dirname, '..', '..', 'revit-data.db');
+function openDatabase(): DatabaseSync {
+  // The portable Node runtime includes SQLite. Older Node installations use the base package's driver.
+  let Driver;
+  try {
+    Driver = require('node:sqlite').DatabaseSync;
+  } catch {
+    Driver = require('better-sqlite3');
+  }
+  return new Driver(filename);
+}
 
-// Initialize database connection
-export const db = new Database(DB_PATH);
-
-// Enable foreign keys
-db.pragma('foreign_keys = ON');
+let connection: DatabaseSync | undefined;
+export function getDatabase(): DatabaseSync {
+  if (!connection) {
+    mkdirSync(dirname(filename), { recursive: true });
+    const db = openDatabase();
+    try {
+      db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000');
+      initializeDatabase(db);
+      connection = db;
+    } catch (error) {
+      db.close();
+      throw error;
+    }
+  }
+  return connection;
+}
 
 // Initialize database schema
-export function initializeDatabase() {
+function initializeDatabase(db: DatabaseSync) {
   // Create projects table
   db.exec(`
     CREATE TABLE IF NOT EXISTS projects (
@@ -63,8 +85,3 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_rooms_room_number ON rooms(room_number);
   `);
 }
-
-// Initialize on module load
-initializeDatabase();
-
-export default db;

@@ -1,13 +1,15 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace revit_mcp_plugin.UI
 {
     /// <summary>
-    /// Settings.xaml 的交互逻辑
+    /// Interaction logic for Settings.xaml
     /// </summary>
     public partial class SettingsWindow : Window
     {
+        private GeneralSettingsPage generalPage;
+        private ApiKeySettingsPage apiKeyPage;
         private CommandSetSettingsPage commandSetPage;
         private bool isInitialized = false;
 
@@ -15,11 +17,13 @@ namespace revit_mcp_plugin.UI
         {
             InitializeComponent();
 
-            // 初始化页面
+            // Initialize pages
+            generalPage = new GeneralSettingsPage();
+            apiKeyPage = new ApiKeySettingsPage();
             commandSetPage = new CommandSetSettingsPage();
 
-            // 加载默认页面
-            ContentFrame.Navigate(commandSetPage);
+            // Load default page (General)
+            ContentFrame.Navigate(generalPage);
 
             isInitialized = true;
         }
@@ -28,7 +32,15 @@ namespace revit_mcp_plugin.UI
         {
             if (!isInitialized) return;
 
-            if (NavListBox.SelectedItem == CommandSetItem)
+            if (NavListBox.SelectedItem == GeneralItem)
+            {
+                ContentFrame.Navigate(generalPage);
+            }
+            else if (NavListBox.SelectedItem == ApiKeyItem)
+            {
+                ContentFrame.Navigate(apiKeyPage);
+            }
+            else if (NavListBox.SelectedItem == CommandSetItem)
             {
                 ContentFrame.Navigate(commandSetPage);
             }

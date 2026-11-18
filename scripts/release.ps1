@@ -18,6 +18,12 @@ if ($answer -ne 'y') {
 # --- reset to latest main ---
 Push-Location $root
 git checkout main
+$status = git status --porcelain
+if ($status) {
+    Write-Warning "Uncommitted changes detected:`n$status"
+    $confirm = Read-Host "These changes will be LOST. Type 'yes' to confirm"
+    if ($confirm -ne 'yes') { Write-Host "Aborted."; exit 0 }
+}
 git reset --hard
 git pull
 Pop-Location
@@ -30,7 +36,8 @@ Write-Host "server/package.json -> $Version"
 
 # --- server/package-lock.json ---
 Push-Location "$root/server"
-npm install --package-lock-only --silent 2>$null
+npm install --package-lock-only
+if ($LASTEXITCODE -ne 0) { throw "npm install failed with exit code $LASTEXITCODE" }
 Pop-Location
 Write-Host "server/package-lock.json -> $Version"
 

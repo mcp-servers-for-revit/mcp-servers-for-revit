@@ -97,6 +97,48 @@ public class ScheduleCreationInfo
     public bool? ShowOutlines { get; set; } = true;
 
     /// <summary>
+    ///     Preset name for pre-configured field sets
+    /// </summary>
+    [JsonProperty("preset")]
+    public string Preset { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Whether the schedule is itemized (shows every instance)
+    /// </summary>
+    [JsonProperty("isItemized")]
+    public bool? IsItemized { get; set; }
+
+    /// <summary>
+    ///     Show grand total row
+    /// </summary>
+    [JsonProperty("showGrandTotal")]
+    public bool? ShowGrandTotal { get; set; }
+
+    /// <summary>
+    ///     Show grand total count
+    /// </summary>
+    [JsonProperty("showGrandTotalCount")]
+    public bool? ShowGrandTotalCount { get; set; }
+
+    /// <summary>
+    ///     Title for the grand total row
+    /// </summary>
+    [JsonProperty("grandTotalTitle")]
+    public string GrandTotalTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Include elements from linked files
+    /// </summary>
+    [JsonProperty("includeLinkedFiles")]
+    public bool? IncludeLinkedFiles { get; set; }
+
+    /// <summary>
+    ///     Family ID for note block schedules
+    /// </summary>
+    [JsonProperty("familyId")]
+    public long FamilyId { get; set; } = 0;
+
+    /// <summary>
     ///     Fields to include in the schedule
     /// </summary>
     [JsonProperty("fields")]
@@ -203,6 +245,12 @@ public class ScheduleFieldInfo
     /// </summary>
     [JsonProperty("horizontalAlignment")]
     public string HorizontalAlignment { get; set; } = "Left";
+
+    /// <summary>
+    ///     Grid column width in schedule (in sheet units)
+    /// </summary>
+    [JsonProperty("gridColumnWidth")]
+    public double? GridColumnWidth { get; set; }
 
     /// <summary>
     ///     Format option (e.g. DUT_METERS for length, or custom format string)

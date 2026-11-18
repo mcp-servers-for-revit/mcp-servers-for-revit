@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateDimensionsTool(server: McpServer) {
   server.tool(
     "create_dimensions",
-    "Create dimension annotations in the current Revit view. Supports dimensioning between elements (walls, doors, windows) by element IDs, or between two points with automatic reference detection. All coordinates are in millimeters (mm).",
+    "Create dimension lines between references or elements.",
     {
       dimensions: z
         .array(
@@ -31,15 +33,11 @@ export function registerCreateDimensionsTool(server: McpServer) {
                 z: z.number().describe("Z coordinate in mm"),
               })
               .optional()
-              .describe(
-                "Location of the dimension line itself (mm). If not provided, defaults to midpoint offset by 1 foot"
-              ),
+              .describe("Location of the dimension line itself (mm)."),
             elementIds: z
               .array(z.number())
               .optional()
-              .describe(
-                "Element IDs to dimension between. If provided, references are extracted from these elements. If empty, references are auto-detected at start/end points"
-              ),
+              .describe("Element IDs to dimension between."),
             dimensionType: z
               .string()
               .optional()
@@ -75,25 +73,11 @@ export function registerCreateDimensionsTool(server: McpServer) {
           return await revitClient.sendCommand("create_dimensions", params);
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_dimensions", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Dimension creation failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_dimensions", `Dimension creation failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

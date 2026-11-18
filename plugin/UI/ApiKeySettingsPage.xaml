@@ -1,0 +1,102 @@
+<Page x:Class="revit_mcp_plugin.UI.ApiKeySettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:revit_mcp_plugin.UI"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="700">
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="API Key" FontSize="22" FontWeight="SemiBold" Foreground="#333333"/>
+            <TextBlock Text="Configure the Anthropic API key for the built-in chat panel"
+                       Foreground="#666666" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,20,0">
+                <!-- Current Status -->
+                <Border Background="#f5f5f5" CornerRadius="4" Padding="15,12" Margin="0,0,0,15"
+                        BorderBrush="#e0e0e0" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Status: " FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#333333" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusText" FontSize="14" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusSourceText" FontSize="12" Foreground="#666666"
+                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Separator -->
+                <Separator Margin="0,0,0,15" Background="#e0e0e0"/>
+
+                <!-- API Key Input -->
+                <TextBlock Text="API Key" FontSize="14" FontWeight="SemiBold" Foreground="#333333"
+                           Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <PasswordBox x:Name="ApiKeyPasswordBox" Grid.Column="0"
+                                 Padding="8,6" FontSize="14"
+                                 BorderBrush="#e0e0e0" BorderThickness="1"
+                                 PasswordChanged="ApiKeyPasswordBox_PasswordChanged"/>
+                    <TextBox x:Name="ApiKeyTextBox" Grid.Column="0"
+                             Padding="8,6" FontSize="14"
+                             BorderBrush="#e0e0e0" BorderThickness="1"
+                             Visibility="Collapsed"
+                             TextChanged="ApiKeyTextBox_TextChanged"/>
+                    <Button x:Name="ToggleVisibilityButton" Grid.Column="1" Content="Show"
+                            Padding="10,6" Margin="8,0,0,0" FontSize="12"
+                            Background="#f5f5f5" Foreground="#333333" BorderBrush="#e0e0e0"
+                            Click="ToggleVisibilityButton_Click" Cursor="Hand"/>
+                </Grid>
+
+                <!-- Separator -->
+                <Separator Margin="0,0,0,15" Background="#e0e0e0"/>
+
+                <!-- Storage Method -->
+                <TextBlock Text="Storage Method" FontSize="14" FontWeight="SemiBold" Foreground="#333333"
+                           Margin="0,0,0,8"/>
+                <RadioButton x:Name="EnvVarRadio" GroupName="StorageMethod" Margin="0,0,0,8"
+                             FontSize="13" Foreground="#333333">
+                    <TextBlock Text="Environment Variable (ANTHROPIC_API_KEY)" TextWrapping="Wrap"/>
+                </RadioButton>
+                <RadioButton x:Name="FileRadio" GroupName="StorageMethod" Margin="0,0,0,15"
+                             FontSize="13" Foreground="#333333">
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="File ("/>
+                        <Run x:Name="ApiKeyFilePathRun" Text="%USERPROFILE%\.claude\api_key.txt"/>
+                        <Run Text=")"/>
+                    </TextBlock>
+                </RadioButton>
+
+                <!-- Info text -->
+                <Border Background="#FFF8E1" CornerRadius="4" Padding="12,10" Margin="0,0,0,10"
+                        BorderBrush="#FFE082" BorderThickness="1">
+                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#5D4037">
+                        The API key is only needed for the built-in chat panel. Claude Desktop and Claude Code use their own authentication.
+                    </TextBlock>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="SaveButton" Content="Save API Key"
+                    Padding="20,8" FontSize="13"
+                    Background="#2196F3" Foreground="White" BorderBrush="#1976D2"
+                    Click="SaveButton_Click" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Page>

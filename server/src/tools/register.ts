@@ -1,48 +1,360 @@
+import * as SetParameters from "./set_parameters.js";
+import * as ManageMaterials from "./manage_materials.js";
+import * as GetParameters from "./get_parameters.js";
+import * as GetAvailableParameters from "./get_available_parameters.js";
+import * as ReloadCommandSet from "./reload_command_set.js";
+import * as FixSpacingElements from "./fix_spacing_elements.js";
+import * as FixOffAxisWallsAndBeams from "./fix_off_axis_walls_and_beams.js";
+import * as FixOffAxisSketches from "./fix_off_axis_sketches.js";
+import * as FixOffAxisReferencePlanes from "./fix_off_axis_reference_planes.js";
+import * as FixOffAxisModelLines from "./fix_off_axis_model_lines.js";
+import * as FixOffAxisInplace from "./fix_off_axis_inplace.js";
+import * as FixOffAxisGrids from "./fix_off_axis_grids.js";
+import * as ExtractDwgCurves from "./extract_dwg_curves.js";
+import * as DimensionGrids from "./dimension_grids.js";
+import * as DetectSpacingElements from "./detect_spacing_elements.js";
+import * as DetectOffAxisLines from "./detect_off_axis_lines.js";
+import * as DetectOffAxisHybrid from "./detect_off_axis_hybrid.js";
+import * as CreateWallsFromDwgPoche from "./create_walls_from_dwg_poche.js";
+import * as CreateWallsFromDwgLayer from "./create_walls_from_dwg_layer.js";
+import * as CreateModelLinesFromDwgLayer from "./create_model_lines_from_dwg_layer.js";
+import * as CreateGridsFromDwgLayer from "./create_grids_from_dwg_layer.js";
+import type { ToolHandle } from "../utils/ToolAvailability.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+
+import * as AddPrefixSuffix from "./add_prefix_suffix.js";
+import * as AddSharedParameter from "./add_shared_parameter.js";
+import * as AiElementFilter from "./ai_element_filter.js";
+import * as AlignViewports from "./align_viewports.js";
+import * as AnalyzeModelStatistics from "./analyze_model_statistics.js";
+import * as ApplyViewTemplate from "./apply_view_template.js";
+import * as AuditFamilies from "./audit_families.js";
+import * as BatchCreateSheets from "./batch_create_sheets.js";
+import * as BatchExport from "./batch_export.js";
+import * as BatchModifyViewRange from "./batch_modify_view_range.js";
+import * as BatchRename from "./batch_rename.js";
+import * as BulkModifyParameterValues from "./bulk_modify_parameter_values.js";
+import * as CalculateRai from "./calculate_rai.js";
+import * as CadLinkCleanup from "./cad_link_cleanup.js";
+import * as ChangeElementType from "./change_element_type.js";
+import * as CheckFamilyHealth from "./check_family_health.js";
+import * as CheckModelHealth from "./check_model_health.js";
+import * as ClashDetection from "./clash_detection.js";
+import * as ClearParameterValues from "./clear_parameter_values.js";
+import * as ColorElements from "./color_elements.js";
+import * as CopyElements from "./copy_elements.js";
+import * as CreateArray from "./create_array.js";
+import * as CreateCalloutFromRooms from "./create_callout_from_rooms.js";
+import * as CreateColorLegend from "./create_color_legend.js";
+import * as CreateDimensions from "./create_dimensions.js";
+import * as CreateDoorScheduleByRoom from "./create_door_schedule_by_room.js";
+import * as CreateElevationsFromRooms from "./create_elevations_from_rooms.js";
+import * as CreateFilledRegion from "./create_filled_region.js";
+import * as CreateFloor from "./create_floor.js";
+import * as CreateGrid from "./create_grid.js";
+import * as CreateLevel from "./create_level.js";
+import * as CreateLineBasedElement from "./create_line_based_element.js";
+import * as CreateMaterial from "./create_material.js";
+import * as CreateMaterialTakeoffSchedule from "./create_material_takeoff_schedule.js";
+import * as CreatePlaceholderSheets from "./create_placeholder_sheets.js";
+import * as CreatePointBasedElement from "./create_point_based_element.js";
+import * as CreateRevision from "./create_revision.js";
+import * as CreateRoom from "./create_room.js";
+import * as CreateRoomFinishSchedule from "./create_room_finish_schedule.js";
+import * as CreateSchedule from "./create_schedule.js";
+import * as CreateSheet from "./create_sheet.js";
+import * as CreateSheetListSchedule from "./create_sheet_list_schedule.js";
+import * as CreateStructuralFramingSystem from "./create_structural_framing_system.js";
+import * as CreateSurfaceBasedElement from "./create_surface_based_element.js";
+import * as CreateTextNote from "./create_text_note.js";
+import * as CreateWorkset from "./create_workset.js";
+import * as CreateView from "./create_view.js";
+import * as CreateViewTemplate from "./create_view_template.js";
+import * as CreateViewFilter from "./create_view_filter.js";
+import * as CreateViewListSchedule from "./create_view_list_schedule.js";
+import * as CreateViewsFromRooms from "./create_views_from_rooms.js";
+import * as CreateWindowScheduleByRoom from "./create_window_schedule_by_room.js";
+import * as DeleteElement from "./delete_element.js";
+import * as DeleteWorkset from "./delete_workset.js";
+import * as DeleteSchedule from "./delete_schedule.js";
+import * as DeleteSelection from "./delete_selection.js";
+import * as DuplicateSchedule from "./duplicate_schedule.js";
+import * as DuplicateSheetWithContent from "./duplicate_sheet_with_content.js";
+import * as DuplicateSheetWithViews from "./duplicate_sheet_with_views.js";
+import * as DuplicateView from "./duplicate_view.js";
+import * as ExportElementsData from "./export_elements_data.js";
+import * as ExportFamilies from "./export_families.js";
+import * as ExportRoomData from "./export_room_data.js";
+import * as ExportSchedule from "./export_schedule.js";
+import * as ExportSharedParameterFile from "./export_shared_parameter_file.js";
+import * as ExportToExcel from "./export_to_excel.js";
+import * as FilterByParameterValue from "./filter_by_parameter_value.js";
+import * as FindUndimensionedElements from "./find_undimensioned_elements.js";
+import * as FindUntaggedElements from "./find_untagged_elements.js";
+import * as GetAvailableFamilyTypes from "./get_available_family_types.js";
+import * as GetCompoundStructure from "./get_compound_structure.js";
+import * as GetElementsByWorkset from "./get_elements_by_workset.js";
+import * as GetCurrentViewElements from "./get_current_view_elements.js";
+import * as GetCurrentViewInfo from "./get_current_view_info.js";
+import * as GetElementParameters from "./get_element_parameters.js";
+import * as GetElementsInSpatialVolume from "./get_elements_in_spatial_volume.js";
+import * as GetLinkedElements from "./get_linked_elements.js";
+import * as GetMaterialProperties from "./get_material_properties.js";
+import * as GetRoomOpenings from "./get_room_openings.js";
+import * as GetMaterialQuantities from "./get_material_quantities.js";
+import * as GetMaterials from "./get_materials.js";
+import * as GetPhases from "./get_phases.js";
+import * as GetProjectInfo from "./get_project_info.js";
+import * as GetScheduleData from "./get_schedule_data.js";
+import * as GetSelectedElements from "./get_selected_elements.js";
+import * as GetSharedParameters from "./get_shared_parameters.js";
+import * as GetWarnings from "./get_warnings.js";
+import * as GetWorksets from "./get_worksets.js";
+import * as ImportFromExcel from "./import_from_excel.js";
+import * as ImportTable from "./import_table.js";
+import * as LinesPerViewCount from "./lines_per_view_count.js";
+import * as ListFamilySizes from "./list_family_sizes.js";
+import * as ListSchedulableFields from "./list_schedulable_fields.js";
+import * as LoadFamily from "./load_family.js";
+import * as LoadSelection from "./load_selection.js";
+import * as ManageLinks from "./manage_links.js";
+import * as NavigateView from "./navigate_view.js";
+import * as ManageProjectParameters from "./manage_project_parameters.js";
+import * as ManageUnplacedViews from "./manage_unplaced_views.js";
+import * as ManageViewTemplates from "./manage_view_templates.js";
+import * as MatchElementProperties from "./match_element_properties.js";
+import * as MeasureBetweenElements from "./measure_between_elements.js";
+import * as ModifyElement from "./modify_element.js";
+import * as ModifySchedule from "./modify_schedule.js";
+import * as OperateElement from "./operate_element.js";
+import * as OverrideGraphics from "./override_graphics.js";
+import * as PlaceViewport from "./place_viewport.js";
+import * as PurgeUnused from "./purge_unused.js";
+import * as QueryStoredData from "./query_stored_data.js";
+import * as RenameFamilies from "./rename_families.js";
+import * as RenameViews from "./rename_views.js";
+import * as RenameWorkset from "./rename_workset.js";
+import * as RenumberElements from "./renumber_elements.js";
+import * as SaveSelection from "./save_selection.js";
+import * as SayHello from "./say_hello.js";
+import * as SectionBoxFromSelection from "./section_box_from_selection.js";
+import * as SendCodeToRevit from "./send_code_to_revit.js";
+import * as SetElementParameters from "./set_element_parameters.js";
+import * as SetViewCrop from "./set_view_crop.js";
+import * as SetMaterialAppearance from "./set_material_appearance.js";
+import * as SetMaterialAssets from "./set_material_assets.js";
+import * as SetMaterialProperties from "./set_material_properties.js";
+import * as SetElementPhase from "./set_element_phase.js";
+import * as SetActiveWorkset from "./set_active_workset.js";
+import * as SetCompoundStructure from "./set_compound_structure.js";
+import * as SetElementWorkset from "./set_element_workset.js";
+import * as StoreProjectData from "./store_project_data.js";
+import * as StoreRoomData from "./store_room_data.js";
+import * as SyncCsvParameters from "./sync_csv_parameters.js";
+import * as TagAllRooms from "./tag_all_rooms.js";
+import * as TagAllWalls from "./tag_all_walls.js";
+import * as TransferParameters from "./transfer_parameters.js";
+import * as WipeEmptyTags from "./wipe_empty_tags.js";
+import * as WorkflowClashReview from "./workflow_clash_review.js";
+import * as WorkflowDataRoundtrip from "./workflow_data_roundtrip.js";
+import * as WorkflowModelAudit from "./workflow_model_audit.js";
+import * as WorkflowRoomDocumentation from "./workflow_room_documentation.js";
+import * as WorkflowSheetSet from "./workflow_sheet_set.js";
 
 export async function registerTools(server: McpServer) {
-  // 获取当前文件的目录路径
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+  const handles = new Map<string, ToolHandle>();
+  const originalTool = (server.tool as (...args: unknown[]) => unknown).bind(server);
+  (server as unknown as { tool: (...args: unknown[]) => unknown }).tool = (
+    ...args: unknown[]
+  ) => {
+    const handle = originalTool(...args);
+    const name = args[0];
+    if (typeof name === "string") {
+      handles.set(name, handle as ToolHandle);
+    }
+    return handle;
+  };
 
-  // 读取tools目录下的所有文件
-  const files = fs.readdirSync(__dirname);
+  const modules = [
+    { name: "set_parameters", module: SetParameters },
+    { name: "manage_materials", module: ManageMaterials },
+    { name: "get_parameters", module: GetParameters },
+    { name: "get_available_parameters", module: GetAvailableParameters },
+    { name: "reload_command_set", module: ReloadCommandSet },
+    { name: "fix_spacing_elements", module: FixSpacingElements },
+    { name: "fix_off_axis_walls_and_beams", module: FixOffAxisWallsAndBeams },
+    { name: "fix_off_axis_sketches", module: FixOffAxisSketches },
+    { name: "fix_off_axis_reference_planes", module: FixOffAxisReferencePlanes },
+    { name: "fix_off_axis_model_lines", module: FixOffAxisModelLines },
+    { name: "fix_off_axis_inplace", module: FixOffAxisInplace },
+    { name: "fix_off_axis_grids", module: FixOffAxisGrids },
+    { name: "extract_dwg_curves", module: ExtractDwgCurves },
+    { name: "dimension_grids", module: DimensionGrids },
+    { name: "detect_spacing_elements", module: DetectSpacingElements },
+    { name: "detect_off_axis_lines", module: DetectOffAxisLines },
+    { name: "detect_off_axis_hybrid", module: DetectOffAxisHybrid },
+    { name: "create_walls_from_dwg_poche", module: CreateWallsFromDwgPoche },
+    { name: "create_walls_from_dwg_layer", module: CreateWallsFromDwgLayer },
+    { name: "create_model_lines_from_dwg_layer", module: CreateModelLinesFromDwgLayer },
+    { name: "create_grids_from_dwg_layer", module: CreateGridsFromDwgLayer },
+    { name: "add_prefix_suffix", module: AddPrefixSuffix },
+    { name: "add_shared_parameter", module: AddSharedParameter },
+    { name: "ai_element_filter", module: AiElementFilter },
+    { name: "align_viewports", module: AlignViewports },
+    { name: "analyze_model_statistics", module: AnalyzeModelStatistics },
+    { name: "apply_view_template", module: ApplyViewTemplate },
+    { name: "audit_families", module: AuditFamilies },
+    { name: "batch_create_sheets", module: BatchCreateSheets },
+    { name: "batch_export", module: BatchExport },
+    { name: "batch_modify_view_range", module: BatchModifyViewRange },
+    { name: "batch_rename", module: BatchRename },
+    { name: "bulk_modify_parameter_values", module: BulkModifyParameterValues },
+    { name: "calculate_rai", module: CalculateRai },
+    { name: "cad_link_cleanup", module: CadLinkCleanup },
+    { name: "change_element_type", module: ChangeElementType },
+    { name: "check_family_health", module: CheckFamilyHealth },
+    { name: "check_model_health", module: CheckModelHealth },
+    { name: "clash_detection", module: ClashDetection },
+    { name: "clear_parameter_values", module: ClearParameterValues },
+    { name: "color_elements", module: ColorElements },
+    { name: "copy_elements", module: CopyElements },
+    { name: "create_array", module: CreateArray },
+    { name: "create_callout_from_rooms", module: CreateCalloutFromRooms },
+    { name: "create_color_legend", module: CreateColorLegend },
+    { name: "create_dimensions", module: CreateDimensions },
+    { name: "create_door_schedule_by_room", module: CreateDoorScheduleByRoom },
+    { name: "create_elevations_from_rooms", module: CreateElevationsFromRooms },
+    { name: "create_filled_region", module: CreateFilledRegion },
+    { name: "create_floor", module: CreateFloor },
+    { name: "create_grid", module: CreateGrid },
+    { name: "create_level", module: CreateLevel },
+    { name: "create_line_based_element", module: CreateLineBasedElement },
+    { name: "create_material", module: CreateMaterial },
+    { name: "create_material_takeoff_schedule", module: CreateMaterialTakeoffSchedule },
+    { name: "create_placeholder_sheets", module: CreatePlaceholderSheets },
+    { name: "create_point_based_element", module: CreatePointBasedElement },
+    { name: "create_revision", module: CreateRevision },
+    { name: "create_room", module: CreateRoom },
+    { name: "create_room_finish_schedule", module: CreateRoomFinishSchedule },
+    { name: "create_schedule", module: CreateSchedule },
+    { name: "create_sheet", module: CreateSheet },
+    { name: "create_sheet_list_schedule", module: CreateSheetListSchedule },
+    { name: "create_structural_framing_system", module: CreateStructuralFramingSystem },
+    { name: "create_surface_based_element", module: CreateSurfaceBasedElement },
+    { name: "create_text_note", module: CreateTextNote },
+    { name: "create_workset", module: CreateWorkset },
+    { name: "create_view", module: CreateView },
+    { name: "create_view_template", module: CreateViewTemplate },
+    { name: "create_view_filter", module: CreateViewFilter },
+    { name: "create_view_list_schedule", module: CreateViewListSchedule },
+    { name: "create_views_from_rooms", module: CreateViewsFromRooms },
+    { name: "create_window_schedule_by_room", module: CreateWindowScheduleByRoom },
+    { name: "delete_element", module: DeleteElement },
+    { name: "delete_workset", module: DeleteWorkset },
+    { name: "delete_schedule", module: DeleteSchedule },
+    { name: "delete_selection", module: DeleteSelection },
+    { name: "duplicate_schedule", module: DuplicateSchedule },
+    { name: "duplicate_sheet_with_content", module: DuplicateSheetWithContent },
+    { name: "duplicate_sheet_with_views", module: DuplicateSheetWithViews },
+    { name: "duplicate_view", module: DuplicateView },
+    { name: "export_elements_data", module: ExportElementsData },
+    { name: "export_families", module: ExportFamilies },
+    { name: "export_room_data", module: ExportRoomData },
+    { name: "export_schedule", module: ExportSchedule },
+    { name: "export_shared_parameter_file", module: ExportSharedParameterFile },
+    { name: "export_to_excel", module: ExportToExcel },
+    { name: "filter_by_parameter_value", module: FilterByParameterValue },
+    { name: "find_undimensioned_elements", module: FindUndimensionedElements },
+    { name: "find_untagged_elements", module: FindUntaggedElements },
+    { name: "get_available_family_types", module: GetAvailableFamilyTypes },
+    { name: "get_compound_structure", module: GetCompoundStructure },
+    { name: "get_elements_by_workset", module: GetElementsByWorkset },
+    { name: "get_current_view_elements", module: GetCurrentViewElements },
+    { name: "get_current_view_info", module: GetCurrentViewInfo },
+    { name: "get_element_parameters", module: GetElementParameters },
+    { name: "get_elements_in_spatial_volume", module: GetElementsInSpatialVolume },
+    { name: "get_linked_elements", module: GetLinkedElements },
+    { name: "get_material_properties", module: GetMaterialProperties },
+    { name: "get_room_openings", module: GetRoomOpenings },
+    { name: "get_material_quantities", module: GetMaterialQuantities },
+    { name: "get_materials", module: GetMaterials },
+    { name: "get_phases", module: GetPhases },
+    { name: "get_project_info", module: GetProjectInfo },
+    { name: "get_schedule_data", module: GetScheduleData },
+    { name: "get_selected_elements", module: GetSelectedElements },
+    { name: "get_shared_parameters", module: GetSharedParameters },
+    { name: "get_warnings", module: GetWarnings },
+    { name: "get_worksets", module: GetWorksets },
+    { name: "import_from_excel", module: ImportFromExcel },
+    { name: "import_table", module: ImportTable },
+    { name: "lines_per_view_count", module: LinesPerViewCount },
+    { name: "list_family_sizes", module: ListFamilySizes },
+    { name: "list_schedulable_fields", module: ListSchedulableFields },
+    { name: "load_family", module: LoadFamily },
+    { name: "load_selection", module: LoadSelection },
+    { name: "manage_links", module: ManageLinks },
+    { name: "navigate_view", module: NavigateView },
+    { name: "manage_project_parameters", module: ManageProjectParameters },
+    { name: "manage_unplaced_views", module: ManageUnplacedViews },
+    { name: "manage_view_templates", module: ManageViewTemplates },
+    { name: "match_element_properties", module: MatchElementProperties },
+    { name: "measure_between_elements", module: MeasureBetweenElements },
+    { name: "modify_element", module: ModifyElement },
+    { name: "modify_schedule", module: ModifySchedule },
+    { name: "operate_element", module: OperateElement },
+    { name: "override_graphics", module: OverrideGraphics },
+    { name: "place_viewport", module: PlaceViewport },
+    { name: "purge_unused", module: PurgeUnused },
+    { name: "query_stored_data", module: QueryStoredData },
+    { name: "rename_families", module: RenameFamilies },
+    { name: "rename_views", module: RenameViews },
+    { name: "rename_workset", module: RenameWorkset },
+    { name: "renumber_elements", module: RenumberElements },
+    { name: "save_selection", module: SaveSelection },
+    { name: "say_hello", module: SayHello },
+    { name: "section_box_from_selection", module: SectionBoxFromSelection },
+    { name: "send_code_to_revit", module: SendCodeToRevit },
+    { name: "set_element_parameters", module: SetElementParameters },
+    { name: "set_view_crop", module: SetViewCrop },
+    { name: "set_material_appearance", module: SetMaterialAppearance },
+    { name: "set_material_assets", module: SetMaterialAssets },
+    { name: "set_material_properties", module: SetMaterialProperties },
+    { name: "set_element_phase", module: SetElementPhase },
+    { name: "set_active_workset", module: SetActiveWorkset },
+    { name: "set_compound_structure", module: SetCompoundStructure },
+    { name: "set_element_workset", module: SetElementWorkset },
+    { name: "store_project_data", module: StoreProjectData },
+    { name: "store_room_data", module: StoreRoomData },
+    { name: "sync_csv_parameters", module: SyncCsvParameters },
+    { name: "tag_all_rooms", module: TagAllRooms },
+    { name: "tag_all_walls", module: TagAllWalls },
+    { name: "transfer_parameters", module: TransferParameters },
+    { name: "wipe_empty_tags", module: WipeEmptyTags },
+    { name: "workflow_clash_review", module: WorkflowClashReview },
+    { name: "workflow_data_roundtrip", module: WorkflowDataRoundtrip },
+    { name: "workflow_model_audit", module: WorkflowModelAudit },
+    { name: "workflow_room_documentation", module: WorkflowRoomDocumentation },
+    { name: "workflow_sheet_set", module: WorkflowSheetSet },
+  ];
 
-  // 过滤出.ts或.js文件，但排除index文件和register文件
-  const toolFiles = files.filter(
-    (file) =>
-      (file.endsWith(".ts") || file.endsWith(".js")) &&
-      file !== "index.ts" &&
-      file !== "index.js" &&
-      file !== "register.ts" &&
-      file !== "register.js"
-  );
-
-  // 动态导入并注册每个工具
-  for (const file of toolFiles) {
+  const disabled = new Set((process.env.REVIT_MCP_DISABLED_TOOLS ?? "").split(",").map(name => name.trim()));
+  for (const { name, module } of modules) {
+    if (disabled.has(name)) continue;
     try {
-      // 构建导入路径
-      const importPath = `./${file.replace(/\.(ts|js)$/, ".js")}`;
-
-      // 动态导入模块
-      const module = await import(importPath);
-
-      // 查找并执行注册函数
-      const registerFunctionName = Object.keys(module).find(
-        (key) => key.startsWith("register") && typeof module[key] === "function"
+      const registerFn = Object.values(module).find(
+        (v): v is (s: McpServer) => void =>
+          typeof v === "function" && v.name.startsWith("register")
       );
-
-      if (registerFunctionName) {
-        module[registerFunctionName](server);
-        console.error(`已注册工具: ${file}`);
+      if (registerFn) {
+        registerFn(server);
+        console.error(`Registered tool: ${name}`);
       } else {
-        console.warn(`警告: 在文件 ${file} 中未找到注册函数`);
+        console.error(`Warning: no register function found in ${name}`);
       }
     } catch (error) {
-      console.error(`注册工具 ${file} 时出错:`, error);
+      console.error(`Error registering tool ${name}:`, error);
     }
   }
+  server.tool = originalTool as typeof server.tool;
+  return handles;
 }

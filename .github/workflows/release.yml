@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   build:
@@ -20,15 +19,30 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      # .NET 10 SDK is required to load the Nice3point.Revit.Sdk build tasks
+      # (net10.0) used by the tests project; plugins target net8/net48.
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Test installer config logic
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File installer/test-opencode-config.ps1
+          powershell -NoProfile -ExecutionPolicy Bypass -File installer/test-client-config-logic.ps1
 
       # ---------------------------------------------------------------
       # Build MCP Server (TypeScript)
@@ -38,6 +52,7 @@ jobs:
         run: |
           npm ci
           npm run build
+          npm run test:smoke
 
       # ---------------------------------------------------------------
       # Build Plugin + CommandSet via combined solution
@@ -65,6 +80,36 @@ jobs:
       - name: Build Revit 2026 (.NET 8)
         run: dotnet build mcp-servers-for-revit.sln -c "Release R26"
 
+      - name: Build Revit 2027 (.NET 10)
+        run: dotnet build mcp-servers-for-revit.sln -c "Release R27"
+
+      # ---------------------------------------------------------------
+      # Build standalone *-commandset projects (not in the sln). Their
+      # DeployCommandSet targets copy DLLs into the plugin AddIn layout
+      # that the release zips are built from - without this step the
+      # published zips would be missing DwgCommandSet/OffAxisCommandSet.
+      # Mirrors installer/build-installer.ps1's auto-discovery loop.
+      # NOTE: these sets use Revit 2024+ APIs (Floor.SketchId, ElementId
+      # long values) and only compile for R24/R25/R26 - releases for
+      # Revit 2020-2023 ship the core command set only (same as the
+      # fork's own installer has always done).
+      # ---------------------------------------------------------------
+      - name: Build standalone command sets (Revit 2024-2026)
+        run: |
+          $configs = @('Release R24','Release R25','Release R26')
+          $commandSets = Get-ChildItem -Directory -Filter '*-commandset'
+          foreach ($config in $configs) {
+            foreach ($set in $commandSets) {
+              $csproj = Get-ChildItem $set.FullName -Filter '*.csproj' | Select-Object -First 1
+              if ($csproj) {
+                Write-Host "Building $($csproj.BaseName) ($config)"
+                dotnet build $csproj.FullName -c $config --verbosity minimal
+                if ($LASTEXITCODE -ne 0) { throw "command set build failed: $($csproj.BaseName) ($config)" }
+              }
+            }
+          }
+        shell: pwsh
+
       # ---------------------------------------------------------------
       # Create Release Assets
       # The AddIn output already contains the complete deployable layout
@@ -83,12 +128,16 @@ jobs:
             @{ Config = "Release R23"; Year = "2023" },
             @{ Config = "Release R24"; Year = "2024" },
             @{ Config = "Release R25"; Year = "2025" },
-            @{ Config = "Release R26"; Year = "2026" }
+            @{ Config = "Release R26"; Year = "2026" },
+            @{ Config = "Release R27"; Year = "2027" }
           )
 
           foreach ($rv in $revitVersions) {
             $addinDir = "plugin/bin/AddIn $($rv.Year) $($rv.Config)"
             if (Test-Path $addinDir) {
+              $runtime = Join-Path $addinDir "revit_mcp_plugin/Commands/RevitMCPCommandSet/server/runtime"
+              New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+              Copy-Item (Get-Command node.exe).Source $runtime
               $zipName = "$outputDir/mcp-servers-for-revit-$version-Revit$($rv.Year).zip"
               Compress-Archive -Path "$addinDir/*" -DestinationPath $zipName
               Write-Host "Created $zipName"
@@ -98,17 +147,114 @@ jobs:
           }
         shell: pwsh
 
+      # ---------------------------------------------------------------
+      # MCP server bundle zip: prebuilt build/ + node_modules + package.json
+      # at the pinned tag. Suite installers (e.g. SMS-Toolkit) stage and
+      # hash-verify this instead of cloning and building from source.
+      # ---------------------------------------------------------------
+      - name: Bundle MCP server asset
+        run: |
+          $version = "${{ github.ref_name }}"
+          $stage = "release-assets/server-staging"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item -Recurse -Force "server/build" "$stage/build"
+          Copy-Item "server/package.json" $stage
+          $zip = "release-assets/mcp-servers-for-revit-$version-server.zip"
+          Compress-Archive -Path "$stage/*" -DestinationPath $zip
+          Remove-Item $stage -Recurse -Force
+          Write-Host "Created $zip"
+        shell: pwsh
+
+      # ---------------------------------------------------------------
+      # Build the Inno Setup Windows installer (Revit 2020-2027).
+      # 2020-2023 are core-only; 2024-2026 include Dwg/OffAxis too.
+      # Primes the staged layout via -RevitVersions, which rebuilds those
+      # configs and compiles mcp-servers-for-revit-setup.exe.
+      # ---------------------------------------------------------------
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Windows installer
+        run: ./installer/build-installer.ps1 -RevitVersions @(2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027)
+        shell: pwsh
+
+      - name: Collect installer asset
+        run: |
+          Copy-Item "installer/output/mcp-servers-for-revit-setup.exe" "release-assets/mcp-servers-for-revit-setup.exe"
+          Copy-Item "installer/opencode-config.ps1" "release-assets/opencode-config.ps1"
+          Write-Host "Collected installer exe and shared client-config helper into release-assets"
+        shell: pwsh
+
+      - name: Generate core manifest and registry seed
+        run: |
+          $version = "${{ github.ref_name }}"
+          $years = @('2020','2021','2022','2023','2024','2025','2026','2027')
+          $seedCommands = @()
+          $seedRoot = "plugin/bin/AddIn 2026 Release R26/revit_mcp_plugin/Commands"
+          if (Test-Path $seedRoot) {
+            foreach ($setDir in Get-ChildItem $seedRoot -Directory) {
+              $manifestPath = Join-Path $setDir.FullName 'command.json'
+              if (-not (Test-Path $manifestPath)) { continue }
+              $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+              foreach ($cmd in @($manifest.commands)) {
+                $seedCommands += [ordered]@{
+                  commandName = $cmd.commandName
+                  description = $cmd.description
+                  assemblyPath = "$($setDir.Name)\{VERSION}\$($cmd.assemblyPath)"
+                  enabled = $false
+                  supportedRevitVersions = if ($setDir.Name -eq "RevitMCPCommandSet") { $years } else { @('2024','2025','2026') }
+                  developer = $manifest.developer
+                }
+              }
+            }
+          }
+          [ordered]@{ commands = @($seedCommands) } | ConvertTo-Json -Depth 8 |
+            Set-Content "release-assets/commandRegistry.seed.json" -Encoding UTF8
+
+          $assets = @()
+          foreach ($file in Get-ChildItem "release-assets" -File) {
+            $assets += [ordered]@{
+              name = $file.Name
+              sha256 = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
+              bytes = $file.Length
+            }
+          }
+          [ordered]@{
+            version = $version
+            supportedRevitYears = $years
+            commandSets = [ordered]@{
+              '2027' = @('RevitMCPCommandSet')
+              '2020-2023' = @('RevitMCPCommandSet')
+              '2024-2026' = @('DwgCommandSet','RevitMCPCommandSet','OffAxisCommandSet')
+            }
+            clientConfig = @('Claude Desktop','Cursor','OpenCode 1','OpenCode 2','AnythingLLM')
+            assets = $assets
+          } | ConvertTo-Json -Depth 8 | Set-Content "release-assets/core-manifest.json" -Encoding UTF8
+        shell: pwsh
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*.zip
+          files: |
+            release-assets/*.zip
+            release-assets/*.exe
+            release-assets/opencode-config.ps1
+            release-assets/core-manifest.json
+            release-assets/commandRegistry.seed.json
           generate_release_notes: true
+          append_body: true
+          body: |
+            ## Windows Installer
+            **`mcp-servers-for-revit-setup.exe`** is a standard Windows installer (Revit 2020-2027): it installs the Revit plugin, lets you choose command sets, and configures AI clients (Claude Desktop, Cursor, opencode, AnythingLLM) when detected. The MCP server is bundled with the installer (no npm `npx` dependency; a portable Node runtime is included). 2020-2023 ship the core command set only; 2024-2026 also include DwgCommandSet and OffAxisCommandSet. The per-Revit-version ZIPs below remain available for manual deployment. The suite installer (SMS Toolkit) is the primary installation vehicle; this standalone installer remains available for testing and piecemeal updates.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   npm-publish:
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout

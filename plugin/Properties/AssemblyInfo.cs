@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // ?????????????
 // ?????????????
 // ??????????
-[assembly: AssemblyTitle("mcp-servers-for-revit-plugin")]
+[assembly: AssemblyTitle("MCP Servers for Revit Plugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("P R C")]
-[assembly: AssemblyProduct("mcp-servers-for-revit-plugin")]
-[assembly: AssemblyCopyright("Copyright © P R C 2025")]
+[assembly: AssemblyProduct("MCP Servers for Revit Plugin")]
+[assembly: AssemblyCopyright("Copyright ï¿½ P R C 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,12 +29,14 @@ using System.Runtime.InteropServices;
 //      ???
 //      ???
 //
-//?????????,?????“???”?“???”????
+//?????????,?????ï¿½???ï¿½?ï¿½???ï¿½????
 //???? "*",????:
 // [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.2.2.0")]
+[assembly: AssemblyFileVersion("1.2.2.0")]
 
 #if NET5_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("windows")]
 #endif
+
+

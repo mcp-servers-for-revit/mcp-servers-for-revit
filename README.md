@@ -27,10 +27,16 @@ flowchart LR
 
 The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSocket messages. The **Revit Plugin** (C#) runs inside Revit, listens for those messages, and dispatches them to the **Command Set** (C#), which executes the actual Revit API operations and returns results back up the chain.
 
+## Community integrations
+
+The Revit ribbon includes a Claude chat panel. In **Settings → API Key**, save an Anthropic API key for the panel. It checks the process environment and then `%USERPROFILE%\.claude\api_key.txt`. External MCP clients authenticate separately.
+
+The core command set includes grid dimensioning, schedule and sheet operations, and parameter and material tools. Revit 2024–2026 can also load the DWG and off-axis command sets. See the [command reference](COMMANDS.md), [user guide](USER_GUIDE.md), and [Windows installer](installer/build-installer.ps1).
+
 ## Requirements
 
-- **Node.js 18+** (for the MCP server)
-- **Autodesk Revit 2020 - 2026** (any supported version)
+- **Node.js 20+** for the npm package. The bundled Windows runtime uses Node.js 22 with built-in SQLite.
+- **Autodesk Revit 2020 - 2027** (any supported version)
 
 ## Quick Start (Using a Release)
 
@@ -109,6 +115,10 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 3. Copy the built DLLs into that folder
 4. Copy `command.json` (from repo root) into `Commands/RevitMCPCommandSet/`
 
+For a shared command directory and automatic server bundle updates, see [Shared deployment](docs/shared-deployment.md).
+
+Material validation uses the embedded digiGO NAA.K.T. v2.5 IDS catalog, credited to beheercommissie Naa.K.T. in the original file. [Publisher and download](https://www.digigo.nu/ilsen-en-richtlijnen/bim-basis-ils/praktijk/1-naa-k-t-eenduidige-materiaalbenaming/)
+
 ## Supported Tools
 
 | Tool | Description |
@@ -117,6 +127,10 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `get_current_view_elements` | Get elements from the current active view |
 | `get_available_family_types` | Get available family types in current project |
 | `get_selected_elements` | Get currently selected elements |
+| `get_available_parameters` | Discover visible instance and type parameters for a batch of elements |
+| `get_parameters` | Read named parameters in display units |
+| `set_parameters` | Set parameter values and report the outcome of each write |
+| `manage_materials` | List, validate, preview, create and update materials using the NAA.K.T. naming convention |
 | `get_material_quantities` | Calculate material quantities and takeoffs |
 | `ai_element_filter` | Intelligent element querying tool for AI assistants |
 | `analyze_model_statistics` | Analyze model complexity with element counts |

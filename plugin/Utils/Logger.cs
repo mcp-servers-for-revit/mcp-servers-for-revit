@@ -7,11 +7,13 @@ namespace revit_mcp_plugin.Utils
     public class Logger : ILogger
     {
         private readonly string _logFilePath;
+        private readonly object _fileLock = new object();
         private LogLevel _currentLogLevel = LogLevel.Info;
 
         public Logger()
         {
-            _logFilePath = Path.Combine(PathManager.GetLogsDirectoryPath(), $"mcp_{DateTime.Now:yyyyMMdd}.log");
+            _logFilePath = Path.Combine(PathManager.GetLogsDirectoryPath(), PathManager.GetConfigSetting("NetworkRootPath") == null
+                ? $"mcp_{DateTime.Now:yyyyMMdd}.log" : $"mcp_{DateTime.Now:yyyyMMdd}_{Environment.UserName}.log");
 
         }
 
@@ -23,19 +25,19 @@ namespace revit_mcp_plugin.Utils
             string formattedMessage = args.Length > 0 ? string.Format(message, args) : message;
             string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{level}] {formattedMessage}";
 
-            // 输出到 Debug 窗口
             // Output to debug window.
             System.Diagnostics.Debug.WriteLine(logEntry);
 
-            // 写入日志文件
-            // Write to the logfile.
+            // Write to the logfile (thread-safe).
             try
             {
-                File.AppendAllText(_logFilePath, logEntry + Environment.NewLine);
+                lock (_fileLock)
+                {
+                    File.AppendAllText(_logFilePath, logEntry + Environment.NewLine);
+                }
             }
             catch
             {
-                // 如果写入日志文件失败，不抛出异常
                 // If writing to the logfile fails, do not throw an exception.
             }
         }

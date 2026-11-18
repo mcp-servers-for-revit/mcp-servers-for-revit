@@ -5,25 +5,30 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:revit_mcp_plugin.UI"
              mc:Ignorable="d" 
-             Title="Settings" Height="500" Width="850">
+             Title="Settings" Height="600" Width="950">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- 左侧导航 -->
+        <!-- Left navigation panel -->
         <Border Grid.Column="0" Background="#f5f5f5" BorderBrush="#e0e0e0" BorderThickness="0,0,1,0">
             <ListBox x:Name="NavListBox" BorderThickness="0" Background="Transparent" 
                      SelectionChanged="NavListBox_SelectionChanged">
-                <ListBoxItem x:Name="CommandSetItem" IsSelected="True" Padding="10,8">
-                    <TextBlock Text="CommandSet" FontSize="14"/>
+                <ListBoxItem x:Name="GeneralItem" IsSelected="True" Padding="10,8">
+                    <TextBlock Text="General" FontSize="14"/>
                 </ListBoxItem>
-                <!-- 将来可以在此添加更多导航选项 -->
+                <ListBoxItem x:Name="ApiKeyItem" Padding="10,8">
+                    <TextBlock Text="API Key" FontSize="14"/>
+                </ListBoxItem>
+                <ListBoxItem x:Name="CommandSetItem" Padding="10,8">
+                    <TextBlock Text="Commands" FontSize="14"/>
+                </ListBoxItem>
             </ListBox>
         </Border>
 
-        <!-- 右侧内容区域 -->
+        <!-- Right content area -->
         <Grid Grid.Column="1" Margin="15">
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden"/>
         </Grid>

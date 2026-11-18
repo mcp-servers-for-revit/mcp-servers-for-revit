@@ -203,7 +203,8 @@ public static class TransactionUtils
                 return false;
 
             // Get material parameter
-            var materialParam = element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+            var materialParam = element.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM)
+                                ?? element.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
             if (materialParam != null && !materialParam.IsReadOnly)
             {
                 materialParam.Set(material.Id);

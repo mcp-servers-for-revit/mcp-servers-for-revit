@@ -1,10 +1,10 @@
-﻿<Page x:Class="revit_mcp_plugin.UI.CommandSetSettingsPage"
+<Page x:Class="revit_mcp_plugin.UI.CommandSetSettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:revit_mcp_plugin.UI"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -15,7 +15,7 @@
         <!-- Title -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="Command Set Settings" FontSize="22" FontWeight="SemiBold"/>
-            <TextBlock Text="Select the commands you want to enable" 
+            <TextBlock Text="Select the commands you want to enable"
                        Foreground="#666666" Margin="0,5,0,0"/>
         </StackPanel>
         <!-- Main Content Area -->
@@ -31,16 +31,16 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Available Command Sets" Padding="10,8" 
+                    <TextBlock Grid.Row="0" Text="Available Command Sets" Padding="10,8"
                                Background="#f0f0f0" FontWeight="SemiBold"/>
-                    <ListBox Grid.Row="1" x:Name="CommandSetListBox" 
+                    <ListBox Grid.Row="1" x:Name="CommandSetListBox"
                              SelectionChanged="CommandSetListBox_SelectionChanged"
                              BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="5">
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Description}" 
+                                    <TextBlock Text="{Binding Description}"
                                                TextWrapping="Wrap" Margin="0,3,0,0"
                                                Foreground="#666"/>
                                 </StackPanel>
@@ -55,32 +55,111 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" x:Name="FeaturesHeaderTextBlock" 
-                               Text="Feature List" Padding="10,8" 
+                    <TextBlock Grid.Row="0" x:Name="FeaturesHeaderTextBlock"
+                               Text="Feature List" Padding="10,8"
                                Background="#f0f0f0" FontWeight="SemiBold"/>
-                    <ListView Grid.Row="1" x:Name="FeaturesListView" BorderThickness="0">
+                    <!-- Search Box -->
+                    <Grid Grid.Row="1" Margin="8,8,8,4">
+                        <Border BorderBrush="#cccccc" BorderThickness="1" CornerRadius="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SearchTextBox" Grid.Column="0"
+                                         BorderThickness="0" Padding="8,6"
+                                         Background="Transparent"
+                                         TextChanged="SearchTextBox_TextChanged"/>
+                                <TextBlock x:Name="SearchPlaceholder" Grid.Column="0"
+                                           Text="Search commands..."
+                                           Foreground="#999999" Padding="10,7"
+                                           IsHitTestVisible="False"
+                                           Visibility="Visible"/>
+                                <Button x:Name="SearchClearButton" Grid.Column="1"
+                                        Content="&#xD7;" FontSize="14"
+                                        Width="24" Height="24" Margin="2"
+                                        BorderThickness="0" Background="Transparent"
+                                        Foreground="#999999" Cursor="Hand"
+                                        Click="SearchClearButton_Click"
+                                        Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <!-- Features ListView with grouping -->
+                    <ListView Grid.Row="2" x:Name="FeaturesListView" BorderThickness="0"
+                              SelectionChanged="FeaturesListView_SelectionChanged">
+                        <ListView.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                    <Expander IsExpanded="True">
+                                                        <Expander.Header>
+                                                            <StackPanel Orientation="Horizontal"
+                                                                        Background="#f0f0f0" Margin="-2,0,0,0">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           FontWeight="Bold" Padding="5,4"
+                                                                           Foreground="#333333"/>
+                                                                <TextBlock Padding="5,4" Foreground="#888888">
+                                                                    <TextBlock.Text>
+                                                                        <MultiBinding StringFormat="({0})">
+                                                                            <Binding Path="ItemCount"/>
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Text>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </Expander.Header>
+                                                        <ItemsPresenter/>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </ListView.GroupStyle>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Enable" Width="50">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}"
-                                                     HorizontalAlignment="Center"/>
+                                                     HorizontalAlignment="Center"
+                                                     Checked="CommandCheckBox_Changed"
+                                                     Unchecked="CommandCheckBox_Changed"/>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Header="Name" Width="150" 
+                                <GridViewColumn Header="Name" Width="150"
                                                DisplayMemberBinding="{Binding CommandName}"/>
-                                <GridViewColumn Header="Description" Width="280" 
+                                <GridViewColumn Header="Description" Width="280"
                                                DisplayMemberBinding="{Binding Description}"/>
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <!-- Description Panel -->
+                    <Border Grid.Row="3" x:Name="DetailPanel"
+                            BorderBrush="#e0e0e0" BorderThickness="0,1,0,0"
+                            Background="#f9f9f9" Height="80" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,8">
+                            <StackPanel>
+                                <TextBlock x:Name="DetailCommandName" FontWeight="Bold" FontSize="13"/>
+                                <TextBlock x:Name="DetailDescription" TextWrapping="Wrap"
+                                           Margin="0,3,0,0" Foreground="#444444"/>
+                                <TextBlock x:Name="DetailVersions" Margin="0,3,0,0"
+                                           Foreground="#888888" FontSize="11"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
                     <!-- Displayed when no command set is selected -->
-                    <TextBlock Grid.Row="1" x:Name="NoSelectionTextBlock"
-                              Text="Please select a command set from the left to view its commands" 
+                    <TextBlock Grid.Row="2" x:Name="NoSelectionTextBlock"
+                              Text="Please select a command set from the left to view its commands"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
                               Foreground="#999" FontSize="14" TextWrapping="Wrap"
                               Visibility="Collapsed"/>
@@ -88,13 +167,17 @@
             </Border>
         </Grid>
         <!-- Bottom Buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Open CommandSet Folder" Width="150" Height="30" Margin="0,0,10,0" Click="OpenFolderButton_Click"/>
+        <DockPanel Grid.Row="2" Margin="0,15,0,0" LastChildFill="False">
+            <TextBlock x:Name="CommandCounterText" DockPanel.Dock="Right"
+                       Foreground="#666666" VerticalAlignment="Center" Margin="10,0,0,0"
+                       FontSize="12"/>
+            <Button Content="Import CommandSet..." Width="150" Height="30" Margin="0,0,10,0" Click="ImportCommandSetButton_Click"/>
+            <Button Content="Open Folder" Width="100" Height="30" Margin="0,0,10,0" Click="OpenFolderButton_Click"/>
             <Button Content="Refresh" Width="80" Height="30" Margin="0,0,10,0" Click="RefreshButton_Click"/>
             <Button Content="Select All" Width="80" Height="30" Margin="0,0,10,0" Click="SelectAllButton_Click"/>
             <Button Content="Deselect All" Width="80" Height="30" Margin="0,0,10,0" Click="UnselectAllButton_Click"/>
-            <Button Content="Save" Width="80" Height="30" Background="#0078D7" Foreground="White" 
+            <Button Content="Save" Width="80" Height="30" Background="#0078D7" Foreground="White"
                    Click="SaveButton_Click"/>
-        </StackPanel>
+        </DockPanel>
     </Grid>
 </Page>

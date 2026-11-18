@@ -1,11 +1,12 @@
-﻿using RevitMCPSDK.API.Interfaces;
+using RevitMCPSDK.API.Interfaces;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace revit_mcp_plugin.Core
 {
     public class RevitCommandRegistry : ICommandRegistry
     {
-        private readonly Dictionary<string, IRevitCommand> _commands = new Dictionary<string, IRevitCommand>();
+        private readonly ConcurrentDictionary<string, IRevitCommand> _commands = new ConcurrentDictionary<string, IRevitCommand>();
 
         public void RegisterCommand(IRevitCommand command)
         {

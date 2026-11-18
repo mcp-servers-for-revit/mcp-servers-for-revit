@@ -206,7 +206,6 @@ namespace RevitMCPCommandSet.Services
                     Message = $"Failed to create grids: {ex.Message}",
                     Response = null
                 };
-                TaskDialog.Show("Error", $"Failed to create grids: {ex.Message}");
             }
             finally
             {
@@ -234,26 +233,44 @@ namespace RevitMCPCommandSet.Services
         {
             List<string> labels = new List<string>();
 
+            // Extract prefix: everything before the last letter/number sequence
+            string prefix = "";
+            string corePart = startLabel;
+            int lastNonAlphaNum = -1;
+            for (int i = corePart.Length - 1; i >= 0; i--)
+            {
+                if (!char.IsLetterOrDigit(corePart[i]))
+                {
+                    lastNonAlphaNum = i;
+                    break;
+                }
+            }
+            if (lastNonAlphaNum >= 0)
+            {
+                prefix = corePart.Substring(0, lastNonAlphaNum + 1);
+                corePart = corePart.Substring(lastNonAlphaNum + 1);
+            }
+
             if (namingStyle == "numeric")
             {
-                // Parse starting number from startLabel
-                if (!int.TryParse(startLabel, out int startNum))
+                // Parse starting number from corePart
+                if (!int.TryParse(corePart, out int startNum))
                 {
                     startNum = 1; // Default to 1 if parsing fails
                 }
 
                 for (int i = 0; i < count; i++)
                 {
-                    labels.Add((startNum + i).ToString());
+                    labels.Add(prefix + (startNum + i).ToString());
                 }
             }
             else // alphabetic
             {
-                // Convert startLabel to uppercase for consistency
-                string upperStart = startLabel.ToUpper();
+                // Convert corePart to uppercase for consistency
+                string upperCore = corePart.ToUpper();
 
                 // Get starting letter (use first character if multiple)
-                char startChar = upperStart.Length > 0 ? upperStart[0] : 'A';
+                char startChar = upperCore.Length > 0 ? upperCore[0] : 'A';
 
                 // Ensure it's a letter, default to 'A' if not
                 if (!char.IsLetter(startChar))
@@ -263,7 +280,7 @@ namespace RevitMCPCommandSet.Services
 
                 for (int i = 0; i < count; i++)
                 {
-                    labels.Add(GenerateAlphabeticLabel(startChar, i));
+                    labels.Add(prefix + GenerateAlphabeticLabel(startChar, i));
                 }
             }
 
@@ -323,7 +340,6 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
         return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 

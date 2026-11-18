@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 200">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fafaf9"/>
+      <stop offset="100%" style="stop-color:#f5f3f0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="820" height="200" fill="url(#bg2)" rx="10" stroke="#e8e5e0" stroke-width="1"/>
+
+  <!-- Step 1: MCP Client -->
+  <g transform="translate(30, 50)">
+    <rect width="140" height="100" rx="10" fill="#fff" stroke="#D97757" stroke-width="2"/>
+    <text x="70" y="35" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">MCP Client</text>
+    <text x="70" y="55" font-family="Segoe UI, sans-serif" font-size="11" fill="#888" text-anchor="middle">Claude Code</text>
+    <text x="70" y="70" font-family="Segoe UI, sans-serif" font-size="11" fill="#888" text-anchor="middle">Claude Desktop</text>
+    <text x="70" y="85" font-family="Segoe UI, sans-serif" font-size="11" fill="#888" text-anchor="middle">Cline, etc.</text>
+  </g>
+
+  <!-- Arrow 1: stdio -->
+  <g transform="translate(175, 90)">
+    <line x1="0" y1="0" x2="55" y2="0" stroke="#D97757" stroke-width="2"/>
+    <polygon points="55,-5 65,0 55,5" fill="#D97757"/>
+    <text x="32" y="-8" font-family="Consolas, monospace" font-size="10" fill="#D97757" text-anchor="middle">stdio</text>
+  </g>
+
+  <!-- Step 2: MCP Server -->
+  <g transform="translate(245, 50)">
+    <rect width="130" height="100" rx="10" fill="#fff" stroke="#4FC3F7" stroke-width="2"/>
+    <text x="65" y="35" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">MCP Server</text>
+    <text x="65" y="55" font-family="Consolas, monospace" font-size="10" fill="#888" text-anchor="middle">server/</text>
+    <text x="65" y="75" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">TypeScript</text>
+    <text x="65" y="90" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">80+ tool defs</text>
+  </g>
+
+  <!-- Arrow 2: TCP -->
+  <g transform="translate(380, 90)">
+    <line x1="0" y1="0" x2="55" y2="0" stroke="#4FC3F7" stroke-width="2"/>
+    <polygon points="55,-5 65,0 55,5" fill="#4FC3F7"/>
+    <text x="32" y="-8" font-family="Consolas, monospace" font-size="10" fill="#4FC3F7" text-anchor="middle">TCP :8080</text>
+  </g>
+
+  <!-- Step 3: Revit Plugin -->
+  <g transform="translate(450, 50)">
+    <rect width="130" height="100" rx="10" fill="#fff" stroke="#48BB78" stroke-width="2"/>
+    <text x="65" y="35" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">Revit Plugin</text>
+    <text x="65" y="55" font-family="Consolas, monospace" font-size="10" fill="#888" text-anchor="middle">plugin/</text>
+    <text x="65" y="75" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">C# + Chat Panel</text>
+    <text x="65" y="90" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">JSON-RPC 2.0</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <g transform="translate(585, 90)">
+    <line x1="0" y1="0" x2="55" y2="0" stroke="#48BB78" stroke-width="2"/>
+    <polygon points="55,-5 65,0 55,5" fill="#48BB78"/>
+  </g>
+
+  <!-- Step 4: Revit API -->
+  <g transform="translate(655, 50)">
+    <rect width="130" height="100" rx="10" fill="#fff" stroke="#9575CD" stroke-width="2"/>
+    <text x="65" y="35" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle">Revit API</text>
+    <text x="65" y="55" font-family="Consolas, monospace" font-size="10" fill="#888" text-anchor="middle">commandset/</text>
+    <text x="65" y="75" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">C# Commands</text>
+    <text x="65" y="90" font-family="Segoe UI, sans-serif" font-size="10" fill="#666" text-anchor="middle">Revit 2023-2026</text>
+  </g>
+
+  <!-- Bottom label -->
+  <text x="410" y="185" font-family="Segoe UI, sans-serif" font-size="11" fill="#aaa" text-anchor="middle">mcp-servers-for-revit architecture</text>
+</svg>

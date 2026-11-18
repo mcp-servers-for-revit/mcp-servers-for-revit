@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <RootNamespace>revit_mcp_plugin</RootNamespace>
@@ -6,10 +6,10 @@
         <UseWindowsForms>true</UseWindowsForms>
         <UseWPF>true</UseWPF>
         <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-        <Configurations>Debug R20;Debug R21;Debug R22;Debug R24;Debug R25;Debug R26;Release R20;Release R21;Release R22;Release R23;Release R24;Release R25;Release R26;Debug R23</Configurations>
+        <Configurations>Debug R20;Debug R21;Debug R22;Debug R24;Debug R25;Debug R26;Release R20;Release R21;Release R22;Release R23;Release R24;Release R25;Release R26;Debug R23;Debug R27;Release R27</Configurations>
         <PlatformTarget>x64</PlatformTarget>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        
+
     </PropertyGroup>
 
     <PropertyGroup Condition="$(Configuration.Contains('R20'))">
@@ -49,6 +49,12 @@
         <OutputPath>bin\$(Configuration.Split(' ')[0])\$(RevitVersion)\</OutputPath>
         <EnableDynamicLoading>true</EnableDynamicLoading>
     </PropertyGroup>
+    <PropertyGroup Condition="$(Configuration.Contains('R27'))">
+        <RevitVersion>2027</RevitVersion>
+        <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+        <OutputPath>bin\$(Configuration.Split(' ')[0])\$(RevitVersion)\</OutputPath>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+    </PropertyGroup>
     <PropertyGroup>
         <StartAction>Program</StartAction>
         <StartProgram>C:\Program Files\Autodesk\Revit $(RevitVersion)\Revit.exe</StartProgram>
@@ -59,11 +65,18 @@
         <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*"/>
         <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*"/>
         <PackageReference Include="RevitMCPSDK" Version="$(RevitVersion).*"/>
-        <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0"/>
     </ItemGroup>
     <ItemGroup>
         <Resource Include="Core\Ressources\icon-16.png"/>
         <Resource Include="Core\Ressources\icon-32.png"/>
+        <Resource Include="Core\Ressources\icon-16-on.png"/>
+        <Resource Include="Core\Ressources\icon-32-on.png"/>
+        <Resource Include="Core\Ressources\icon-16-off.png"/>
+        <Resource Include="Core\Ressources\icon-32-off.png"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Resource Include="Core\Ressources\panel-16.png"/>
+        <Resource Include="Core\Ressources\panel-32.png"/>
     </ItemGroup>
     <ItemGroup>
         <Resource Include="Core\Ressources\settings-16.png"/>
@@ -76,12 +89,16 @@
         <None Update="mcp-servers-for-revit.addin">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="tool_schemas.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <Target Name="CopyFiles" AfterTargets="CoreBuild">
         <ItemGroup>
             <RootItem Include="$(ProjectDir)*.addin"/>
             <AddinItem Include="$(TargetDir)*.dll"/>
             <AddinItem Include="$(TargetDir)*.pdb"/>
+            <AddinItem Include="$(TargetDir)*.json"/>
         </ItemGroup>
 
         <PropertyGroup>

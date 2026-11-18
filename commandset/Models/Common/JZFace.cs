@@ -1,14 +1,14 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
 /// <summary>
-///     三维面
+///     3D face
 /// </summary>
 public class JZFace
 {
     /// <summary>
-    ///     构造函数
+    ///     Constructor
     /// </summary>
     public JZFace()
     {
@@ -17,13 +17,13 @@ public class JZFace
     }
 
     /// <summary>
-    ///     外环（List<List<JZLine>> 类型）
+    ///     Outer loop (List&lt;JZLine&gt; type)
     /// </summary>
     [JsonProperty("outerLoop")]
     public List<JZLine> OuterLoop { get; set; }
 
     /// <summary>
-    ///     内环（List<JZLine> 类型，表示一个或多个内环）
+    ///     Inner loops (List&lt;List&lt;JZLine&gt;&gt; type, representing one or more inner loops)
     /// </summary>
     [JsonProperty("innerLoops")]
     public List<List<JZLine>> InnerLoops { get; set; }

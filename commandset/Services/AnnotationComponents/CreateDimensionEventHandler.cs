@@ -220,7 +220,6 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                 Message = $"Error creating dimensions: {ex.Message}",
                 Response = new List<int>()
             };
-            TaskDialog.Show("Error", $"Error creating dimensions: {ex.Message}");
         }
         finally
         {
@@ -236,7 +235,6 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
     /// <returns>True if operation completed within timeout</returns>
     public bool WaitForCompletion(int timeoutMilliseconds = 10000)
     {
-        _resetEvent.Reset();
         return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
@@ -463,8 +461,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
         }
         catch (Exception ex)
         {
-            // Log error but continue processing
-            TaskDialog.Show("Debug", $"Error finding reference at point: {ex.Message}");
+            // Log error but continue processing (suppressed to avoid blocking UI)
         }
 
         return null;

@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerTagAllRoomsTool(server: McpServer) {
   server.tool(
     "tag_all_rooms",
-    "Create tags for all rooms in the current active view. Tags will be placed at the center point of each room, displaying the room name and number.",
+    "Tag rooms in the current view with room tags.",
     {
       useLeader: z
         .boolean()
@@ -15,11 +17,11 @@ export function registerTagAllRoomsTool(server: McpServer) {
       tagTypeId: z
         .string()
         .optional()
-        .describe("The ID of the specific room tag family type to use. If not provided, the default room tag type will be used"),
+        .describe("The ID of the specific room tag family type to use."),
       roomIds: z
         .array(z.number())
         .optional()
-        .describe("Optional array of specific room element IDs to tag. If not provided, all rooms in the current view will be tagged"),
+        .describe("Optional array of specific room element IDs to tag."),
     },
     async (args, extra) => {
       const params = args;
@@ -28,25 +30,11 @@ export function registerTagAllRoomsTool(server: McpServer) {
           return await revitClient.sendCommand("tag_rooms", params);
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("tag_all_rooms", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Room tagging failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("tag_all_rooms", `Room tagging failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

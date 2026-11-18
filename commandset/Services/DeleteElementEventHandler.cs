@@ -1,26 +1,45 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using RevitMCPCommandSet.Helpers;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services
 {
     public class DeleteElementEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
     {
-        // 执行结果
+        // Execution result
         public bool IsSuccess { get; private set; }
 
-        // 成功删除的元素数量
+        // Number of successfully deleted elements
         public int DeletedCount { get; private set; }
-        // 状态同步对象
+
+        // Error or warning message if execution fails or has warnings
+        public string ErrorMessage { get; private set; }
+
+        // Indicates if operation was cancelled by user
+        public bool Cancelled { get; private set; }
+
+        // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
-        // 要删除的元素ID数组
+        // Element ID array to delete
         public string[] ElementIds { get; set; }
-        // 实现IWaitableExternalEventHandler接口
+        // If true, only preview what would be deleted without actually deleting
+        public bool DryRun { get; set; } = true;
+        // Implement IWaitableExternalEventHandler interface
+        public void SetDeleteParameters(string[] elementIds)
+        {
+            ElementIds = elementIds;
+            Cancelled = false;
+            TaskCompleted = false;
+            ErrorMessage = null;
+            _resetEvent.Reset();
+        }
+
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
         public void Execute(UIApplication app)
         {
@@ -33,18 +52,22 @@ namespace RevitMCPCommandSet.Services
                     IsSuccess = false;
                     return;
                 }
-                // 创建待删除元素ID集合
+                // Create collection of element IDs to delete
                 List<ElementId> elementIdsToDelete = new List<ElementId>();
                 List<string> invalidIds = new List<string>();
                 foreach (var idStr in ElementIds)
                 {
-                    if (int.TryParse(idStr, out int elementIdValue))
+                    if (long.TryParse(idStr, out long elementIdValue))
                     {
-                        var elementId = new ElementId(elementIdValue);
-                        // 检查元素是否存在
+                        var elementId = RevitMCPCommandSet.Utils.ElementIdExtensions.FromLong(elementIdValue);
+                        // Check if element exists
                         if (doc.GetElement(elementId) != null)
                         {
                             elementIdsToDelete.Add(elementId);
+                        }
+                        else
+                        {
+                            invalidIds.Add(idStr);
                         }
                     }
                     else
@@ -54,32 +77,56 @@ namespace RevitMCPCommandSet.Services
                 }
                 if (invalidIds.Count > 0)
                 {
-                    TaskDialog.Show("警告", $"以下ID无效或元素不存在：{string.Join(", ", invalidIds)}");
+                    ErrorMessage = $"The following IDs are invalid or elements do not exist: {string.Join(", ", invalidIds)}";
                 }
-                // 如果有可删除的元素，则执行删除
+                // Dry run: only report what would be deleted
+                if (DryRun)
+                {
+                    DeletedCount = elementIdsToDelete.Count;
+                    IsSuccess = true;
+                    return;
+                }
+
+                // Confirm deletion with user before proceeding
+                if (elementIdsToDelete.Count > 0 && !ConfirmationHelper.Confirm("delete", elementIdsToDelete.Count))
+                {
+                    IsSuccess = false;
+                    Cancelled = true;
+                    ErrorMessage = "Operation cancelled by user";
+                    return;
+                }
+                // If there are elements that can be deleted, execute deletion
                 if (elementIdsToDelete.Count > 0)
                 {
                     using (var transaction = new Transaction(doc, "Delete Elements"))
                     {
                         transaction.Start();
+                        try
+                        {
+                            // Batch delete elements
+                            ICollection<ElementId> deletedIds = doc.Delete(elementIdsToDelete);
+                            DeletedCount = deletedIds.Count;
 
-                        // 批量删除元素
-                        ICollection<ElementId> deletedIds = doc.Delete(elementIdsToDelete);
-                        DeletedCount = deletedIds.Count;
-
-                        transaction.Commit();
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            if (transaction.GetStatus() == TransactionStatus.Started)
+                                transaction.RollBack();
+                            throw;
+                        }
                     }
                     IsSuccess = true;
                 }
                 else
                 {
-                    TaskDialog.Show("错误", "没有有效的元素可以删除");
+                    ErrorMessage = "No valid elements to delete";
                     IsSuccess = false;
                 }
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("错误", "删除元素失败: " + ex.Message);
+                ErrorMessage = "Failed to delete element: " + ex.Message;
                 IsSuccess = false;
             }
             finally
@@ -90,7 +137,7 @@ namespace RevitMCPCommandSet.Services
         }
         public string GetName()
         {
-            return "删除元素";
+            return "Delete Element";
         }
     }
 }

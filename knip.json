@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs"]
+    },
+    "server": {
+      "entry": [
+        "src/tools/register.ts",
+        "src/tools/*.ts",
+        "extract-schemas.mjs"
+      ],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

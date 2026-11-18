@@ -37,6 +37,12 @@ namespace RevitMCPCommandSet.Models.DataExtraction
         [JsonProperty("totalMaterials")]
         public int TotalMaterials { get; set; }
 
+        [JsonProperty("totalCount")]
+        public int TotalCount { get; set; }
+
+        [JsonProperty("truncated")]
+        public bool Truncated { get; set; }
+
         [JsonProperty("totalArea")]
         public double TotalArea { get; set; }
 

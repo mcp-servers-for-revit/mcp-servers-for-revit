@@ -1,0 +1,74 @@
+name: Revit 2026 test release
+
+on:
+  push:
+    tags:
+      - 'test-*-revit2026.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build and test MCP server
+        working-directory: server
+        run: |
+          npm ci
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          npm run build:check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          npm run test:smoke
+
+      - name: Build add-in and command sets
+        run: |
+          foreach ($project in 'mcp-servers-for-revit.sln', 'dwg-commandset/DwgCommandSet.csproj', 'offaxis-commandset/OffAxisCommandSet.csproj') {
+            dotnet build $project -c 'Release R26' -p:PublishAddinFiles=false --nologo
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+
+      - name: Package Revit 2026 add-in
+        run: |
+          $root = 'plugin/bin/AddIn 2026 Release R26'
+          $plugin = Join-Path $root 'revit_mcp_plugin'
+          $manifest = [xml](Get-Content "$root/mcp-servers-for-revit.addin" -Raw)
+          Get-Item (Join-Path $root $manifest.RevitAddIns.AddIn.Assembly) -ErrorAction Stop
+          foreach ($set in 'RevitMCPCommandSet', 'DwgCommandSet', 'OffAxisCommandSet') {
+            Get-Item "$plugin/Commands/$set/command.json", "$plugin/Commands/$set/2026/$set.dll" -ErrorAction Stop
+          }
+          $server = "$plugin/Commands/RevitMCPCommandSet/server"
+          Get-Item "$server/build/index.js", "$server/package.json", "$plugin/tool_schemas.json" -ErrorAction Stop
+          $runtime = New-Item -ItemType Directory -Path "$server/runtime" -Force
+          $node = (Get-Command node.exe).Source
+          Copy-Item $node, (Join-Path (Split-Path $node) 'LICENSE') -Destination $runtime
+          Copy-Item LICENSE -Destination $root
+          $name = "mcp-servers-for-revit-$env:GITHUB_REF_NAME-Revit2026.zip"
+          [IO.Compression.ZipFile]::CreateFromDirectory((Resolve-Path $root).Path, (Join-Path $PWD $name))
+
+      - name: Publish testing ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          name: Revit 2026 testing build ${{ github.ref_name }}
+          files: mcp-servers-for-revit-*-Revit2026.zip
+          body: |
+            Windows x64 add-in for Revit 2026, with the MCP server, portable Node.js, and the core, DWG and off-axis command sets. Built from commit ${{ github.sha }}.
+
+            Close Revit and back up any existing MCP add-in outside its Addins directory. Extract the ZIP and copy `mcp-servers-for-revit.addin` and `revit_mcp_plugin` into `%APPDATA%\Autodesk\Revit\Addins\2026\`. Start Revit, enable the commands you want under **Revit MCP Plugin → Settings → Commands**, and start the MCP service. To test the built-in Claude chat, save your Anthropic key under **Settings → API Key**.
