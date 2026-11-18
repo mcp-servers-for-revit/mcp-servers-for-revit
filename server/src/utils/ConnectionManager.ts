@@ -1,13 +1,14 @@
 import { RevitClientConnection } from "./SocketClient.js";
+import { refreshVia } from "./ToolAvailability.js";
 
 // Mutex to serialize all Revit connections - prevents race conditions
 // when multiple requests are made in parallel
 let connectionMutex: Promise<void> = Promise.resolve();
 
 /**
- * 连接到Revit客户端并执行操作
- * @param operation 连接成功后要执行的操作函数
- * @returns 操作的结果
+ * Connect to the Revit client and perform an operation
+ * @param operation The operation function to execute after connecting
+ * @returns The result of the operation
  */
 export async function withRevitConnection<T>(
   operation: (client: RevitClientConnection) => Promise<T>
@@ -23,7 +24,7 @@ export async function withRevitConnection<T>(
   const revitClient = new RevitClientConnection("localhost", 8080);
 
   try {
-    // 连接到Revit客户端
+    // Connect to the Revit client
     if (!revitClient.isConnected) {
       await new Promise<void>((resolve, reject) => {
         const onConnect = () => {
@@ -46,15 +47,20 @@ export async function withRevitConnection<T>(
         setTimeout(() => {
           revitClient.socket.removeListener("connect", onConnect);
           revitClient.socket.removeListener("error", onError);
-          reject(new Error("连接到Revit客户端失败"));
+          reject(new Error("Failed to connect to Revit client"));
         }, 5000);
       });
     }
 
-    // 执行操作
+    // Dynamic tool advertisement: pull a registry snapshot when the cached one
+    // is missing/stale. Never fatal - on failure the full tool list stays
+    // advertised and the operation proceeds as before.
+    await refreshVia(revitClient);
+
+    // Perform the operation
     return await operation(revitClient);
   } finally {
-    // 断开连接
+    // Disconnect
     revitClient.disconnect();
     // Release the mutex so the next request can proceed
     releaseMutex!();

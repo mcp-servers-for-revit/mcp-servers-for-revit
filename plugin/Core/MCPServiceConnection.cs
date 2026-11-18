@@ -12,26 +12,36 @@ namespace revit_mcp_plugin.Core
         {
             try
             {
-                // 获取socket服务
                 // Obtain socket service.
                 SocketService service = SocketService.Instance;
 
                 if (service.IsRunning)
                 {
                     service.Stop();
-                    TaskDialog.Show("revitMCP", "Close Server");
                 }
                 else
                 {
                     service.Initialize(commandData.Application);
                     service.Start();
-                    TaskDialog.Show("revitMCP", "Open Server");
+                }
+
+                // Refresh ribbon indicator and confirm with a modeless toast.
+                McpSwitchButton.Update();
+                if (service.IsRunning)
+                {
+                    McpSwitchButton.ShowToast("Revit MCP server started on port " + service.Port + ".", false);
+                }
+                else
+                {
+                    McpSwitchButton.ShowToast("Revit MCP server stopped.", false);
                 }
 
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
+                McpSwitchButton.Update();
+                McpSwitchButton.ShowToast("Revit MCP server error: " + ex.Message, true);
                 message = ex.Message;
                 return Result.Failed;
             }

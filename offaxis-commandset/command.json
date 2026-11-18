@@ -1,0 +1,62 @@
+{
+  "name": "OffAxisCommandSet",
+  "description": "Off-axis line inaccuracy detection and remediation toolkit for Revit",
+  "developer": {
+    "name": "Scott Mitchell Studio",
+    "email": "chris@scottmitchellstudio.com",
+    "website": "https://scottmitchellstudio.com",
+    "organization": "Scott Mitchell Studio"
+  },
+  "commands": [
+    {
+      "commandName": "detect_off_axis_hybrid",
+      "description": "Detect off-axis elements and sketches using Revit's native warning engine",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "detect_off_axis_lines",
+      "description": "Scan model geometry for lines with angular deviation between minAngleDeg and maxAngleDeg",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "detect_spacing_elements",
+      "description": "Detect walls and beams off the 1/4 inch perpendicular regularized grid lattice",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_walls_and_beams",
+      "description": "Snap endpoints of slightly off-axis walls and structural framing beams to nearest 0/45/90 orientation",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_grids",
+      "description": "Rotate slightly off-axis 3D grid lines about their midpoint to nearest 0/45/90 orientation",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_reference_planes",
+      "description": "Snap normal of slightly off-axis vertical reference planes to nearest 0/45/90 orientation",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_sketches",
+      "description": "Fix off-axis sketch profiles of Floors, Ceilings, and FootPrintRoofs using ray-ray corner solver",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_inplace",
+      "description": "Fix off-axis sketch lines in In-Place Component Extrusion sketch forms",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_off_axis_model_lines",
+      "description": "Fix off-axis top-level model lines and curve chains using ray-ray closure solver",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    },
+    {
+      "commandName": "fix_spacing_elements",
+      "description": "Regularize perpendicular spacing of walls and beams onto a 1/4 inch lattice",
+      "assemblyPath": "OffAxisCommandSet.dll"
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+    "Commands": [
+        {
+            "commandName": "say_hello",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Displays a greeting dialog"
+        },
+        {
+            "commandName": "get_available_family_types",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "get available family types"
+        },
+        {
+            "commandName": "get_current_view_elements",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "get current view elements"
+        },
+        {
+            "commandName": "get_current_view_info",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "get current view info"
+        },
+        {
+            "commandName": "get_selected_elements",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "get selected elements"
+        },
+        {
+            "commandName": "create_point_based_element",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create point-based elements like furniture"
+        },
+        {
+            "commandName": "create_line_based_element",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create line based element such as wall"
+        },
+        {
+            "commandName": "create_surface_based_element",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create surface-based elements like floors"
+        },
+        {
+            "commandName": "color_splash",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Color elements by parameter value"
+        },
+        {
+            "commandName": "tag_walls",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Tag all the walls in the model"
+        },
+        {
+            "commandName": "delete_element",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Deletes elements using ElementId"
+        },
+        {
+            "commandName": "ai_element_filter",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "AI element filter for querying elements by criteria"
+        },
+        {
+            "commandName": "operate_element",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Operate on elements (select, color, hide, isolate, etc)"
+        },
+        {
+            "commandName": "export_room_data",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Extract all rooms with detailed properties including area, volume, perimeter, and parameters"
+        },
+        {
+            "commandName": "get_material_quantities",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Calculate material quantities and takeoffs with area and volume calculations per material"
+        },
+        {
+            "commandName": "analyze_model_statistics",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Analyze model complexity with element counts by category, type, family, and level"
+        },
+        {
+            "commandName": "create_grid",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create grid system with smart spacing generation for project layout (alphabetic/numeric naming)"
+        },
+        {
+            "commandName": "create_structural_framing_system",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create structural beam framing system with configurable spacing and direction"
+        },
+        {
+            "commandName": "create_room",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create and place rooms at specified locations with custom names, numbers, and properties"
+        },
+        {
+            "commandName": "tag_rooms",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create tags for all rooms in the current view displaying room name and number"
+        },
+        {
+            "commandName": "create_level",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create levels at specified elevations with automatic floor plan view generation"
+        },
+        {
+            "commandName": "send_code_to_revit",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Execute dynamic C# code in Revit with access to the Document and Revit API"
+        },
+        {
+            "commandName": "create_dimensions",
+            "assemblyPath": "RevitMCPCommandSet\\{VERSION}\\RevitMCPCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "mcp-servers-for-revit", "email": "", "website": "", "organization": "mcp-servers-for-revit" },
+            "description": "Create dimension annotations between elements or points in the current view"
+        },
+        {
+            "commandName": "extract_dwg_curves",
+            "assemblyPath": "DwgCommandSet\\{VERSION}\\DwgCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Extract curve geometry (layer, type, endpoints, arc/ellipse parameters, tessellated polyline) from an imported or linked DWG. Omit dwgNameOrId to list available DWGs."
+        },
+        {
+            "commandName": "create_model_lines_from_dwg_layer",
+            "assemblyPath": "DwgCommandSet\\{VERSION}\\DwgCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Draw one DWG layer's curves as Revit model lines (lines, 3-point arcs, or tessellated polylines) on a sketch plane at the layer's median elevation."
+        },
+        {
+            "commandName": "create_grids_from_dwg_layer",
+            "assemblyPath": "DwgCommandSet\\{VERSION}\\DwgCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Generate Revit grids from long straight lines on one DWG layer, ordered by angle then position and labeled with a single alphabetic/numeric sequence."
+        },
+        {
+            "commandName": "create_walls_from_dwg_layer",
+            "assemblyPath": "DwgCommandSet\\{VERSION}\\DwgCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Generate Revit walls from paired face lines on one or more DWG layers (comma-separated): collinear fragments merge into rails, duplicate pen lines are removed, parallel rail pairs within a thickness range map to the nearest wall type by thickness; short jamb pairs and door-swing spans are rejected."
+        },
+        {
+            "commandName": "create_walls_from_dwg_poche",
+            "assemblyPath": "DwgCommandSet\\{VERSION}\\DwgCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Generate Revit walls from hatch boundary loops (poche regions) in a DWG: every closed polyline loop becomes a pochAc region, collinear edges within each loop merge into straight runs, runs pair as wall faces with exact corners, and collinear pieces across loops merge independently; thickness maps to the nearest wall type."
+        },
+        {
+            "commandName": "detect_off_axis_hybrid",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Detect off-axis elements and sketches using Revit's native warning engine"
+        },
+        {
+            "commandName": "detect_off_axis_lines",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Scan model geometry for lines with angular deviation between minAngleDeg and maxAngleDeg"
+        },
+        {
+            "commandName": "detect_spacing_elements",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Detect walls and beams off the 1/4 inch perpendicular regularized grid lattice"
+        },
+        {
+            "commandName": "fix_off_axis_walls_and_beams",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Snap endpoints of slightly off-axis walls and structural framing beams to nearest 0/45/90 orientation"
+        },
+        {
+            "commandName": "fix_off_axis_grids",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Rotate slightly off-axis 3D grid lines about their midpoint to nearest 0/45/90 orientation"
+        },
+        {
+            "commandName": "fix_off_axis_reference_planes",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Snap normal of slightly off-axis vertical reference planes to nearest 0/45/90 orientation"
+        },
+        {
+            "commandName": "fix_off_axis_sketches",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Fix off-axis sketch profiles of Floors, Ceilings, and FootPrintRoofs using ray-ray corner solver"
+        },
+        {
+            "commandName": "fix_off_axis_inplace",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Fix off-axis sketch lines in In-Place Component Extrusion sketch forms"
+        },
+        {
+            "commandName": "fix_off_axis_model_lines",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Fix off-axis top-level model lines and curve chains using ray-ray closure solver"
+        },
+        {
+            "commandName": "fix_spacing_elements",
+            "assemblyPath": "OffAxisCommandSet\\{VERSION}\\OffAxisCommandSet.dll",
+            "enabled": true,
+            "supportedRevitVersions": ["2024"],
+            "developer": { "name": "Scott Mitchell Studio", "email": "chris@scottmitchellstudio.com", "website": "https://scottmitchellstudio.com", "organization": "Scott Mitchell Studio" },
+            "description": "Regularize perpendicular spacing of walls and beams onto a 1/4 inch lattice"
+        }
+    ]
+}

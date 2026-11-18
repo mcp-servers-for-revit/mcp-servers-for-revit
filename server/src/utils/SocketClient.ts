@@ -1,4 +1,5 @@
 import * as net from "net";
+import { isCommandAvailable, REGISTERED_COMMANDS_METHOD } from "./ToolAvailability.js";
 
 export class RevitClientConnection {
   host: string;
@@ -21,11 +22,11 @@ export class RevitClientConnection {
     });
 
     this.socket.on("data", (data) => {
-      // 将接收到的数据添加到缓冲区
+      // Append the received data to the buffer
       const dataString = data.toString();
       this.buffer += dataString;
 
-      // 尝试解析完整的JSON响应
+      // Try to parse the complete JSON response
       this.processBuffer();
     });
 
@@ -41,13 +42,13 @@ export class RevitClientConnection {
 
   private processBuffer(): void {
     try {
-      // 尝试解析JSON
+      // Try to parse JSON
       const response = JSON.parse(this.buffer);
-      // 如果成功解析，处理响应并清空缓冲区
+      // If parsing succeeds, handle the response and clear the buffer
       this.handleResponse(this.buffer);
       this.buffer = "";
     } catch (e) {
-      // 如果解析失败，可能是因为数据不完整，继续等待更多数据
+      // If parsing fails, the data may be incomplete; keep waiting for more data
     }
   }
 
@@ -77,7 +78,7 @@ export class RevitClientConnection {
   private handleResponse(responseData: string): void {
     try {
       const response = JSON.parse(responseData);
-      // 从响应中获取ID
+      // Extract the ID from the response
       const requestId = response.id || "default";
 
       const callback = this.responseCallbacks.get(requestId);
@@ -93,14 +94,31 @@ export class RevitClientConnection {
   public sendCommand(command: string, params: any = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
+        // Dynamic tool advertisement: don't dispatch commands the plugin has
+        // reported as unregistered - fail with an actionable message instead
+        // of a bare JSON-RPC Method-not-found from the plugin.
+        if (
+          command !== REGISTERED_COMMANDS_METHOD &&
+          !isCommandAvailable(command)
+        ) {
+          reject(
+            new Error(
+              `Command '${command}' is not enabled in the current Revit session ` +
+                `(command set not loaded or disabled). Enable it in the Revit MCP ` +
+                `Settings window or run reload_command_set, then retry.`
+            )
+          );
+          return;
+        }
+
         if (!this.isConnected) {
           this.connect();
         }
 
-        // 生成请求ID
+        // Generate a request ID
         const requestId = this.generateRequestId();
 
-        // 创建符合JSON-RPC标准的请求对象
+        // Create a JSON-RPC compliant request object
         const commandObj = {
           jsonrpc: "2.0",
           method: command,
@@ -108,7 +126,7 @@ export class RevitClientConnection {
           id: requestId,
         };
 
-        // 存储回调函数
+        // Store the callback function
         this.responseCallbacks.set(requestId, (responseData) => {
           try {
             const response = JSON.parse(responseData);
@@ -128,17 +146,17 @@ export class RevitClientConnection {
           }
         });
 
-        // 发送命令
+        // Send the command
         const commandString = JSON.stringify(commandObj);
         this.socket.write(commandString);
 
-        // 设置超时
+        // Set a timeout
         setTimeout(() => {
           if (this.responseCallbacks.has(requestId)) {
             this.responseCallbacks.delete(requestId);
             reject(new Error(`Command timed out after 2 minutes: ${command}`));
           }
-        }, 120000); // 2分钟超时
+        }, 120000); // 2 minute timeout
       } catch (error) {
         reject(error);
       }

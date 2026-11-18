@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  installer-config:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test OpenCode config helper
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File installer/test-opencode-config.ps1
+      - name: Test legacy client-config logic
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File installer/test-client-config-logic.ps1
+
+  server-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install and build server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+      - name: MCP stdio smoke test
+        working-directory: server
+        run: npm run test:smoke

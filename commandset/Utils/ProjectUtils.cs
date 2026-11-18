@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Commands;
 using RevitMCPCommandSet.Models.Common;
@@ -10,20 +10,20 @@ namespace RevitMCPCommandSet.Utils
     public static class ProjectUtils
     {
         /// <summary>
-        /// 创建族实例的通用方法
+        /// Generic method for creating a family instance
         /// </summary>
-        /// <param name="doc">当前文档</param>
-        /// <param name="familySymbol">族类型</param>
-        /// <param name="locationPoint">位置点</param>
-        /// <param name="locationLine">基准线</param>
-        /// <param name="baseLevel">底部标高</param>
-        /// <param name="topLevel">第二个标高(用于TwoLevelsBased)</param>
-        /// <param name="baseOffset">底部偏移（ft）</param>
-        /// <param name="topOffset">顶部偏移（ft）</param>
-        /// <param name="faceDirection">参考方向</param>
-        /// <param name="handDirection">参考方向</param>
-        /// <param name="view">视图</param>
-        /// <returns>创建的族实例，失败返回null</returns>
+        /// <param name="doc">Current document</param>
+        /// <param name="familySymbol">Family type</param>
+        /// <param name="locationPoint">Location point</param>
+        /// <param name="locationLine">Base line</param>
+        /// <param name="baseLevel">Base level</param>
+        /// <param name="topLevel">Second level (used for TwoLevelsBased)</param>
+        /// <param name="baseOffset">Base offset (ft)</param>
+        /// <param name="topOffset">Top offset (ft)</param>
+        /// <param name="faceDirection">Reference direction</param>
+        /// <param name="handDirection">Reference direction</param>
+        /// <param name="view">View</param>
+        /// <returns>The created family instance, or null on failure</returns>
         public static FamilyInstance CreateInstance(
             this Document doc,
             FamilySymbol familySymbol,
@@ -39,48 +39,48 @@ namespace RevitMCPCommandSet.Utils
             Element explicitHost = null,
             bool snapToHostCenter = true)
         {
-            // 基本参数检查
+            // Basic parameter validation
             if (doc == null)
-                throw new ArgumentNullException($"必要参数{typeof(Document)} {nameof(doc)}缺失！");
+                throw new ArgumentNullException($"Required parameter {typeof(Document)} {nameof(doc)} is missing!");
             if (familySymbol == null)
-                throw new ArgumentNullException($"必要参数{typeof(FamilySymbol)} {nameof(familySymbol)}缺失！");
+                throw new ArgumentNullException($"Required parameter {typeof(FamilySymbol)} {nameof(familySymbol)} is missing!");
 
-            // 激活族模型
+            // Activate the family
             if (!familySymbol.IsActive)
                 familySymbol.Activate();
 
             FamilyInstance instance = null;
 
-            // 根据族的放置类型选择创建方法
+            // Choose the creation method based on the family's placement type
             switch (familySymbol.Family.FamilyPlacementType)
             {
-                // 基于单个标高的族（如：公制常规模型）
+                // One-level based family (e.g., Metric Generic Model)
                 case FamilyPlacementType.OneLevelBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
-                    // 带标高信息
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                    // With level info
                     if (baseLevel != null)
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationPoint,                  // 实例将被放置的物理位置
-                            familySymbol,                   // 表示要插入的实例类型的 FamilySymbol 对象
-                            baseLevel,                      // 用作对象基准标高的 Level 对象
-                            StructuralType.NonStructural);  // 如果是结构构件，则指定构件的类型
+                            locationPoint,                  // The physical position where the instance will be placed
+                            familySymbol,                   // The FamilySymbol object representing the type of instance to insert
+                            baseLevel,                      // The Level object used as the base level of the object
+                            StructuralType.NonStructural);  // The type of member if it is a structural member
                     }
-                    // 不带标高信息
+                    // Without level info
                     else
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationPoint,                  // 实例将被放置的物理位置
-                            familySymbol,                   // 表示要插入的实例类型的 FamilySymbol 对象
-                            StructuralType.NonStructural);  // 如果是结构构件，则指定构件的类型
+                            locationPoint,                  // The physical position where the instance will be placed
+                            familySymbol,                   // The FamilySymbol object representing the type of instance to insert
+                            StructuralType.NonStructural);  // The type of member if it is a structural member
                     }
                     break;
 
-                // 基于单个标高和主体的族（如：门、窗）
+                // One-level based hosted family (e.g., doors, windows)
                 case FamilyPlacementType.OneLevelBasedHosted:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
 
                     Element host = explicitHost;
                     XYZ placementPoint = locationPoint;
@@ -110,13 +110,13 @@ namespace RevitMCPCommandSet.Utils
                         }
                         else
                         {
-                            // Fall back to original ray-casting method
+                        // Fall back to the original ray-casting method
                             host = doc.GetNearestHostElement(locationPoint, familySymbol);
                         }
                     }
 
                     if (host == null)
-                        throw new ArgumentNullException($"找不到合规的的宿主信息！");
+                        throw new ArgumentNullException("No valid host found!");
 
                     if (baseLevel != null)
                     {
@@ -147,25 +147,25 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // 基于两个标高的族（如：柱子）
+                // Two-level based family (e.g., columns)
                 case FamilyPlacementType.TwoLevelsBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Level)} {nameof(baseLevel)}缺失！");
-                    // 判断是结构柱还是建筑柱
+                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} is missing!");
+                    // Determine whether it is a structural or architectural column
                     StructuralType structuralType = StructuralType.NonStructural;
                     if (familySymbol.Category.Id.GetIntValue() == (int)BuiltInCategory.OST_StructuralColumns)
                         structuralType = StructuralType.Column;
                     instance = doc.Create.NewFamilyInstance(
-                        locationPoint,              // 实例将被放置的物理位置
-                        familySymbol,               // 表示要插入的实例类型的 FamilySymbol 对象
-                        baseLevel,                  // 用作对象基准标高的 Level 对象
-                        structuralType);            // 如果是结构构件，则指定构件的类型
-                    // 设置底部标高、顶部标高、底部偏移、顶部偏移
+                        locationPoint,              // The physical position where the instance will be placed
+                        familySymbol,               // The FamilySymbol object representing the type of instance to insert
+                        baseLevel,                  // The Level object used as the base level of the object
+                        structuralType);            // The type of member if it is a structural member
+                    // Set base level, top level, base offset, and top offset
                     if (instance != null)
                     {
-                        // 设置柱子的基准标高和顶部标高
+                        // Set the column's base level and top level
                         if (baseLevel != null)
                         {
                             Parameter baseLevelParam = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
@@ -178,24 +178,24 @@ namespace RevitMCPCommandSet.Utils
                             if (topLevelParam != null)
                                 topLevelParam.Set(topLevel.Id);
                         }
-                        // 获取底部偏移参数
+                        // Get the base offset parameter
                         if (baseOffset != -1)
                         {
                             Parameter baseOffsetParam = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM);
                             if (baseOffsetParam != null && baseOffsetParam.StorageType == StorageType.Double)
                             {
-                                // 将毫米转换为Revit内部单位
+                                // Convert mm to Revit internal units
                                 double baseOffsetInternal = baseOffset;
                                 baseOffsetParam.Set(baseOffsetInternal);
                             }
                         }
-                        // 获取顶部偏移参数
+                        // Get the top offset parameter
                         if (topOffset != -1)
                         {
                             Parameter topOffsetParam = instance.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM);
                             if (topOffsetParam != null && topOffsetParam.StorageType == StorageType.Double)
                             {
-                                // 将毫米转换为Revit内部单位
+                                // Convert mm to Revit internal units
                                 double topOffsetInternal = topOffset;
                                 topOffsetParam.Set(topOffsetInternal);
                             }
@@ -203,68 +203,68 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // 族是视图专有的（例如，详图注释）
+                // View-specific family (e.g., detail annotations)
                 case FamilyPlacementType.ViewBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationPoint,  // 族实例的原点。如果创建在平面视图（ViewPlan）上，该原点将被投影到平面视图上
-                        familySymbol,   // 表示要插入的实例类型的族符号对象
-                        view);          // 放置族实例的2D视图
+                        locationPoint,  // The origin of the family instance. If created in a plan view (ViewPlan), this origin is projected onto the plane view
+                        familySymbol,   // The family symbol object representing the type of instance to insert
+                        view);          // The 2D view in which the family instance is placed
                     break;
 
-                // 基于工作平面的族（如：基于面的公制常规模型，包括基于面、基于墙等）
+                // Work-plane based family (e.g., Metric face-based generic model, including face-based, wall-based, etc.)
                 case FamilyPlacementType.WorkPlaneBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"必要参数{typeof(XYZ)} {nameof(locationPoint)}缺失！");
-                    // 获取最近的宿主面
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                    // Get the nearest host face
                     Reference hostFace = doc.GetNearestFaceReference(locationPoint, 1000 / 304.8);
                     if (hostFace == null)
-                        throw new ArgumentNullException($"找不到合规的的宿主信息！");
+                        throw new ArgumentNullException("No valid host found!");
                     if (faceDirection == null || faceDirection == XYZ.Zero)
                     {
                         var result = doc.GenerateDefaultOrientation(hostFace);
                         faceDirection = result.FacingOrientation;
                     }
-                    // 使用点和方向在面上创建族实例
+                    // Create the family instance on the face using the point and direction
                     instance = doc.Create.NewFamilyInstance(
-                        hostFace,               // 对面的引用  
-                        locationPoint,          // 实例将被放置的面上的点
-                        faceDirection,          // 定义族实例方向的向量。请注意，此方向定义了实例在面上的旋转，因此不能与面法线平行
-                        familySymbol);          // 表示要插入的实例类型的 FamilySymbol 对象。请注意，此FamilySymbol必须表示 FamilyPlacementType 为 WorkPlaneBased 的族
+                        hostFace,               // The reference to the face  
+                        locationPoint,          // The point on the face where the instance will be placed
+                        faceDirection,          // The vector defining the orientation of the family instance. Note that this orientation defines the rotation of the instance on the face, so it must not be parallel to the face normal
+                        familySymbol);          // The FamilySymbol object representing the type of instance to insert. Note that this FamilySymbol must represent a family whose FamilyPlacementType is WorkPlaneBased
                     break;
 
-                // 基于线且在工作平面上的族（如：基于线的公制常规模型）
+                // Curve based, on work-plane family (e.g., Metric line-based generic model)
                 case FamilyPlacementType.CurveBased:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
 
-                    // 获取最近的宿主面（不允许有误差）
+                    // Get the nearest host face (no tolerance allowed)
                     Reference lineHostFace = doc.GetNearestFaceReference(locationLine.Evaluate(0.5, true), 1e-5);
                     if (lineHostFace != null)
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            lineHostFace,   // 对面的引用 
-                            locationLine,   // 族实例基于的曲线
-                            familySymbol);  // 一个FamilySymbol对象，表示要插入的实例的类型。请注意，此Symbol必须表示其 FamilyPlacementType 为 WorkPlaneBased 或 CurveBased 的族
+                            lineHostFace,   // The reference to the face
+                            locationLine,   // The curve on which the family instance is based
+                            familySymbol);  // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
                     }
                     else
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationLine,                   // 族实例基于的曲线
-                            familySymbol,                   // 一个FamilySymbol对象，表示要插入的实例的类型。请注意，此Symbol必须表示其 FamilyPlacementType 为 WorkPlaneBased 或 CurveBased 的族
-                            baseLevel,                      // 一个Level对象，用作该对象的基准标高
-                            StructuralType.NonStructural);  // 如果是结构构件，则指定构件的类型
+                            locationLine,                   // The curve on which the family instance is based
+                            familySymbol,                   // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
+                            baseLevel,                      // A Level object used as the base level of the object
+                            StructuralType.NonStructural);  // The type of member if it is a structural member
                     }
                     if (instance != null)
                     {
-                        // 获取底部偏移参数
+                        // Get the base offset parameter
                         if (baseOffset != -1)
                         {
                             Parameter baseOffsetParam = instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM);
                             if (baseOffsetParam != null && baseOffsetParam.StorageType == StorageType.Double)
                             {
-                                // 将毫米转换为Revit内部单位
+                                // Convert mm to Revit internal units
                                 double baseOffsetInternal = baseOffset;
                                 baseOffsetParam.Set(baseOffsetInternal);
                             }
@@ -272,34 +272,34 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // 基于线且在特定视图中的族（如：详图组件）
+                // Curve based, in a specific view family (e.g., detail components)
                 case FamilyPlacementType.CurveBasedDetail:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
                     if (view == null)
-                        throw new ArgumentNullException($"必要参数{typeof(View)} {nameof(view)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(View)} {nameof(view)} is missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationLine,   // 族实例的线位置。该线必须位于视图平面内
-                        familySymbol,   // 表示要插入的实例类型的族符号对象
-                        view);          // 放置族实例的2D视图
+                        locationLine,   // The line location of the family instance. The line must lie in the view plane
+                        familySymbol,   // The family symbol object representing the type of instance to insert
+                        view);          // The 2D view in which the family instance is placed
                     break;
 
-                // 结构曲线驱动的族（如：梁、支撑或斜柱）
+                // Curve-driven structural family (e.g., beams, braces, or sloped columns)
                 case FamilyPlacementType.CurveDrivenStructural:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Line)} {nameof(locationLine)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"必要参数{typeof(Level)} {nameof(baseLevel)}缺失！");
+                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} is missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationLine,                   // 族实例基于的曲线
-                        familySymbol,                   // 一个FamilySymbol对象，表示要插入的实例的类型。请注意，此Symbol必须表示其 FamilyPlacementType 为 WorkPlaneBased 或 CurveBased 的族
-                        baseLevel,                      // 一个Level对象，用作该对象的基准标高
-                        StructuralType.Beam);           // 如果是结构构件，则指定构件的类型
+                        locationLine,                   // The curve on which the family instance is based
+                        familySymbol,                   // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
+                        baseLevel,                      // A Level object used as the base level of the object
+                        StructuralType.Beam);           // The type of member if it is a structural member
                     break;
 
-                // 适应性族（如：自适应公制常规模型、幕墙嵌板）
+                // Adaptive family (e.g., Metric Adaptive Generic Model, curtain wall panels)
                 case FamilyPlacementType.Adaptive:
-                    throw new NotImplementedException("未实现FamilyPlacementType.Adaptive创建方法！");
+                    throw new NotImplementedException("FamilyPlacementType.Adaptive creation is not implemented!");
 
                 default:
                     break;
@@ -308,60 +308,60 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 生成默认的朝向和手向（默认长边是HandOrientation，短边是FacingOrientation）
+        /// Generates default facing and hand orientations (by default the long edge is HandOrientation, the short edge is FacingOrientation)
         /// </summary>
         /// <param name="hostFace"></param>
         /// <returns></returns>
         public static (XYZ FacingOrientation, XYZ HandOrientation) GenerateDefaultOrientation(this Document doc, Reference hostFace)
         {
-            var facingOrientation = new XYZ();  // 朝向方向：族内Y轴正方向在载入后的朝向
-            var handOrientation = new XYZ();    // 手向方向：族内X轴正方向在载入后的朝向
+            var facingOrientation = new XYZ();  // Facing orientation: the orientation of the family's positive Y axis after loading
+            var handOrientation = new XYZ();    // Hand orientation: the orientation of the family's positive X axis after loading
 
-            // Step1 从Reference中获取面对象
+            // Step1: get the Face object from the Reference
             Face face = doc.GetElement(hostFace.ElementId).GetGeometryObjectFromReference(hostFace) as Face;
 
-            // Step2 获取面轮廓
+            // Step2: get the face profile
             List<Curve> profile = null;
-            // 轮廓线集合，每个子列表代表一个完整闭合轮廓，第一个通常为外轮廓
+            // Collection of profile loops; each sub-list represents one complete closed loop, the first usually being the outer outline
             List<List<Curve>> profiles = new List<List<Curve>>();
-            // 获取所有轮廓循环（外轮廓和可能的内部孔洞）
+            // Get all profile loops (outer outline and possible inner holes)
             EdgeArrayArray edgeLoops = face.EdgeLoops;
-            // 遍历每个轮廓循环
+            // Iterate over each profile loop
             foreach (EdgeArray loop in edgeLoops)
             {
                 List<Curve> currentLoop = new List<Curve>();
-                // 获取循环中的每条边
+                // Get each edge in the loop
                 foreach (Edge edge in loop)
                 {
                     Curve curve = edge.AsCurve();
                     currentLoop.Add(curve);
                 }
-                // 如果当前循环有边，则添加到结果集合
+                // If the current loop has edges, add it to the results collection
                 if (currentLoop.Count > 0)
                 {
                     profiles.Add(currentLoop);
                 }
             }
-            // 第一个通常为外轮廓
+            // The first one is usually the outer outline
             if (profiles != null && profiles.Any())
                 profile = profiles.FirstOrDefault();
 
-            // Step3 获取面法向量
+            // Step3: get the face normal vector
             XYZ faceNormal = null;
-            // 如果是平面，可以直接获取法向量属性
+            // If it is a planar face, the normal vector property can be obtained directly
             if (face is PlanarFace planarFace)
                 faceNormal = planarFace.FaceNormal;
 
-            // Step4 获取面的两个合规的（符合右手螺旋定则）主方向
+            // Step4: get the two valid (right-hand rule compliant) primary directions of the face
             var result = face.GetMainDirections();
             var primaryDirection = result.PrimaryDirection;
             var secondaryDirection = result.SecondaryDirection;
 
-            // 默认长边方向就是HandOrientation，短边方向就是FacingOrientation
+            // By default the long edge direction is HandOrientation and the short edge direction is FacingOrientation
             facingOrientation = primaryDirection;
             handOrientation = secondaryDirection;
 
-            // 判断是否符合右手定则（拇指：HandOrientation，食指：FacingOrientation，中指：FaceNormal）
+            // Check compliance with the right-hand rule (thumb: HandOrientation, index finger: FacingOrientation, middle finger: FaceNormal)
             if (!facingOrientation.IsRightHandRuleCompliant(handOrientation, faceNormal))
             {
                 var newHandOrientation = facingOrientation.GenerateIndexFinger(faceNormal);
@@ -375,20 +375,20 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 获取距离点最近的面Reference
+        /// Gets the Reference of the face nearest to a point
         /// </summary>
-        /// <param name="doc">当前文档</param>
-        /// <param name="location">目标点位置</param>
-        /// <param name="radius">搜索半径（内部单位）</param>
-        /// <returns>最近面的Reference，未找到返回null</returns>
+        /// <param name="doc">Current document</param>
+        /// <param name="location">Target point position</param>
+        /// <param name="radius">Search radius (internal units)</param>
+        /// <returns>The Reference of the nearest face, or null if not found</returns>
         public static Reference GetNearestFaceReference(this Document doc, XYZ location, double radius = 1000 / 304.8)
         {
             try
             {
-                // 误差处理
+                // Tolerance handling
                 location = new XYZ(location.X, location.Y, location.Z + 0.1 / 304.8);
 
-                // 创建或获取3D视图
+                // Create or get a 3D view
                 View3D view3D = null;
                 FilteredElementCollector collector = new FilteredElementCollector(doc)
                     .OfClass(typeof(View3D));
@@ -422,53 +422,53 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("错误", "无法创建或获取3D视图");
+                    TaskDialog.Show("Error", "Unable to create or get a 3D view");
                     return null;
                 }
 
-                // 设置6个方向的射线
+                // Set up rays in the 6 directions
                 XYZ[] directions = new XYZ[]
                 {
-                  XYZ.BasisX,    // X正向
-                  -XYZ.BasisX,   // X负向
-                  XYZ.BasisY,    // Y正向
-                  -XYZ.BasisY,   // Y负向
-                  XYZ.BasisZ,    // Z正向
-                  -XYZ.BasisZ    // Z负向
+                  XYZ.BasisX,    // +X
+                  -XYZ.BasisX,   // -X
+                  XYZ.BasisY,    // +Y
+                  -XYZ.BasisY,   // -Y
+                  XYZ.BasisZ,    // +Z
+                  -XYZ.BasisZ    // -Z
                 };
 
-                // 创建过滤器
+                // Create filters
                 ElementClassFilter wallFilter = new ElementClassFilter(typeof(Wall));
                 ElementClassFilter floorFilter = new ElementClassFilter(typeof(Floor));
                 ElementClassFilter ceilingFilter = new ElementClassFilter(typeof(Ceiling));
                 ElementClassFilter instanceFilter = new ElementClassFilter(typeof(FamilyInstance));
 
-                // 组合过滤器
+                // Combine filters
                 LogicalOrFilter categoryFilter = new LogicalOrFilter(
                     new ElementFilter[] { wallFilter, floorFilter, ceilingFilter, instanceFilter });
 
 
-                // 1. 最简单：所有实例化元素的过滤器
+                // 1. Simplest: filter for all instantiated elements
                 //ElementFilter filter = new ElementIsElementTypeFilter(true);
 
-                // 创建射线追踪器
+                // Create the ray tracer
                 ReferenceIntersector refIntersector = new ReferenceIntersector(categoryFilter,
                     FindReferenceTarget.Face, view3D);
-                refIntersector.FindReferencesInRevitLinks = true; // 如果需要查找链接文件中的面
+                refIntersector.FindReferencesInRevitLinks = true; // If faces in linked files need to be found
 
                 double minDistance = double.MaxValue;
                 Reference nearestFace = null;
 
                 foreach (XYZ direction in directions)
                 {
-                    // 从当前位置发射射线
+                    // Fire a ray from the current position
                     IList<ReferenceWithContext> references = refIntersector.Find(location, direction);
 
                     foreach (ReferenceWithContext rwc in references)
                     {
-                        double distance = rwc.Proximity; // 获取到面的距离
+                        double distance = rwc.Proximity; // Get the distance to the face
 
-                        // 如果在搜索范围内且距离更近
+                        // If within the search range and closer
                         if (distance <= radius && distance < minDistance)
                         {
                             minDistance = distance;
@@ -481,32 +481,32 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("错误", $"获取最近面时发生错误：{ex.Message}");
+                TaskDialog.Show("Error", $"Error occurred while getting the nearest face: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// 获取距离点最近的可作为宿主的元素
+        /// Gets the element nearest to a point that can serve as a host
         /// </summary>
-        /// <param name="doc">当前文档</param>
-        /// <param name="location">目标点位置</param>
-        /// <param name="familySymbol">族类型，用于判断宿主类型</param>
-        /// <param name="radius">搜索半径（内部单位）</param>
-        /// <returns>最近的宿主元素，未找到返回null</returns>
+        /// <param name="doc">Current document</param>
+        /// <param name="location">Target point position</param>
+        /// <param name="familySymbol">Family type, used to determine the host type</param>
+        /// <param name="radius">Search radius (internal units)</param>
+        /// <returns>The nearest host element, or null if not found</returns>
         public static Element GetNearestHostElement(this Document doc, XYZ location, FamilySymbol familySymbol, double radius = 5.0)
         {
             try
             {
-                // 基本参数检查
+                // Basic parameter validation
                 if (doc == null || location == null || familySymbol == null)
                     return null;
 
-                // 获取族的宿主行为参数
+                // Get the family's hosting behavior parameter
                 Parameter hostParam = familySymbol.Family.get_Parameter(BuiltInParameter.FAMILY_HOSTING_BEHAVIOR);
                 int hostingBehavior = hostParam?.AsInteger() ?? 0;
 
-                // 创建或获取3D视图
+                // Create or get a 3D view
                 View3D view3D = null;
                 FilteredElementCollector viewCollector = new FilteredElementCollector(doc)
                     .OfClass(typeof(View3D));
@@ -539,11 +539,11 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("错误", "无法创建或获取3D视图");
+                    TaskDialog.Show("Error", "Unable to create or get a 3D view");
                     return null;
                 }
 
-                // 根据宿主行为创建类型过滤器
+                // Create the class filter based on hosting behavior
                 ElementFilter classFilter;
                 switch (hostingBehavior)
                 {
@@ -560,38 +560,38 @@ namespace RevitMCPCommandSet.Utils
                         classFilter = new ElementClassFilter(typeof(RoofBase));
                         break;
                     default:
-                        return null; // 不支持的宿主类型
+                        return null; // Unsupported host type
                 }
 
-                // 设置6个方向的射线
+                // Set up rays in the 6 directions
                 XYZ[] directions = new XYZ[]
                 {
-                    XYZ.BasisX,    // X正向
-                    -XYZ.BasisX,   // X负向
-                    XYZ.BasisY,    // Y正向
-                    -XYZ.BasisY,   // Y负向
-                    XYZ.BasisZ,    // Z正向
-                    -XYZ.BasisZ    // Z负向
+                    XYZ.BasisX,    // +X
+                    -XYZ.BasisX,   // -X
+                    XYZ.BasisY,    // +Y
+                    -XYZ.BasisY,   // -Y
+                    XYZ.BasisZ,    // +Z
+                    -XYZ.BasisZ    // -Z
                 };
 
-                // 创建射线追踪器
+                // Create the ray tracer
                 ReferenceIntersector refIntersector = new ReferenceIntersector(classFilter,
                     FindReferenceTarget.Element, view3D);
-                refIntersector.FindReferencesInRevitLinks = true; // 如果需要查找链接文件中的元素
+                refIntersector.FindReferencesInRevitLinks = true; // If elements in linked files need to be found
 
                 double minDistance = double.MaxValue;
                 Element nearestHost = null;
 
                 foreach (XYZ direction in directions)
                 {
-                    // 从当前位置发射射线
+                    // Fire a ray from the current position
                     IList<ReferenceWithContext> references = refIntersector.Find(location, direction);
 
                     foreach (ReferenceWithContext rwc in references)
                     {
-                        double distance = rwc.Proximity; // 获取到元素的距离
+                        double distance = rwc.Proximity; // Get the distance to the element
 
-                        // 如果在搜索范围内且距离更近
+                        // If within the search range and closer
                         if (distance <= radius && distance < minDistance)
                         {
                             minDistance = distance;
@@ -604,7 +604,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("错误", $"获取最近宿主元素时发生错误：{ex.Message}");
+                TaskDialog.Show("Error", $"Error occurred while getting the nearest host element: {ex.Message}");
                 return null;
             }
         }
@@ -681,16 +681,16 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 高亮显示指定的面
+        /// Highlights the specified face
         /// </summary>
-        /// <param name="doc">当前文档</param>
-        /// <param name="faceRef">要高亮显示的面Reference</param>
-        /// <param name="duration">高亮持续时间(毫秒)，默认3000毫秒</param>
+        /// <param name="doc">Current document</param>
+        /// <param name="faceRef">The Reference of the face to highlight</param>
+        /// <param name="duration">Highlight duration (ms); defaults to 3000 ms</param>
         public static void HighlightFace(this Document doc, Reference faceRef)
         {
             if (faceRef == null) return;
 
-            // 获取实心填充图案
+            // Get the solid fill pattern
             FillPatternElement solidFill = new FilteredElementCollector(doc)
                 .OfClass(typeof(FillPatternElement))
                 .Cast<FillPatternElement>()
@@ -698,48 +698,48 @@ namespace RevitMCPCommandSet.Utils
 
             if (solidFill == null)
             {
-                TaskDialog.Show("错误", "未找到实心填充图案");
+                TaskDialog.Show("Error", "Solid fill pattern not found");
                 return;
             }
 
-            // 创建高亮显示设置
+            // Create the highlight settings
             OverrideGraphicSettings ogs = new OverrideGraphicSettings();
-            ogs.SetSurfaceForegroundPatternColor(new Color(255, 0, 0)); // 红色
+            ogs.SetSurfaceForegroundPatternColor(new Color(255, 0, 0)); // Red
             ogs.SetSurfaceForegroundPatternId(solidFill.Id);
-            ogs.SetSurfaceTransparency(0); // 不透明
+            ogs.SetSurfaceTransparency(0); // Opaque
 
-            // 高亮显示
+            // Apply the highlight
             doc.ActiveView.SetElementOverrides(faceRef.ElementId, ogs);
         }
 
         /// <summary>
-        /// 提取面的两个主要方向向量
+        /// Extracts the two primary direction vectors of a face
         /// </summary>
-        /// <param name="face">输入面</param>
-        /// <returns>包含主方向和次方向的元组</returns>
-        /// <exception cref="ArgumentNullException">当面为空时抛出</exception>
-        /// <exception cref="ArgumentException">当面的轮廓不足以形成有效形状时抛出</exception>
-        /// <exception cref="InvalidOperationException">当无法提取有效方向时抛出</exception>
+        /// <param name="face">Input face</param>
+        /// <returns>A tuple containing the primary and secondary directions</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the face is null</exception>
+        /// <exception cref="ArgumentException">Thrown when the face's outline is insufficient to form a valid shape</exception>
+        /// <exception cref="InvalidOperationException">Thrown when valid directions cannot be extracted</exception>
         public static (XYZ PrimaryDirection, XYZ SecondaryDirection) GetMainDirections(this Face face)
         {
-            // 1. 参数验证
+            // 1. Parameter validation
             if (face == null)
-                throw new ArgumentNullException(nameof(face), "面不能为空");
+                throw new ArgumentNullException(nameof(face), "Face cannot be null");
 
-            // 2. 获取面的法向量，用于后续可能需要的垂直向量计算
+            // 2. Get the face normal vector, used for any later perpendicular vector calculations
             XYZ faceNormal = face.ComputeNormal(new UV(0.5, 0.5));
 
-            // 3. 获取面的外轮廓
+            // 3. Get the face's outer outline
             EdgeArrayArray edgeLoops = face.EdgeLoops;
             if (edgeLoops.Size == 0)
-                throw new ArgumentException("面没有有效的边循环", nameof(face));
+                throw new ArgumentException("The face has no valid edge loops", nameof(face));
 
-            // 通常第一个循环是外轮廓
+            // Usually the first loop is the outer outline
             EdgeArray outerLoop = edgeLoops.get_Item(0);
 
-            // 4. 计算每条边的方向向量和长度
-            List<XYZ> edgeDirections = new List<XYZ>();  // 存储每条边的单位向量方向
-            List<double> edgeLengths = new List<double>(); // 存储每条边的长度
+            // 4. Compute the direction vector and length of each edge
+            List<XYZ> edgeDirections = new List<XYZ>();  // Stores the unit direction vector of each edge
+            List<double> edgeLengths = new List<double>(); // Stores the length of each edge
 
             foreach (Edge edge in outerLoop)
             {
@@ -747,49 +747,49 @@ namespace RevitMCPCommandSet.Utils
                 XYZ startPoint = curve.GetEndPoint(0);
                 XYZ endPoint = curve.GetEndPoint(1);
 
-                // 计算从起点到终点的向量
+                // Compute the vector from start to end point
                 XYZ direction = endPoint - startPoint;
                 double length = direction.GetLength();
 
-                // 忽略太短的边（可能是由于顶点重合或数值精度问题）
+                // Ignore edges that are too short (possibly due to coincident vertices or numerical precision issues)
                 if (length > 1e-10)
                 {
-                    edgeDirections.Add(direction.Normalize());  // 存储归一化后的方向向量
-                    edgeLengths.Add(length);                    // 存储边长
+                    edgeDirections.Add(direction.Normalize());  // Store the normalized direction vector
+                    edgeLengths.Add(length);                    // Store the edge length
                 }
             }
 
-            if (edgeDirections.Count < 4) // 确保至少有4条边
+            if (edgeDirections.Count < 4) // Ensure there are at least 4 edges
             {
-                throw new ArgumentException("提供的面没有足够的边来形成有效的形状", nameof(face));
+                throw new ArgumentException("The provided face does not have enough edges to form a valid shape", nameof(face));
             }
 
-            // 5. 将相似方向的边分组
-            List<List<int>> directionGroups = new List<List<int>>();  // 存储方向组，每组包含边的索引
+            // 5. Group edges with similar directions
+            List<List<int>> directionGroups = new List<List<int>>();  // Stores the direction groups, each containing edge indices
 
             for (int i = 0; i < edgeDirections.Count; i++)
             {
                 bool foundGroup = false;
                 XYZ currentDirection = edgeDirections[i];
 
-                // 尝试将当前边加入已有的方向组
+                // Try to add the current edge to an existing direction group
                 for (int j = 0; j < directionGroups.Count; j++)
                 {
                     var group = directionGroups[j];
-                    // 计算当前组的加权平均方向
+                    // Compute the group's weighted average direction
                     XYZ groupAvgDir = CalculateWeightedAverageDirection(group, edgeDirections, edgeLengths);
 
-                    // 检查当前方向是否与组的平均方向相似（包括正反方向）
+                    // Check whether the current direction is similar to the group's average direction (including both positive and negative directions)
                     double dotProduct = Math.Abs(groupAvgDir.DotProduct(currentDirection));
-                    if (dotProduct > 0.8) // 约30度内的偏差视为相似方向
+                    if (dotProduct > 0.8) // Deviations within about 30 degrees are treated as similar directions
                     {
-                        group.Add(i);  // 将当前边的索引添加到该方向组
+                        group.Add(i);  // Add the current edge's index to that direction group
                         foundGroup = true;
                         break;
                     }
                 }
 
-                // 如果当前边与所有已有组都不相似，创建新组
+                // If the current edge is not similar to any existing group, create a new group
                 if (!foundGroup)
                 {
                     List<int> newGroup = new List<int> { i };
@@ -797,13 +797,13 @@ namespace RevitMCPCommandSet.Utils
                 }
             }
 
-            // 6. 计算每个方向组的总权重（边长和）和平均方向
+            // 6. Compute each direction group's total weight (sum of edge lengths) and average direction
             List<double> groupWeights = new List<double>();
             List<XYZ> groupDirections = new List<XYZ>();
 
             foreach (var group in directionGroups)
             {
-                // 计算该组所有边的长度总和
+                // Sum the lengths of all edges in the group
                 double totalLength = 0;
                 foreach (int edgeIndex in group)
                 {
@@ -811,100 +811,100 @@ namespace RevitMCPCommandSet.Utils
                 }
                 groupWeights.Add(totalLength);
 
-                // 计算该组的加权平均方向
+                // Compute the group's weighted average direction
                 groupDirections.Add(CalculateWeightedAverageDirection(group, edgeDirections, edgeLengths));
             }
 
-            // 7. 按照权重排序，提取主要方向
+            // 7. Sort by weight and extract the primary direction
             int[] sortedIndices = Enumerable.Range(0, groupDirections.Count)
                 .OrderByDescending(i => groupWeights[i])
                 .ToArray();
 
-            // 8. 构造结果
+            // 8. Build the result
             if (groupDirections.Count >= 2)
             {
-                // 有至少两个方向组，取权重最大的两组作为主方向和次方向
+                // At least two direction groups: take the two highest-weight groups as primary and secondary directions
                 int primaryIndex = sortedIndices[0];
                 int secondaryIndex = sortedIndices[1];
 
                 return (
-                    PrimaryDirection: groupDirections[primaryIndex],      // 主方向
-                    SecondaryDirection: groupDirections[secondaryIndex]   // 次方向
+                    PrimaryDirection: groupDirections[primaryIndex],      // Primary direction
+                    SecondaryDirection: groupDirections[secondaryIndex]   // Secondary direction
                 );
             }
             else if (groupDirections.Count == 1)
             {
-                // 只有一个方向组，手动创建与主方向垂直的次方向
+                // Only one direction group: manually create a secondary direction perpendicular to the primary direction
                 XYZ primaryDirection = groupDirections[0];
-                // 使用面法向量和主方向的叉积创建垂直向量
+                // Use the cross product of the face normal and the primary direction to create a perpendicular vector
                 XYZ secondaryDirection = faceNormal.CrossProduct(primaryDirection).Normalize();
 
                 return (
-                    PrimaryDirection: primaryDirection,         // 主方向 
-                    SecondaryDirection: secondaryDirection      // 人工构造的垂直次方向
+                    PrimaryDirection: primaryDirection,         // Primary direction 
+                    SecondaryDirection: secondaryDirection      // Manually constructed perpendicular secondary direction
                 );
             }
             else
             {
-                // 无法提取有效的方向（极少发生）
-                throw new InvalidOperationException("无法从面中提取有效的方向");
+                // Unable to extract valid directions (rarely occurs)
+                throw new InvalidOperationException("Unable to extract valid directions from the face");
             }
         }
 
         /// <summary>
-        /// 根据边长计算一组边的加权平均方向
+        /// Computes the weighted average direction of a group of edges based on edge lengths
         /// </summary>
-        /// <param name="edgeIndices">边的索引列表</param>
-        /// <param name="directions">所有边的方向向量</param>
-        /// <param name="lengths">所有边的长度</param>
-        /// <returns>归一化的加权平均方向向量</returns>
+        /// <param name="edgeIndices">List of edge indices</param>
+        /// <param name="directions">Direction vectors of all edges</param>
+        /// <param name="lengths">Lengths of all edges</param>
+        /// <returns>The normalized weighted average direction vector</returns>
         public static XYZ CalculateWeightedAverageDirection(List<int> edgeIndices, List<XYZ> directions, List<double> lengths)
         {
             if (edgeIndices.Count == 0)
                 return null;
 
             double sumX = 0, sumY = 0, sumZ = 0;
-            XYZ referenceDir = directions[edgeIndices[0]];  // 使用组内第一个方向作为参考
+            XYZ referenceDir = directions[edgeIndices[0]];  // Use the first direction in the group as the reference
 
             foreach (int i in edgeIndices)
             {
                 XYZ currentDir = directions[i];
 
-                // 计算当前方向与参考方向的点积，判断是否需要反转
+                // Compute the dot product of the current direction with the reference direction to determine if a flip is needed
                 double dot = referenceDir.DotProduct(currentDir);
 
-                // 如果方向相反（点积为负），反转该向量再计算贡献
-                // 这确保同一组内的向量指向一致，避免相互抵消
+                // If the directions are opposite (negative dot product), flip the vector before computing its contribution
+                // This ensures vectors within the same group point consistently and do not cancel each other out
                 double factor = (dot >= 0) ? lengths[i] : -lengths[i];
 
-                // 累加向量分量（带权重）
+                // Accumulate vector components (weighted)
                 sumX += currentDir.X * factor;
                 sumY += currentDir.Y * factor;
                 sumZ += currentDir.Z * factor;
             }
 
-            // 创建合成向量并归一化
+            // Create the composite vector and normalize it
             XYZ avgDir = new XYZ(sumX, sumY, sumZ);
             double magnitude = avgDir.GetLength();
 
-            // 防止零向量
+            // Guard against a zero vector
             if (magnitude < 1e-10)
-                return referenceDir;  // 回退至参考方向
+                return referenceDir;  // Fall back to the reference direction
 
-            return avgDir.Normalize();  // 返回归一化后的方向向量
+            return avgDir.Normalize();  // Return the normalized direction vector
         }
 
         /// <summary>
-        /// 判断三个向量是否同时符合右手定则且互相严格垂直
+        /// Determines whether three vectors comply with the right-hand rule and are strictly perpendicular to each other
         /// </summary>
-        /// <param name="thumb">拇指方向向量</param>
-        /// <param name="indexFinger">食指方向向量</param>
-        /// <param name="middleFinger">中指方向向量</param>
-        /// <param name="tolerance">判断的容差，默认为1e-6</param>
-        /// <returns>如果三个向量符合右手定则且互相垂直则返回true，否则返回false</returns>
+        /// <param name="thumb">Thumb direction vector</param>
+        /// <param name="indexFinger">Index finger direction vector</param>
+        /// <param name="middleFinger">Middle finger direction vector</param>
+        /// <param name="tolerance">Tolerance for the check; defaults to 1e-6</param>
+        /// <returns>true if the three vectors comply with the right-hand rule and are mutually perpendicular; otherwise false</returns>
         public static bool IsRightHandRuleCompliant(this XYZ thumb, XYZ indexFinger, XYZ middleFinger, double tolerance = 1e-6)
         {
-            // 检查三个向量是否互相垂直（所有点积都接近0）
+            // Check whether the three vectors are mutually perpendicular (all dot products near 0)
             double dotThumbIndex = Math.Abs(thumb.DotProduct(indexFinger));
             double dotThumbMiddle = Math.Abs(thumb.DotProduct(middleFinger));
             double dotIndexMiddle = Math.Abs(indexFinger.DotProduct(middleFinger));
@@ -913,57 +913,57 @@ namespace RevitMCPCommandSet.Utils
                                   (dotThumbMiddle <= tolerance) &&
                                   (dotIndexMiddle <= tolerance);
 
-            // 只有在三个向量互相垂直的情况下才检查右手定则
+            // Only check the right-hand rule when the three vectors are mutually perpendicular
             if (!areOrthogonal)
                 return false;
 
-            // 计算叉积向量与拇指的点积，判断是否符合右手定则
+            // Compute the dot product of the cross product vector with the thumb to determine right-hand rule compliance
             XYZ crossProduct = indexFinger.CrossProduct(middleFinger);
             double rightHandTest = crossProduct.DotProduct(thumb);
 
-            // 点积为正值表示符合右手定则
+            // A positive dot product indicates right-hand rule compliance
             return rightHandTest > tolerance;
         }
 
         /// <summary>
-        /// 根据拇指和中指方向生成符合右手定则的食指方向
+        /// Generates an index finger direction compliant with the right-hand rule from the thumb and middle finger directions
         /// </summary>
-        /// <param name="thumb">拇指方向向量</param>
-        /// <param name="middleFinger">中指方向向量</param>
-        /// <param name="tolerance">垂直判断的容差，默认为1e-6</param>
-        /// <returns>生成的食指方向向量，如果输入向量不垂直则返回null</returns>
+        /// <param name="thumb">Thumb direction vector</param>
+        /// <param name="middleFinger">Middle finger direction vector</param>
+        /// <param name="tolerance">Tolerance for the perpendicularity check; defaults to 1e-6</param>
+        /// <returns>The generated index finger direction vector, or null if the input vectors are not perpendicular</returns>
         public static XYZ GenerateIndexFinger(this XYZ thumb, XYZ middleFinger, double tolerance = 1e-6)
         {
-            // 首先归一化输入向量
+            // First normalize the input vectors
             XYZ normalizedThumb = thumb.Normalize();
             XYZ normalizedMiddleFinger = middleFinger.Normalize();
 
-            // 检查两个向量是否垂直（点积接近于0）
+            // Check whether the two vectors are perpendicular (dot product near 0)
             double dotProduct = normalizedThumb.DotProduct(normalizedMiddleFinger);
 
-            // 如果点积的绝对值大于容差，则向量不垂直
+            // If the absolute value of the dot product exceeds the tolerance, the vectors are not perpendicular
             if (Math.Abs(dotProduct) > tolerance)
             {
                 return null;
             }
 
-            // 通过叉积计算食指方向并取反
+            // Compute the index finger direction via the cross product and negate it
             XYZ indexFinger = normalizedMiddleFinger.CrossProduct(normalizedThumb).Negate();
 
-            // 返回归一化后的食指方向向量
+            // Return the normalized index finger direction vector
             return indexFinger.Normalize();
         }
 
         /// <summary>
-        /// 创建或获取指定高度的标高
+        /// Creates or gets a level at the specified elevation
         /// </summary>
-        /// <param name="doc">revit文档</param>
-        /// <param name="elevation">标高高度（ft）</param>
-        /// <param name="levelName">标高名称</param>
+        /// <param name="doc">Revit document</param>
+        /// <param name="elevation">Level elevation (ft)</param>
+        /// <param name="levelName">Level name</param>
         /// <returns></returns>
         public static Level CreateOrGetLevel(this Document doc, double elevation, string levelName)
         {
-            // 先查找是否存在指定高度的标高
+            // First check whether a level at the specified elevation already exists
             Level existingLevel = new FilteredElementCollector(doc)
                 .OfClass(typeof(Level))
                 .Cast<Level>()
@@ -972,9 +972,9 @@ namespace RevitMCPCommandSet.Utils
             if (existingLevel != null)
                 return existingLevel;
 
-            // 创建新标高
+            // Create a new level
             Level newLevel = Level.Create(doc, elevation);
-            // 设置标高名称
+            // Set the level name
             Level namesakeLevel = new FilteredElementCollector(doc)
                  .OfClass(typeof(Level))
                  .Cast<Level>()
@@ -989,17 +989,17 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 查找距离给定高度最近的标高
+        /// Finds the level nearest to the given elevation
         /// </summary>
-        /// <param name="doc">当前Revit文档</param>
-        /// <param name="height">目标高度（Revit内部单位）</param>
-        /// <returns>距离目标高度最近的标高，若文档中没有标高则返回null</returns>
+        /// <param name="doc">Current Revit document</param>
+        /// <param name="height">Target elevation (Revit internal units)</param>
+        /// <returns>The level nearest to the target elevation, or null if the document has no levels</returns>
         public static Level FindNearestLevel(this Document doc, double height)
         {
             if (doc == null)
-                throw new ArgumentNullException(nameof(doc), "文档不能为空");
+                throw new ArgumentNullException(nameof(doc), "Document cannot be null");
 
-            // 直接使用LINQ查询获取距离最近的标高
+            // Query directly with LINQ for the nearest level
             return new FilteredElementCollector(doc)
                 .OfClass(typeof(Level))
                 .Cast<Level>()
@@ -1008,29 +1008,29 @@ namespace RevitMCPCommandSet.Utils
         }
 
         ///// <summary>
-        ///// 刷新视图并添加延迟
+        ///// Refresh the view and add a delay
         ///// </summary>
         //public static void Refresh(this Document doc, int waitingTime = 0, bool allowOperation = true)
         //{
         //    UIApplication uiApp = new UIApplication(doc.Application);
         //    UIDocument uiDoc = uiApp.ActiveUIDocument;
 
-        //    // 检查文档是否可修改
+        //    // Check whether the document is modifiable
         //    if (uiDoc.Document.IsModifiable)
         //    {
-        //        // 更新模型
+        //        // Update the model
         //        uiDoc.Document.Regenerate();
         //    }
-        //    // 更新界面
+        //    // Update the UI
         //    uiDoc.RefreshActiveView();
 
-        //    // 延迟等待
+        //    // Delay wait
         //    if (waitingTime != 0)
         //    {
         //        System.Threading.Thread.Sleep(waitingTime);
         //    }
 
-        //    // 允许用户进行非安全操作
+        //    // Allow the user to perform unsafe operations
         //    if (allowOperation)
         //    {
         //        System.Windows.Forms.Application.DoEvents();
@@ -1038,25 +1038,25 @@ namespace RevitMCPCommandSet.Utils
         //}
 
         /// <summary>
-        /// 将指定的消息保存到桌面的指定文件中（默认覆盖文件）
+        /// Saves the given message to the specified file on the desktop (overwrites the file by default)
         /// </summary>
-        /// <param name="message">要保存的消息内容</param>
-        /// <param name="fileName">目标文件名</param>
+        /// <param name="message">The message content to save</param>
+        /// <param name="fileName">Target file name</param>
         public static void SaveToDesktop(this string message, string fileName = "temp.json", bool isAppend = false)
         {
-            // 确保 logName 包含后缀
+            // Ensure logName includes an extension
             if (!Path.HasExtension(fileName))
             {
-                fileName += ".txt"; // 默认添加 .txt 后缀
+                fileName += ".txt"; // Add the .txt extension by default
             }
 
-            // 获取桌面路径
+            // Get the desktop path
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
-            // 组合完整的文件路径
+            // Combine the full file path
             string filePath = Path.Combine(desktopPath, fileName);
 
-            // 写入文件（覆盖模式）
+            // Write to the file (overwrite mode)
             using (StreamWriter sw = new StreamWriter(filePath, isAppend))
             {
                 sw.WriteLine($"{message}");

@@ -367,7 +367,20 @@ FodyWeavers.xsd
 .idea/
 
 # =============================================================================
+# Installer (installer/)
+# =============================================================================
+installer/output/
+installer/staged/
+
+# =============================================================================
 # General
 # =============================================================================
 .claude/
 .DS_Store
+
+
+# Inno Setup staging + built installer output
+installer/staged/
+installer/output/
+# portable node.exe download cache for installer staging (build-installer.ps1)
+installer/.node-cache/

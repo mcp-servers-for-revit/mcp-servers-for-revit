@@ -9,6 +9,15 @@ mcp-servers-for-revit enables AI clients like Claude, Cline, and other MCP-compa
 > [!NOTE]
 > This is a fork of the original [revit-mcp](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
 
+## What this fork adds
+
+- **Off-axis geometry repair**: detect and snap near-axis lines (walls, beams, grids, reference planes, sketches, model lines) back to their nearest 0°/45°/90°/135° axis, plus a 1/4"-lattice spacing regularizer.
+- **DWG-driven modeling**: generate walls, grids, and model lines from imported/linked DWG linework and hatch fills (`create_walls_from_dwg_poche` etc.).
+- **Live command-set reload**: hot-swap command set DLLs during development without restarting Revit.
+- **Windows installer** (Inno Setup) that installs the add-in, command sets, and a bundled MCP server, and configures Claude Desktop / Cursor / opencode / AnythingLLM.
+
+Full history: [CHANGELOG.md](./CHANGELOG.md).
+
 ## Architecture
 
 ```mermaid
@@ -91,6 +100,37 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
 
 ![Claude Desktop connection](./assets/claude.png)
+
+**OpenCode 2**
+
+The Windows installer detects OpenCode 2 from either the `opencode` CLI or the desktop app (`%LOCALAPPDATA%\Programs\ai.opencode.desktop` + its bundled `opencode-cli.exe`). It writes the native `mcp.servers` shape with Code Mode disabled for Revit tools. The resulting config is:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "mcp-server-for-revit": {
+        "type": "local",
+        "command": ["cmd", "/c", "C:\\Program Files (x86)\\MCP Servers for Revit\\Server\\run-mcp-server.cmd"],
+        "codemode": false
+      }
+    }
+  }
+}
+```
+
+OpenCode 1 gets the legacy `mcp.mcp-server-for-revit` shape with `enabled: true`. If OpenCode is detected but its version cannot be determined, the installer shows a V1/V2 choice. If no OpenCode installation is detected, the installer skips OpenCode configuration entirely. An existing legacy config is migrated to native when OpenCode 2 is detected.
+
+Config location: `%USERPROFILE%\.config\opencode\opencode.json` or `.jsonc`, unless `OPENCODE_CONFIG_DIR` or `XDG_CONFIG_HOME` is set. OpenCode 2 loads both files and `.jsonc` wins for overlapping keys.
+
+Verify with the CLI:
+
+```bash
+opencode mcp list
+```
+
+For the desktop app, open OpenCode and use `/mcps` or ask the agent to call `say_hello` directly.
 
 ## Revit Plugin Setup
 

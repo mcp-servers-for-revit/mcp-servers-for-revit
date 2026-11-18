@@ -64,6 +64,10 @@
     <ItemGroup>
         <Resource Include="Core\Ressources\icon-16.png"/>
         <Resource Include="Core\Ressources\icon-32.png"/>
+        <Resource Include="Core\Ressources\icon-16-on.png"/>
+        <Resource Include="Core\Ressources\icon-32-on.png"/>
+        <Resource Include="Core\Ressources\icon-16-off.png"/>
+        <Resource Include="Core\Ressources\icon-32-off.png"/>
     </ItemGroup>
     <ItemGroup>
         <Resource Include="Core\Ressources\settings-16.png"/>

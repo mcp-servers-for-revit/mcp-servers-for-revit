@@ -298,7 +298,7 @@ namespace RevitMCPCommandSet.Services
                     // For Revit 2022-，Code changes pending approval
                     if (parameter.Definition is Autodesk.Revit.DB.InternalDefinition internalDef)
                     {
-                        // 检查是否为已知的布尔类型内置参数 (仅使用Revit 2019中确认存在的参数)
+                        // Check whether it is a known boolean built-in parameter (only parameters confirmed to exist in Revit 2019 are used)
                         BuiltInParameter bip = internalDef.BuiltInParameter;
                         if (bip == BuiltInParameter.IS_VISIBLE_PARAM ||
                             bip == BuiltInParameter.WALL_ATTR_ROOM_BOUNDING ||
@@ -307,7 +307,7 @@ namespace RevitMCPCommandSet.Services
                             return parameter.AsInteger() == 1 ? "True" : "False";
                         }
 
-                        // 尝试通过参数名称识别布尔参数
+                        // Try to identify boolean parameters by the parameter name
                         string paramName = parameter.Definition.Name.ToLower();
                         if (paramName.Contains("是否") ||
                             paramName.Contains("yes/no") ||
@@ -315,7 +315,7 @@ namespace RevitMCPCommandSet.Services
                             paramName.Contains("visible") ||
                             paramName.Contains("visibility"))
                         {
-                            // 检查存储类型为整数且值为0或1
+                            // Check that the storage type is integer and the value is 0 or 1
                             if (parameter.StorageType == StorageType.Integer)
                             {
                                 int intValue = parameter.AsInteger();
@@ -326,7 +326,7 @@ namespace RevitMCPCommandSet.Services
                             }
                         }
 
-                        // 尝试通过储存类型和值字符串识别布尔参数
+                        // Try to identify boolean parameters by storage type and value string
                         if (parameter.StorageType == StorageType.Integer)
                         {
                             string valueString = parameter.AsValueString();
@@ -339,7 +339,7 @@ namespace RevitMCPCommandSet.Services
                         }
                     }
 
-                    // 默认返回参数值
+                    // Return the parameter value by default
                     return parameter.AsValueString() ?? parameter.AsInteger().ToString();
                     //throw new NotImplementedException();
 #endif

@@ -1,0 +1,25 @@
+name: OpenCode 2 smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  opencode-v2:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install and build server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+      - name: Install OpenCode 2
+        run: npm install -g @opencode/cli@2
+      - name: Verify OpenCode 2 lists the server
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File installer/verify-opencode-v2.ps1
