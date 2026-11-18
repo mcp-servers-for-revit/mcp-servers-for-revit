@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
@@ -25,7 +25,7 @@ public class SurfaceElement
     public int TypeId { get; set; } = -1;
 
     /// <summary>
-    ///     Shell outline boundary
+    ///     Shell profile boundary
     /// </summary>
     [JsonProperty("boundary")]
     public JZFace Boundary { get; set; }
@@ -49,7 +49,7 @@ public class SurfaceElement
     public double BaseOffset { get; set; }
 
     /// <summary>
-    ///     Parameterized properties
+    ///     Parametric properties
     /// </summary>
     public Dictionary<string, double> Parameters { get; set; }
 }

@@ -1,5 +1,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using RevitMCPCommandSet.Helpers;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services
@@ -11,16 +13,31 @@ namespace RevitMCPCommandSet.Services
 
         // Number of successfully deleted elements
         public int DeletedCount { get; private set; }
+
+        // Error or warning message if execution fails or has warnings
+        public string ErrorMessage { get; private set; }
+
+        // Indicates if operation was cancelled by user
+        public bool Cancelled { get; private set; }
+
         // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
-        // Array of element IDs to delete
+        // Element ID array to delete
         public string[] ElementIds { get; set; }
-        // IWaitableExternalEventHandler interface implementation
+        // If true, only preview what would be deleted without actually deleting
+        public bool DryRun { get; set; } = true;
+        // Implement IWaitableExternalEventHandler interface
+        public void SetDeleteParameters(string[] elementIds)
+        {
+            ElementIds = elementIds;
+            TaskCompleted = false;
+            _resetEvent.Reset();
+        }
+
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
         public void Execute(UIApplication app)
         {
@@ -33,15 +50,15 @@ namespace RevitMCPCommandSet.Services
                     IsSuccess = false;
                     return;
                 }
-                // Build the collection of element IDs to delete
+                // Create collection of element IDs to delete
                 List<ElementId> elementIdsToDelete = new List<ElementId>();
                 List<string> invalidIds = new List<string>();
                 foreach (var idStr in ElementIds)
                 {
-                    if (int.TryParse(idStr, out int elementIdValue))
+                    if (long.TryParse(idStr, out long elementIdValue))
                     {
-                        var elementId = new ElementId(elementIdValue);
-                        // Check whether the element exists
+                        var elementId = RevitMCPCommandSet.Utils.ElementIdExtensions.FromLong(elementIdValue);
+                        // Check if element exists
                         if (doc.GetElement(elementId) != null)
                         {
                             elementIdsToDelete.Add(elementId);
@@ -54,32 +71,56 @@ namespace RevitMCPCommandSet.Services
                 }
                 if (invalidIds.Count > 0)
                 {
-                    TaskDialog.Show("Warning", $"The following IDs are invalid or their elements do not exist: {string.Join(", ", invalidIds)}");
+                    ErrorMessage = $"The following IDs are invalid or elements do not exist: {string.Join(", ", invalidIds)}";
                 }
-                // If there are deletable elements, perform the deletion
+                // Dry run: only report what would be deleted
+                if (DryRun)
+                {
+                    DeletedCount = elementIdsToDelete.Count;
+                    IsSuccess = true;
+                    return;
+                }
+
+                // Confirm deletion with user before proceeding
+                if (elementIdsToDelete.Count > 0 && !ConfirmationHelper.Confirm("delete", elementIdsToDelete.Count))
+                {
+                    IsSuccess = false;
+                    Cancelled = true;
+                    ErrorMessage = "Operation cancelled by user";
+                    return;
+                }
+                // If there are elements that can be deleted, execute deletion
                 if (elementIdsToDelete.Count > 0)
                 {
                     using (var transaction = new Transaction(doc, "Delete Elements"))
                     {
                         transaction.Start();
+                        try
+                        {
+                            // Batch delete elements
+                            ICollection<ElementId> deletedIds = doc.Delete(elementIdsToDelete);
+                            DeletedCount = deletedIds.Count;
 
-                        // Batch delete the elements
-                        ICollection<ElementId> deletedIds = doc.Delete(elementIdsToDelete);
-                        DeletedCount = deletedIds.Count;
-
-                        transaction.Commit();
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            if (transaction.GetStatus() == TransactionStatus.Started)
+                                transaction.RollBack();
+                            throw;
+                        }
                     }
                     IsSuccess = true;
                 }
                 else
                 {
-                    TaskDialog.Show("Error", "No valid elements to delete");
+                    ErrorMessage = "No valid elements to delete";
                     IsSuccess = false;
                 }
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", "Failed to delete elements: " + ex.Message);
+                ErrorMessage = "Failed to delete element: " + ex.Message;
                 IsSuccess = false;
             }
             finally

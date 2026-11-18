@@ -43,5 +43,11 @@ namespace revit_mcp_plugin.Configuration
         /// </summary>
         [JsonProperty("description")]
         public string Description { get; set; } = "";
+
+        /// <summary>
+        /// <para>UI-only grouping category (not serialized).</para>
+        /// </summary>
+        [JsonIgnore]
+        public string GroupCategory { get; set; } = "Other";
     }
 }

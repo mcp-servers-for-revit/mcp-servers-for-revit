@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -13,9 +13,9 @@ namespace RevitMCPCommandSet.Utils
     public static class JsonSchemaGenerator
     {
         /// <summary>
-        /// Generates and transforms the JSON Schema for the specified type
+        /// Generate and transform a JSON Schema for the specified type
         /// </summary>
-        /// <typeparam name="T">The type to generate the Schema for</typeparam>
+        /// <typeparam name="T">The type to generate a Schema for</typeparam>
         /// <param name="mainPropertyName">The main property name in the transformed Schema</param>
         /// <returns>The transformed JSON Schema string</returns>
         public static string GenerateTransformedSchema<T>(string mainPropertyName)
@@ -24,9 +24,9 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Generates and transforms the JSON Schema for the specified type, with support for the ThinkingProcess property
+        /// Generate and transform a JSON Schema for the specified type, with ThinkingProcess property support
         /// </summary>
-        /// <typeparam name="T">The type to generate the Schema for</typeparam>
+        /// <typeparam name="T">The type to generate a Schema for</typeparam>
         /// <param name="mainPropertyName">The main property name in the transformed Schema</param>
         /// <param name="includeThinkingProcess">Whether to add the ThinkingProcess property</param>
         /// <returns>The transformed JSON Schema string</returns>
@@ -35,7 +35,7 @@ namespace RevitMCPCommandSet.Utils
             if (string.IsNullOrWhiteSpace(mainPropertyName))
                 throw new ArgumentException("Main property name cannot be null or empty.", nameof(mainPropertyName));
 
-            // Create the root Schema
+            // Create root Schema
             JObject rootSchema = new JObject
             {
                 ["type"] = "object",
@@ -44,13 +44,13 @@ namespace RevitMCPCommandSet.Utils
                 ["additionalProperties"] = false
             };
 
-            // Add the ThinkingProcess property if requested
+            // Add ThinkingProcess property if needed
             if (includeThinkingProcess)
             {
                 AddProperty(rootSchema, "ThinkingProcess", new JObject { ["type"] = "string" }, true);
             }
 
-            // Generate the Schema for the target property
+            // Generate Schema for the target property
             JObject mainPropertySchema = GenerateSchema(typeof(T));
             AddProperty(rootSchema, mainPropertyName, mainPropertySchema, true);
 
@@ -62,7 +62,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Recursively generates the JSON Schema for the specified type
+        /// Recursively generate a JSON Schema for the specified type
         /// </summary>
         private static JObject GenerateSchema(Type type)
         {
@@ -71,7 +71,7 @@ namespace RevitMCPCommandSet.Utils
             if (type == typeof(float) || type == typeof(double) || type == typeof(decimal)) return new JObject { ["type"] = "number" };
             if (type == typeof(bool)) return new JObject { ["type"] = "boolean" };
 
-            // Handle Dictionary types first
+            // Handle Dictionary type first
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 return HandleDictionary(type);
 
@@ -109,7 +109,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Handles Dictionary<string, TValue> types specifically, ensuring keys are string type and value types are handled correctly
+        /// Handle Dictionary&lt;string, TValue&gt; type, ensuring the key is a string type and correctly handling the value type
         /// </summary>
         private static JObject HandleDictionary(Type type)
         {
@@ -129,7 +129,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Adds a property to the Schema
+        /// Add a property to the Schema
         /// </summary>
         private static void AddProperty(JObject schema, string propertyName, JToken propertySchema, bool isRequired)
         {
@@ -142,7 +142,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Recursively adds "additionalProperties": false to objects containing a "required" property
+        /// Recursively add "additionalProperties": false to objects containing a "required" property
         /// </summary>
         private static void AddAdditionalPropertiesFalse(JToken token)
         {

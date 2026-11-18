@@ -35,9 +35,8 @@ namespace revit_mcp_plugin.Core
                         $"Method not found: '{request.Method}'");
                 }
 
-                _logger.Info("Executing command: {0}", request.Method);
+                _logger.Info("Execute command: {0}", request.Method);
 
-                // Execute command
                 // Execute command
                 try
                 {
@@ -64,7 +63,7 @@ namespace revit_mcp_plugin.Core
             }
             catch (Exception ex)
             {
-                _logger.Error("An exception has occurred durion command execution: {0}", ex.Message);
+                _logger.Error("An exception has occurred during command execution: {0}", ex.Message);
                 return CreateErrorResponse(request.Id,
                     JsonRPCErrorCodes.InternalError,
                     $"Internal error: {ex.Message}");

@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateLineBasedElementTool(server: McpServer) {
   server.tool(
     "create_line_based_element",
-    "Create one or more line-based elements in Revit such as walls, beams, or pipes. Supports batch creation with detailed parameters including family type ID, start and end points, thickness, height, and level information. All units are in millimeters (mm).",
+    "Create line-based elements (walls, beams, pipes, ducts, etc.).",
     {
       data: z
         .array(
@@ -56,25 +58,11 @@ export function registerCreateLineBasedElementTool(server: McpServer) {
           );
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_line_based_element", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Create line-based element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_line_based_element", `Create line-based element failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

@@ -24,11 +24,11 @@ namespace RevitMCPCommandSet.Services
         private Document doc => uiDoc.Document;
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         /// <summary>
-        /// Input data
+        /// Filter data (input data)
         /// </summary>
         public FilterSetting FilterSetting { get; private set; }
         /// <summary>
@@ -37,7 +37,7 @@ namespace RevitMCPCommandSet.Services
         public AIResult<List<object>> Result { get; private set; }
 
         /// <summary>
-        /// Sets the filter parameters
+        /// Set filter parameters
         /// </summary>
         public void SetParameters(FilterSetting data)
         {
@@ -51,31 +51,31 @@ namespace RevitMCPCommandSet.Services
             try
             {
                 var elementInfoList = new List<object>();
-                // Check whether the filter settings are valid
+                // Check if filter settings are valid
                 if (!FilterSetting.Validate(out string errorMessage))
                     throw new Exception(errorMessage);
-                // Get the IDs of elements matching the specified conditions
+                // Get element IDs matching specified criteria
                 var elementList = GetFilteredElements(doc, FilterSetting);
                 if (elementList == null || !elementList.Any())
-                    throw new Exception("No elements matching the filter were found in the project; check the filter settings");
-                // Maximum filter result count limit
+                    throw new Exception("No matching elements found in project, please check filter settings");
+                // Filter maximum element count limit
                 string message = "";
                 if (FilterSetting.MaxElements > 0)
                 {
                     if (elementList.Count > FilterSetting.MaxElements)
                     {
                         elementList = elementList.Take(FilterSetting.MaxElements).ToList();
-                        message = $". In addition, {elementList.Count} elements matched the filter conditions; only the first {FilterSetting.MaxElements} are shown";
+                        message = $". Additionally, {elementList.Count} elements matched the filter criteria, only showing the first {FilterSetting.MaxElements}";
                     }
                 }
 
-                // Get the info of elements by ID
+                // Get information for elements with specified IDs
                 elementInfoList = GetElementFullInfo(doc, elementList);
 
                 Result = new AIResult<List<object>>
                 {
                     Success = true,
-                    Message = $"Successfully retrieved info for {elementInfoList.Count} elements; details are stored in the Response property" + message,
+                    Message = $"Successfully retrieved {elementInfoList.Count} element(s) info, details stored in Response property"+ message,
                     Response = elementInfoList,
                 };
             }
@@ -89,18 +89,17 @@ namespace RevitMCPCommandSet.Services
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <param name="timeoutMilliseconds">Timeout duration (milliseconds)</param>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -113,27 +112,27 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Gets the elements in the Revit document matching the filter settings, supporting combined multi-condition filtering
+        /// Get elements matching criteria in Revit document based on filter settings, supports multi-condition combined filtering
         /// </summary>
         /// <param name="doc">Revit document</param>
         /// <param name="settings">Filter settings</param>
-        /// <returns>The set of elements satisfying all filter conditions</returns>
+        /// <returns>Collection of elements matching all filter conditions</returns>
         public static IList<Element> GetFilteredElements(Document doc, FilterSetting settings)
         {
             if (doc == null)
                 throw new ArgumentNullException(nameof(doc));
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
-            // Validate the filter settings
+            // Validate filter settings
             if (!settings.Validate(out string errorMessage))
             {
                 System.Diagnostics.Trace.WriteLine($"Invalid filter settings: {errorMessage}");
                 return new List<Element>();
             }
-            // Record which filter conditions are applied
+            // Record filter condition application status
             List<string> appliedFilters = new List<string>();
             List<Element> result = new List<Element>();
-            // If both types and instances are included, filter separately then merge results
+            // If both types and instances are included, filter separately and merge results
             if (settings.IncludeTypes && settings.IncludeInstances)
             {
                 // Collect type elements
@@ -153,28 +152,28 @@ namespace RevitMCPCommandSet.Services
                 result = GetElementsByKind(doc, settings, true, appliedFilters);
             }
 
-            // Output info about the applied filters
+            // Output applied filter information
             if (appliedFilters.Count > 0)
             {
-                System.Diagnostics.Trace.WriteLine($"Applied {appliedFilters.Count} filter conditions: {string.Join(", ", appliedFilters)}");
-                System.Diagnostics.Trace.WriteLine($"Final filter result: found {result.Count} elements in total");
+                System.Diagnostics.Trace.WriteLine($"Applied {appliedFilters.Count} filter condition(s): {string.Join(", ", appliedFilters)}");
+                System.Diagnostics.Trace.WriteLine($"Final filter result: found {result.Count} element(s)");
             }
             return result;
 
         }
 
         /// <summary>
-        /// Gets elements of a given kind (type or instance) satisfying the filter conditions
+        /// Get elements matching filter conditions by element kind (type or instance)
         /// </summary>
         private static List<Element> GetElementsByKind(Document doc, FilterSetting settings, bool isElementType, List<string> appliedFilters)
         {
-            // Create the base FilteredElementCollector
+            // Create base FilteredElementCollector
             FilteredElementCollector collector;
-            // Check whether to filter to elements visible in the current view (applies only to instance elements)
+            // Check if filtering visible elements in current view is needed (only for instance elements)
             if (!isElementType && settings.FilterVisibleInCurrentView && doc.ActiveView != null)
             {
                 collector = new FilteredElementCollector(doc, doc.ActiveView.Id);
-                appliedFilters.Add("elements visible in current view");
+                appliedFilters.Add("Visible elements in current view");
             }
             else
             {
@@ -184,14 +183,14 @@ namespace RevitMCPCommandSet.Services
             if (isElementType)
             {
                 collector = collector.WhereElementIsElementType();
-                appliedFilters.Add("element types only");
+                appliedFilters.Add("Element types only");
             }
             else
             {
                 collector = collector.WhereElementIsNotElementType();
-                appliedFilters.Add("element instances only");
+                appliedFilters.Add("Element instances only");
             }
-            // Create the filter list
+            // Create filter list
             List<ElementFilter> filters = new List<ElementFilter>();
             // 1. Category filter
             if (!string.IsNullOrWhiteSpace(settings.FilterCategory))
@@ -210,10 +209,10 @@ namespace RevitMCPCommandSet.Services
             {
 
                 Type elementType = null;
-                // Try the various possible forms of the type name
+                // Try to resolve various possible forms of the type name
                 string[] possibleTypeNames = new string[]
                 {
-                    settings.FilterElementType,                                    // Raw input
+                    settings.FilterElementType,                                    // Original input
                     $"Autodesk.Revit.DB.{settings.FilterElementType}, RevitAPI",  // Revit API namespace
                     $"{settings.FilterElementType}, RevitAPI"                      // Fully qualified with assembly
                 };
@@ -231,29 +230,29 @@ namespace RevitMCPCommandSet.Services
                 }
                 else
                 {
-                    throw new Exception($"Warning: could not find type '{settings.FilterElementType}'");
+                    throw new Exception($"Warning: Cannot find type '{settings.FilterElementType}'");
                 }
             }
-            // 3. Family symbol filter (applies only to element instances)
+            // 3. Family symbol filter (only for element instances)
             if (!isElementType && settings.FilterFamilySymbolId > 0)
             {
                 ElementId symbolId = new ElementId(settings.FilterFamilySymbolId);
-                // Check whether the element exists and is a family type
+                // Check if element exists and is a family type
                 Element symbolElement = doc.GetElement(symbolId);
                 if (symbolElement != null && symbolElement is FamilySymbol)
                 {
                     FamilyInstanceFilter familyFilter = new FamilyInstanceFilter(doc, symbolId);
                     filters.Add(familyFilter);
-                    // Add a more detailed family info log
+                    // Add more detailed family info logging
                     FamilySymbol symbol = symbolElement as FamilySymbol;
-                    string familyName = symbol.Family?.Name ?? "Unknown family";
-                    string symbolName = symbol.Name ?? "Unknown type";
+                    string familyName = symbol.Family?.Name ?? "Unknown Family";
+                    string symbolName = symbol.Name ?? "Unknown Type";
                     appliedFilters.Add($"Family type: {familyName} - {symbolName} (ID: {settings.FilterFamilySymbolId})");
                 }
                 else
                 {
-                    string elementType = symbolElement != null ? symbolElement.GetType().Name : "not found";
-                    System.Diagnostics.Trace.WriteLine($"Warning: element with ID {settings.FilterFamilySymbolId} {(symbolElement == null ? "does not exist" : "is not a valid FamilySymbol")} (actual type: {elementType})");
+                    string elementType = symbolElement != null ? symbolElement.GetType().Name : "does not exist";
+                    System.Diagnostics.Trace.WriteLine($"Warning: Element with ID {settings.FilterFamilySymbolId} {(symbolElement == null ? "does not exist" : "is not a valid FamilySymbol")} (actual type: {elementType})");
                 }
             }
             // 4. Spatial range filter
@@ -262,15 +261,15 @@ namespace RevitMCPCommandSet.Services
                 // Convert to Revit XYZ coordinates (mm to internal units)
                 XYZ minXYZ = JZPoint.ToXYZ(settings.BoundingBoxMin);
                 XYZ maxXYZ = JZPoint.ToXYZ(settings.BoundingBoxMax);
-                // Create the spatial Outline object
+                // Create spatial range Outline object
                 Outline outline = new Outline(minXYZ, maxXYZ);
-                // Create the intersection filter
+                // Create intersection filter
                 BoundingBoxIntersectsFilter boundingBoxFilter = new BoundingBoxIntersectsFilter(outline);
                 filters.Add(boundingBoxFilter);
-                appliedFilters.Add($"Bounding box filter: Min({settings.BoundingBoxMin.X:F2}, {settings.BoundingBoxMin.Y:F2}, {settings.BoundingBoxMin.Z:F2}), " +
+                appliedFilters.Add($"Spatial range filter: Min({settings.BoundingBoxMin.X:F2}, {settings.BoundingBoxMin.Y:F2}, {settings.BoundingBoxMin.Z:F2}), " +
                                   $"Max({settings.BoundingBoxMax.X:F2}, {settings.BoundingBoxMax.Y:F2}, {settings.BoundingBoxMax.Z:F2}) mm");
             }
-            // Apply the combined filter
+            // Apply combined filter
             if (filters.Count > 0)
             {
                 ElementFilter combinedFilter = filters.Count == 1
@@ -279,23 +278,23 @@ namespace RevitMCPCommandSet.Services
                 collector = collector.WherePasses(combinedFilter);
                 if (filters.Count > 1)
                 {
-                    System.Diagnostics.Trace.WriteLine($"Combined filter with {filters.Count} conditions applied (logical AND)");
+                    System.Diagnostics.Trace.WriteLine($"Applied combined filter with {filters.Count} conditions (logical AND)");
                 }
             }
             return collector.ToElements().ToList();
         }
 
         /// <summary>
-        /// Gets model element info
+        /// Get model element info
         /// </summary>
         public static List<object> GetElementFullInfo(Document doc, IList<Element> elementCollector)
         {
             List<object> infoList = new List<object>();
 
-            // Get and process the elements
+            // Get and process elements
             foreach (var element in elementCollector)
             {
-                // Determine whether it is a solid model element
+                // Determine if it is a physical model element
                 // Get element instance info
                 if (element?.Category?.HasMaterialQuantities ?? false)
                 {
@@ -376,7 +375,7 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Creates a complete ElementInfo object for a single element
+        /// Create a complete ElementInfo object for a single element
         /// </summary>
         public static ElementInstanceInfo CreateElementFullInfo(Document doc, Element element)
         {
@@ -385,7 +384,7 @@ namespace RevitMCPCommandSet.Services
                 if (element?.Category == null)
                     return null;
 
-                ElementInstanceInfo elementInfo = new ElementInstanceInfo();        // Custom class storing the element's full info
+                ElementInstanceInfo elementInfo = new ElementInstanceInfo();        // Create custom class for storing complete element info
                 // ID
                 elementInfo.Id = element.Id.GetIntValue();
                 // UniqueId
@@ -430,7 +429,7 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Creates a complete TypeFullInfo object for a single type
+        /// Create a complete TypeFullInfo object for a single type
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="elementType"></param>
@@ -461,7 +460,7 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Creates info for a spatial positioning element
+        /// Create spatial positioning element info
         /// </summary>
         public static PositioningElementInfo CreatePositioningElementInfo(Document doc, Element element)
         {
@@ -496,26 +495,26 @@ namespace RevitMCPCommandSet.Services
                     {
                         XYZ start = curve.GetEndPoint(0);
                         XYZ end = curve.GetEndPoint(1);
-                        // Create the JZLine (convert to mm)
+                        // Create JZLine (convert to mm)
                         info.GridLine = new JZLine(
                             start.X * 304.8, start.Y * 304.8, start.Z * 304.8,
                             end.X * 304.8, end.Y * 304.8, end.Z * 304.8);
                     }
                 }
 
-                // Get the level info
+                // Get level info
                 info.Level = GetElementLevel(doc, element);
 
                 return info;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"Error creating positioning element info: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"Error creating spatial positioning element info: {ex.Message}");
                 return null;
             }
         }
         /// <summary>
-        /// Creates info for a spatial element
+        /// Create spatial element info
         /// </summary>
         public static SpatialElementInfo CreateSpatialElementInfo(Document doc, Element element)
         {
@@ -537,7 +536,7 @@ namespace RevitMCPCommandSet.Services
                     BoundingBox = GetBoundingBoxInfo(element)
                 };
 
-                // Get the room or area number
+                // Get room or area number
                 if (element is Room room)
                 {
                     info.Number = room.Number;
@@ -549,7 +548,7 @@ namespace RevitMCPCommandSet.Services
                     info.Number = area.Number;
                 }
 
-                // Get the area
+                // Get area
                 Parameter areaParam = element.get_Parameter(BuiltInParameter.ROOM_AREA);
                 if (areaParam != null && areaParam.HasValue)
                 {
@@ -557,7 +556,7 @@ namespace RevitMCPCommandSet.Services
                     info.Area = areaParam.AsDouble() * Math.Pow(304.8, 2);
                 }
 
-                // Get the perimeter
+                // Get perimeter
                 Parameter perimeterParam = element.get_Parameter(BuiltInParameter.ROOM_PERIMETER);
                 if (perimeterParam != null && perimeterParam.HasValue)
                 {
@@ -565,7 +564,7 @@ namespace RevitMCPCommandSet.Services
                     info.Perimeter = perimeterParam.AsDouble() * 304.8;
                 }
 
-                // Get the level
+                // Get level
                 info.Level = GetElementLevel(doc, element);
 
                 return info;
@@ -577,7 +576,7 @@ namespace RevitMCPCommandSet.Services
             }
         }
         /// <summary>
-        /// Creates info for a view element
+        /// Create view element info
         /// </summary>
         public static ViewInfo CreateViewInfo(Document doc, Element element)
         {
@@ -604,7 +603,7 @@ namespace RevitMCPCommandSet.Services
                     BoundingBox = GetBoundingBoxInfo(element)
                 };
 
-                // Get the level associated with the view
+                // Get level associated with view
                 if (view is ViewPlan viewPlan && viewPlan.GenLevel != null)
                 {
                     Level level = viewPlan.GenLevel;
@@ -616,7 +615,7 @@ namespace RevitMCPCommandSet.Services
                     };
                 }
 
-                // Determine whether the view is open and active
+                // Determine if view is open and active
                 UIDocument uidoc = new UIDocument(doc);
 
                 // Get all open views
@@ -624,12 +623,12 @@ namespace RevitMCPCommandSet.Services
 
                 foreach (UIView uiView in openViews)
                 {
-                    // Check whether the view is open
+                    // Check if view is open
                     if (uiView.ViewId.GetValue() == view.Id.GetValue())
                     {
                         info.IsOpen = true;
 
-                        // Check whether the view is the currently active view
+                        // Check if view is the currently active view
                         if (uidoc.ActiveView.Id.GetValue() == view.Id.GetValue())
                         {
                             info.IsActive = true;
@@ -647,7 +646,7 @@ namespace RevitMCPCommandSet.Services
             }
         }
         /// <summary>
-        /// Creates annotation element info
+        /// Create annotation element info
         /// </summary>
         public static AnnotationInfo CreateAnnotationInfo(Document doc, Element element)
         {
@@ -668,7 +667,7 @@ namespace RevitMCPCommandSet.Services
                     BoundingBox = GetBoundingBoxInfo(element)
                 };
 
-                // Get the owning view
+                // Get owning view
                 Parameter viewParam = element.get_Parameter(BuiltInParameter.VIEW_NAME);
                 if (viewParam != null && viewParam.HasValue)
                 {
@@ -724,7 +723,7 @@ namespace RevitMCPCommandSet.Services
             }
         }
         /// <summary>
-        /// Creates group and link info
+        /// Create group or link info
         /// </summary>
         public static GroupOrLinkInfo CreateGroupOrLinkInfo(Document doc, Element element)
         {
@@ -763,7 +762,7 @@ namespace RevitMCPCommandSet.Services
                         string absPath = ModelPathUtils.ConvertModelPathToUserVisiblePath(extFileRef.GetAbsolutePath());
                         info.LinkPath = absPath;
 
-                        // Use GetLinkedFileStatus to get the link status
+                        // Use GetLinkedFileStatus to get link status
                         LinkedFileStatus linkStatus = linkType.GetLinkedFileStatus();
                         info.LinkStatus = linkStatus.ToString();
                     }
@@ -772,7 +771,7 @@ namespace RevitMCPCommandSet.Services
                         info.LinkStatus = LinkedFileStatus.Invalid.ToString();
                     }
 
-                    // Get position
+                    // Get location
                     LocationPoint location = linkInstance.Location as LocationPoint;
                     if (location != null)
                     {
@@ -789,13 +788,13 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"Error creating group/link info: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"Error creating group and link info: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// Creates enhanced basic info for an element
+        /// Create enhanced basic info for element
         /// </summary>
         public static ElementBasicInfo CreateElementBasicInfo(Document doc, Element element)
         {
@@ -818,16 +817,16 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"Error creating basic element info: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"Error creating element basic info: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// Gets the thickness parameter info of a system family element
+        /// Get thickness parameter info for system family elements
         /// </summary>
         /// <param name="element">System family element (wall, floor, door, etc.)</param>
-        /// <returns>The parameter info object, or null if invalid</returns>
+        /// <returns>Parameter info object, returns null if invalid</returns>
         public static ParameterInfo GetThicknessInfo(Element element)
         {
             if (element == null)
@@ -835,14 +834,14 @@ namespace RevitMCPCommandSet.Services
                 return null;
             }
 
-            // Get the element type
+            // Get element type
             ElementType elementType = element.Document.GetElement(element.GetTypeId()) as ElementType;
             if (elementType == null)
             {
                 return null;
             }
 
-            // Get the built-in thickness parameter for each element type
+            // Get the corresponding built-in thickness parameter based on element type
             Parameter thicknessParam = null;
 
             if (elementType is WallType)
@@ -873,14 +872,14 @@ namespace RevitMCPCommandSet.Services
                 return new ParameterInfo
                 {
                     Name = "Thickness",
-                    Value = $"{thicknessParam.AsDouble() * 304.8}"
+                    Value = (thicknessParam.AsDouble() * 304.8).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
                 };
             }
             return null;
         }
 
         /// <summary>
-        /// Gets the level info of the element
+        /// Get the level info associated with an element
         /// </summary>
         public static LevelInfo GetElementLevel(Document doc, Element element)
         {
@@ -888,7 +887,7 @@ namespace RevitMCPCommandSet.Services
             {
                 Level level = null;
 
-                // Get the level for different element types
+                // Get level based on element type
                 if (element is Wall wall) // Wall
                 {
                     level = doc.GetElement(wall.LevelId) as Level;
@@ -901,9 +900,9 @@ namespace RevitMCPCommandSet.Services
                         level = doc.GetElement(levelParam.AsElementId()) as Level;
                     }
                 }
-                else if (element is FamilyInstance familyInstance) // Family instance (including generic models, etc.)
+                else if (element is FamilyInstance familyInstance) // Family instance (including generic models etc.)
                 {
-                    // Try the family instance's level parameter
+                    // Try to get family instance level parameter
                     Parameter levelParam = familyInstance.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
                     if (levelParam != null && levelParam.HasValue)
                     {
@@ -921,7 +920,7 @@ namespace RevitMCPCommandSet.Services
                 }
                 else // Other elements
                 {
-                    // Try the generic level parameter
+                    // Try to get generic level parameter
                     Parameter levelParam = element.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM);
                     if (levelParam != null && levelParam.HasValue)
                     {
@@ -951,7 +950,7 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Gets the bounding box info of an element
+        /// Get bounding box info for an element
         /// </summary>
         public static BoundingBoxInfo GetBoundingBoxInfo(Element element)
         {
@@ -979,27 +978,27 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Gets the height parameter info of a bounding box
+        /// Get height parameter info from bounding box
         /// </summary>
         /// <param name="boundingBoxInfo">Bounding box info</param>
-        /// <returns>The parameter info object, or null if invalid</returns>
+        /// <returns>Parameter info object, or null if invalid</returns>
         public static ParameterInfo GetBoundingBoxHeight(BoundingBoxInfo boundingBoxInfo)
         {
             try
             {
-                // Parameter check
+                // Parameter validation
                 if (boundingBoxInfo?.Min == null || boundingBoxInfo?.Max == null)
                 {
                     return null;
                 }
 
-                // The Z-axis difference is the height
+                // Height is the Z-axis difference
                 double height = Math.Abs(boundingBoxInfo.Max.Z - boundingBoxInfo.Min.Z);
 
                 return new ParameterInfo
                 {
                     Name = "Height",
-                    Value = $"{height}"
+                    Value = height.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
                 };
             }
             catch
@@ -1009,13 +1008,13 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Gets the names and values of all non-empty dimension parameters on the element
+        /// Get names and values of all non-empty parameters of an element
         /// </summary>
         /// <param name="element">Revit element</param>
         /// <returns>List of parameter info</returns>
         public static List<ParameterInfo> GetDimensionParameters(Element element)
         {
-            // Check whether the element is null
+            // Check if element is null
             if (element == null)
             {
                 return new List<ParameterInfo>();
@@ -1023,7 +1022,7 @@ namespace RevitMCPCommandSet.Services
 
             var parameters = new List<ParameterInfo>();
 
-            // Get all the element's parameters
+            // Get all parameters of the element
             foreach (Parameter param in element.Parameters)
             {
                 try
@@ -1034,13 +1033,22 @@ namespace RevitMCPCommandSet.Services
                         continue;
                     }
 
-                    // If the current parameter is a dimension parameter
+                    // If current parameter is dimension-related
                     if (IsDimensionParameter(param))
                     {
-                        // Get the string representation of the parameter value
-                        string value = param.AsValueString();
+                        string value;
+                        if (param.StorageType == StorageType.Double)
+                        {
+                            // Convert internal feet to mm with invariant decimal format
+                            double mmValue = param.AsDouble() * 304.8;
+                            value = mmValue.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        else
+                        {
+                            value = param.AsValueString();
+                        }
 
-                        // If the value is non-empty, add it to the list
+                        // If value is not empty, add to list
                         if (!string.IsNullOrWhiteSpace(value))
                         {
                             parameters.Add(new ParameterInfo
@@ -1053,7 +1061,7 @@ namespace RevitMCPCommandSet.Services
                 }
                 catch
                 {
-                    // If reading a parameter value fails, keep processing the next one
+                    // If error getting parameter value, continue to next
                     continue;
                 }
             }
@@ -1063,38 +1071,19 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Determines whether a parameter is a writable dimension parameter
+        /// Check if a parameter is a writable dimension parameter
         /// </summary>
         public static bool IsDimensionParameter(Parameter param)
         {
 
-#if REVIT2023_OR_GREATER
-            // In Revit 2023 use Definition's GetDataType() to get the parameter type
-            ForgeTypeId paramTypeId = param.Definition.GetDataType();
-
-            // Determine whether the parameter is a dimension-related type
-            bool isDimensionType = paramTypeId.Equals(SpecTypeId.Length) ||
-                                   paramTypeId.Equals(SpecTypeId.Angle) ||
-                                   paramTypeId.Equals(SpecTypeId.Area) ||
-                                   paramTypeId.Equals(SpecTypeId.Volume);
-            // Only store dimension-type parameters
-            return isDimensionType;
-#else
-            // Determine whether the parameter is a dimension-related type
-            bool isDimensionType = param.Definition.ParameterType == ParameterType.Length ||
-                                   param.Definition.ParameterType == ParameterType.Angle ||
-                                   param.Definition.ParameterType == ParameterType.Area ||
-                                   param.Definition.ParameterType == ParameterType.Volume;
-
-            // Only store dimension-type parameters
-            return isDimensionType;
-#endif
+            // Only store dimension type parameters (length, angle, area, volume)
+            return param.Definition.IsDimensionDataType();
         }
 
     }
 
     /// <summary>
-    /// Custom class storing the full info of an element
+    /// Custom class for storing complete element instance info
     /// </summary>
     public class ElementInstanceInfo
     {
@@ -1103,7 +1092,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public int Id { get; set; }
         /// <summary>
-        /// UniqueId
+        /// Unique Id
         /// </summary>
         public string UniqueId { get; set; }
         /// <summary>
@@ -1127,15 +1116,15 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// Owning room ID
+        /// Owner room ID
         /// </summary>
         public int RoomId { get; set; }
         /// <summary>
-        /// Owning level name
+        /// Associated level
         /// </summary>
         public LevelInfo Level { get; set; }
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
         /// <summary>
@@ -1146,7 +1135,7 @@ namespace RevitMCPCommandSet.Services
     }
 
     /// <summary>
-    /// Custom class storing the full info of an element type
+    /// Custom class for storing complete element type info
     /// </summary>
     public class ElementTypeInfo
     {
@@ -1155,7 +1144,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public int Id { get; set; }
         /// <summary>
-        /// UniqueId
+        /// Unique Id
         /// </summary>
         public string UniqueId { get; set; }
         /// <summary>
@@ -1182,7 +1171,7 @@ namespace RevitMCPCommandSet.Services
     }
 
     /// <summary>
-    /// Class for basic info of spatial positioning elements (levels, grids, etc.)
+    /// Class for spatial positioning element (level, grid, etc.) basic info
     /// </summary>
     public class PositioningElementInfo
     {
@@ -1211,28 +1200,28 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// The element's .NET class name
+        /// .NET class name of the element
         /// </summary>
         public string ElementClass { get; set; }
         /// <summary>
-        /// Elevation value (applies to levels, unit mm)
+        /// Elevation value (for levels, in mm)
         /// </summary>
         public double? Elevation { get; set; }
         /// <summary>
-        /// Owning level
+        /// Associated level
         /// </summary>
         public LevelInfo Level { get; set; }
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
         /// <summary>
-        /// Grid line (applies to grids)
+        /// Grid line (for grids)
         /// </summary>
         public JZLine GridLine { get; set; }
     }
     /// <summary>
-    /// Class for basic info of spatial elements (rooms, areas, etc.)
+    /// Class for spatial element (room, area, etc.) basic info
     /// </summary>
     public class SpatialElementInfo
     {
@@ -1265,33 +1254,33 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// The element's .NET class name
+        /// .NET class name of the element
         /// </summary>
         public string ElementClass { get; set; }
         /// <summary>
-        /// Area (unit mm²)
+        /// Area (in mm squared)
         /// </summary>
         public double? Area { get; set; }
         /// <summary>
-        /// Volume (unit mm³)
+        /// Volume (in mm cubed)
         /// </summary>
         public double? Volume { get; set; }
         /// <summary>
-        /// Perimeter (unit mm)
+        /// Perimeter (in mm)
         /// </summary>
         public double? Perimeter { get; set; }
         /// <summary>
-        /// Owning level
+        /// Associated level
         /// </summary>
         public LevelInfo Level { get; set; }
 
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
     }
     /// <summary>
-    /// Class for basic info of view elements
+    /// Class for view element basic info
     /// </summary>
     public class ViewInfo
     {
@@ -1320,7 +1309,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// The element's .NET class name
+        /// .NET class name of the element
         /// </summary>
         public string ElementClass { get; set; }
 
@@ -1335,7 +1324,7 @@ namespace RevitMCPCommandSet.Services
         public int? Scale { get; set; }
 
         /// <summary>
-        /// Whether the view is a template view
+        /// Whether this is a template view
         /// </summary>
         public bool IsTemplate { get; set; }
 
@@ -1350,7 +1339,7 @@ namespace RevitMCPCommandSet.Services
         public LevelInfo AssociatedLevel { get; set; }
 
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
 
@@ -1365,7 +1354,7 @@ namespace RevitMCPCommandSet.Services
         public bool IsActive { get; set; }
     }
     /// <summary>
-    /// Class for basic info of annotation elements
+    /// Class for storing annotation element basic info
     /// </summary>
     public class AnnotationInfo
     {
@@ -1394,33 +1383,33 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// The element's .NET class name
+        /// .NET class name of the element
         /// </summary>
         public string ElementClass { get; set; }
         /// <summary>
-        /// Owning view
+        /// Owner view
         /// </summary>
         public string OwnerView { get; set; }
         /// <summary>
-        /// Text content (applies to text notes)
+        /// Text content (for text annotations)
         /// </summary>
         public string TextContent { get; set; }
         /// <summary>
-        /// Position info (unit mm)
+        /// Position info (mm)
         /// </summary>
         public JZPoint Position { get; set; }
 
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
         /// <summary>
-        /// Dimension value (applies to dimensions)
+        /// Dimension value (for dimension annotations)
         /// </summary>
         public string DimensionValue { get; set; }
     }
     /// <summary>
-    /// Class for basic info of groups and links
+    /// Class for storing group and link basic info
     /// </summary>
     public class GroupOrLinkInfo
     {
@@ -1449,7 +1438,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string BuiltInCategory { get; set; }
         /// <summary>
-        /// The element's .NET class name
+        /// .NET class name of the element
         /// </summary>
         public string ElementClass { get; set; }
         /// <summary>
@@ -1469,12 +1458,12 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string LinkPath { get; set; }
         /// <summary>
-        /// Position info (unit mm)
+        /// Position info (mm)
         /// </summary>
         public JZPoint Position { get; set; }
 
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
     }
@@ -1509,7 +1498,7 @@ namespace RevitMCPCommandSet.Services
         public string BuiltInCategory { get; set; }
 
         /// <summary>
-        /// Location info
+        /// Position info
         /// </summary>
         public BoundingBoxInfo BoundingBox { get; set; }
     }
@@ -1517,7 +1506,7 @@ namespace RevitMCPCommandSet.Services
 
 
     /// <summary>
-    /// Custom class storing complete parameter info
+    /// Custom class for storing parameter info
     /// </summary>
     public class ParameterInfo
     {
@@ -1526,7 +1515,7 @@ namespace RevitMCPCommandSet.Services
     }
 
     /// <summary>
-    /// Custom class storing bounding box info
+    /// Custom class for storing bounding box info
     /// </summary>
     public class BoundingBoxInfo
     {
@@ -1535,7 +1524,7 @@ namespace RevitMCPCommandSet.Services
     }
 
     /// <summary>
-    /// Custom class storing level info
+    /// Custom class for storing level info
     /// </summary>
     public class LevelInfo
     {

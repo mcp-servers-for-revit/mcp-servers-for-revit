@@ -9,15 +9,6 @@ mcp-servers-for-revit enables AI clients like Claude, Cline, and other MCP-compa
 > [!NOTE]
 > This is a fork of the original [revit-mcp](https://github.com/mcp-servers-for-revit/revit-mcp) project with additional tools and functionality improvements.
 
-## What this fork adds
-
-- **Off-axis geometry repair**: detect and snap near-axis lines (walls, beams, grids, reference planes, sketches, model lines) back to their nearest 0°/45°/90°/135° axis, plus a 1/4"-lattice spacing regularizer.
-- **DWG-driven modeling**: generate walls, grids, and model lines from imported/linked DWG linework and hatch fills (`create_walls_from_dwg_poche` etc.).
-- **Live command-set reload**: hot-swap command set DLLs during development without restarting Revit.
-- **Windows installer** (Inno Setup) that installs the add-in, command sets, and a bundled MCP server, and configures Claude Desktop / Cursor / opencode / AnythingLLM.
-
-Full history: [CHANGELOG.md](./CHANGELOG.md).
-
 ## Architecture
 
 ```mermaid
@@ -36,9 +27,15 @@ flowchart LR
 
 The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSocket messages. The **Revit Plugin** (C#) runs inside Revit, listens for those messages, and dispatches them to the **Command Set** (C#), which executes the actual Revit API operations and returns results back up the chain.
 
+## Community integrations
+
+The Revit ribbon includes a Claude chat panel. In **Settings → API Key**, save an Anthropic API key for the panel. It checks the process environment and then `%USERPROFILE%\.claude\api_key.txt`. External MCP clients authenticate separately.
+
+The core command set includes grid dimensioning, schedule and sheet operations, and parameter and material tools. Revit 2024–2026 can also load the DWG and off-axis command sets. See the [command reference](COMMANDS.md), [user guide](USER_GUIDE.md), and [Windows installer](installer/build-installer.ps1).
+
 ## Requirements
 
-- **Node.js 18+** (for the MCP server)
+- **Node.js 20+** for the npm package. The bundled Windows runtime uses Node.js 22 with built-in SQLite.
 - **Autodesk Revit 2020 - 2027** (any supported version)
 
 ## Quick Start (Using a Release)
@@ -101,37 +98,6 @@ Restart Claude Desktop. When you see the hammer icon, the MCP server is connecte
 
 ![Claude Desktop connection](./assets/claude.png)
 
-**OpenCode 2**
-
-The Windows installer detects OpenCode 2 from either the `opencode` CLI or the desktop app (`%LOCALAPPDATA%\Programs\ai.opencode.desktop` + its bundled `opencode-cli.exe`). It writes the native `mcp.servers` shape with Code Mode disabled for Revit tools. The resulting config is:
-
-```jsonc
-{
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "servers": {
-      "mcp-server-for-revit": {
-        "type": "local",
-        "command": ["cmd", "/c", "C:\\Program Files (x86)\\MCP Servers for Revit\\Server\\run-mcp-server.cmd"],
-        "codemode": false
-      }
-    }
-  }
-}
-```
-
-OpenCode 1 gets the legacy `mcp.mcp-server-for-revit` shape with `enabled: true`. If OpenCode is detected but its version cannot be determined, the installer shows a V1/V2 choice. If no OpenCode installation is detected, the installer skips OpenCode configuration entirely. An existing legacy config is migrated to native when OpenCode 2 is detected.
-
-Config location: `%USERPROFILE%\.config\opencode\opencode.json` or `.jsonc`, unless `OPENCODE_CONFIG_DIR` or `XDG_CONFIG_HOME` is set. OpenCode 2 loads both files and `.jsonc` wins for overlapping keys.
-
-Verify with the CLI:
-
-```bash
-opencode mcp list
-```
-
-For the desktop app, open OpenCode and use `/mcps` or ask the agent to call `say_hello` directly.
-
 ## Revit Plugin Setup
 
 If using a release ZIP, the plugin is already included. For manual installation:
@@ -167,7 +133,6 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `create_level` | Create levels at specified elevations |
 | `create_room` | Create and place rooms at specified locations |
 | `create_dimensions` | Create dimension annotations in the current view |
-| `dimension_grids` | Add overall and bay-by-bay grid dimensions to the active plan view at chosen sides |
 | `create_structural_framing_system` | Create a structural beam framing system |
 | `delete_element` | Delete elements by ID |
 | `operate_element` | Operate on elements (select, setColor, hide, etc.) |
@@ -276,11 +241,10 @@ The server compiles TypeScript to `server/build/`. During development you can ru
 
 ### Revit Plugin + Command Set
 
-Open `mcp-servers-for-revit.sln` in Visual Studio. The solution contains both the plugin and command set projects. Build configurations target Revit 2020-2027:
+Open `mcp-servers-for-revit.sln` in Visual Studio. The solution contains both the plugin and command set projects. Build configurations target Revit 2020-2026:
 
 - **Revit 2020-2024**: .NET Framework 4.8 (`Release R20` through `Release R24`)
 - **Revit 2025-2026**: .NET 8 (`Release R25`, `Release R26`)
-- **Revit 2027**: .NET 10 (`Release R27`) — requires the .NET 10 SDK
 
 Building the solution automatically assembles the complete deployable layout in `plugin/bin/AddIn <year> <config>/` - the command set is copied into the plugin's `Commands/` folder as part of the build.
 
@@ -304,7 +268,7 @@ mcp-servers-for-revit/
 
 A single `v*` tag drives the entire release. The [release workflow](.github/workflows/release.yml) automatically:
 
-- Builds the Revit plugin + command set for Revit 2020-2027
+- Builds the Revit plugin + command set for Revit 2020-2026
 - Creates a GitHub release with `mcp-servers-for-revit-vX.Y.Z-Revit<year>.zip` assets
 - Publishes the MCP server to npm as [`mcp-server-for-revit`](https://www.npmjs.com/package/mcp-server-for-revit)
 

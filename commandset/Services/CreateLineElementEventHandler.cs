@@ -13,11 +13,11 @@ namespace RevitMCPCommandSet.Services
         private Document doc => uiDoc.Document;
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         /// <summary>
-        /// Input data
+        /// Creation data (input data)
         /// </summary>
         public List<LineElement> CreatedInfo { get; private set; }
         /// <summary>
@@ -26,11 +26,11 @@ namespace RevitMCPCommandSet.Services
         public AIResult<List<int>> Result { get; private set; }
         private List<string> _warnings = new List<string>();
 
-        public string _wallName = "Generic - ";
+        public string _wallName = "General - ";
         public string _ductName = "Rectangular Duct - ";
 
         /// <summary>
-        /// Sets the creation parameters
+        /// Set creation parameters
         /// </summary>
         public void SetParameters(List<LineElement> data)
         {
@@ -49,11 +49,11 @@ namespace RevitMCPCommandSet.Services
                 {
                     int requestedTypeId = data.TypeId;
 
-                    // Step0 Get the element category
+                    // Step0 Get element type
                     BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
                     Enum.TryParse(data.Category.Replace(".", ""), true, out builtInCategory);
 
-                    // Step1 Get the levels and offsets
+                    // Step1 Get level and offset
                     Level baseLevel = null;
                     Level topLevel = null;
                     double topOffset = -1;  // ft
@@ -65,7 +65,7 @@ namespace RevitMCPCommandSet.Services
                     if (baseLevel == null)
                         continue;
 
-                    // Step2 Get the family type
+                    // Step2 Get family type
                     FamilySymbol symbol = null;
                     WallType wallType = null;
                     DuctType ductType = null;
@@ -79,7 +79,7 @@ namespace RevitMCPCommandSet.Services
                             if (typeEle != null && typeEle is FamilySymbol)
                             {
                                 symbol = typeEle as FamilySymbol;
-                                // Get the symbol's Category object and convert to the BuiltInCategory enum
+                                // Get the symbol's Category object and convert to BuiltInCategory enum
                                 builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
                             }
                             else if (typeEle != null && typeEle is WallType)
@@ -143,7 +143,7 @@ namespace RevitMCPCommandSet.Services
                                     .OfClass(typeof(FamilySymbol))
                                     .OfCategory(builtInCategory)
                                     .Cast<FamilySymbol>()
-                                    .FirstOrDefault(fs => fs.IsActive); // Use the active type as the default
+                                    .FirstOrDefault(fs => fs.IsActive); // Get active type as default type
                                 if (symbol == null)
                                 {
                                     symbol = new FilteredElementCollector(doc)
@@ -165,8 +165,8 @@ namespace RevitMCPCommandSet.Services
                             break;
                     }
 
-                    // Step3 Call the generic method to create the family instance
-                    using (Transaction transaction = new Transaction(doc, "Create Line-Based Elements"))
+                    // Step3 Call generic method to create family instance
+                    using (Transaction transaction = new Transaction(doc, "Create Line-Based Element"))
                     {
                         transaction.Start();
                         switch (builtInCategory)
@@ -191,7 +191,7 @@ namespace RevitMCPCommandSet.Services
                                 break;
                             case BuiltInCategory.OST_DuctCurves:
                                 Duct duct = null;
-                                // Get the MEP system type (required)
+                                // Get MEP system type (required)
                                 MEPSystemType mepSystemType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(MEPSystemType))
                                     .Cast<MEPSystemType>()
@@ -210,7 +210,7 @@ namespace RevitMCPCommandSet.Services
 
                                     if (duct != null)
                                     {
-                                        // Set the height offset
+                                        // Set height offset
                                         Parameter offsetParam = duct.get_Parameter(BuiltInParameter.RBS_OFFSET_PARAM);
                                         if (offsetParam != null)
                                             offsetParam.Set(baseOffset);
@@ -222,7 +222,7 @@ namespace RevitMCPCommandSet.Services
                                 if (!symbol.IsActive)
                                     symbol.Activate();
 
-                                // Call the generic FamilyInstance creation method
+                                // Call FamilyInstance generic creation method
                                 var instance = doc.CreateInstance(symbol, null, JZLine.ToLine(data.LocationLine), baseLevel, topLevel, baseOffset, topOffset);
                                 if (instance != null)
                                 {
@@ -251,21 +251,20 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<List<int>>
                 {
                     Success = false,
-                    Message = $"Error creating line-based elements: {ex.Message}",
+                    Message = $"Error creating line-based element: {ex.Message}",
                 };
-                TaskDialog.Show("Error", $"Error creating line-based elements: {ex.Message}");
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <param name="timeoutMilliseconds">Timeout duration (milliseconds)</param>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -277,11 +276,11 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string GetName()
         {
-            return "Create Line-Based Elements";
+            return "Create Line-Based Element";
         }
 
         /// <summary>
-        /// Creates or gets a wall type with the specified thickness
+        /// Create or get a wall type with specified thickness
         /// </summary>
         /// <param name="doc">Revit document</param>
         /// <param name="width">Width (ft)</param>
@@ -290,7 +289,7 @@ namespace RevitMCPCommandSet.Services
         private WallType CreateOrGetWallType(Document doc, double width = 200 / 304.8)
         {
             // If no valid type exists
-            // First look for an architectural wall type with the specified thickness
+            // First check if a wall type with the specified thickness already exists
             WallType existingType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(WallType))
                                     .Cast<WallType>()
@@ -302,7 +301,7 @@ namespace RevitMCPCommandSet.Services
             WallType baseWallType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(WallType))
                                     .Cast<WallType>()
-                                    .FirstOrDefault(w => w.Name.Contains("常规")); ;
+                                    .FirstOrDefault(w => w.Name.Contains("Generic") || w.Name.Contains("General")); ;
             if (baseWallType == null)
             {
                 baseWallType = new FilteredElementCollector(doc)
@@ -312,48 +311,48 @@ namespace RevitMCPCommandSet.Services
             }
 
             if (baseWallType == null)
-                throw new InvalidOperationException("No usable wall type found");
+                throw new InvalidOperationException("No available base wall type found");
 
-            // Duplicate the wall type
+            // Duplicate wall type
             WallType newWallType = null;
             newWallType = baseWallType.Duplicate($"{_wallName}{width * 304.8}mm") as WallType;
 
-            // Set the wall thickness
+            // Set wall thickness
             CompoundStructure cs = newWallType.GetCompoundStructure();
             if (cs != null)
             {
-                // Get the material ID of the original layer
+                // Get the original layer's material ID
                 ElementId materialId = cs.GetLayers().First().MaterialId;
 
-                // Create the new single-layer structure
+                // Create new single-layer structure
                 CompoundStructureLayer newLayer = new CompoundStructureLayer(
                     width,  // Width (converted to feet)
                     MaterialFunctionAssignment.Structure,  // Function assignment
                     materialId  // Material ID
                 );
 
-                // Create the new compound structure
+                // Create new compound structure
                 IList<CompoundStructureLayer> newLayers = new List<CompoundStructureLayer> { newLayer };
                 cs.SetLayers(newLayers);
 
-                // Apply the new compound structure
+                // Apply new compound structure
                 newWallType.SetCompoundStructure(cs);
             }
             return newWallType;
         }
 
         /// <summary>
-        /// Creates or gets a duct type with the specified dimensions
+        /// Create or get a duct type with specified dimensions
         /// </summary>
         /// <param name="doc">Revit document</param>
         /// <param name="width">Width (ft)</param>
         /// <param name="height">Height (ft)</param>
-        /// <returns>The duct type</returns>
+        /// <returns>Duct type</returns>
         private DuctType CreateOrGetDuctType(Document doc, double width, double height)
         {
             string typeName = $"{_ductName}{width * 304.8}x{height * 304.8}mm";
 
-            // First look for a duct type with the specified dimensions
+            // First check if a duct type with specified dimensions already exists
             DuctType existingType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(DuctType))
                                     .Cast<DuctType>()
@@ -362,19 +361,19 @@ namespace RevitMCPCommandSet.Services
             if (existingType != null)
                 return existingType;
 
-            // If not found, create a new duct type based on an existing rectangular duct type
+            // If not found, create new duct type based on existing rectangular duct type
             DuctType baseDuctType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(DuctType))
                                     .Cast<DuctType>()
                                     .FirstOrDefault(d => d.Shape == ConnectorProfileType.Rectangular);
 
             if (baseDuctType == null)
-                throw new InvalidOperationException("No usable rectangular duct type found");
+                throw new InvalidOperationException("No available base rectangular duct type found");
 
-            // Duplicate the duct type
+            // Duplicate duct type
             DuctType newDuctType = baseDuctType.Duplicate(typeName) as DuctType;
 
-            // Set the duct size parameters
+            // Set duct dimension parameters
             Parameter widthParam = newDuctType.get_Parameter(BuiltInParameter.RBS_CURVE_WIDTH_PARAM);
             Parameter heightParam = newDuctType.get_Parameter(BuiltInParameter.RBS_CURVE_HEIGHT_PARAM);
 

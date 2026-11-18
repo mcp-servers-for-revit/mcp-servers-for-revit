@@ -26,6 +26,7 @@ async function main() {
   // registered-command list into the advertised tools shortly after startup.
   // Fire-and-forget - while Revit is unreachable the full tool list stays
   // advertised (stdio client UX must not depend on plugin connectivity).
+  if (process.argv.includes("--offline")) return;
   withRevitConnection(async () => {})
     .then(() => console.error("Tool advertisement synced with Revit"))
     .catch(() =>

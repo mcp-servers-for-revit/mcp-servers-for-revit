@@ -4,7 +4,7 @@
     Builds mcp-servers-for-revit and compiles the Inno Setup installer.
 #>
 param(
-    [int[]]$RevitVersions = @(2020, 2021, 2022, 2023, 2024, 2025, 2026),
+    [int[]]$RevitVersions = @(2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027),
     [switch]$VerifyServerBuild,
     [switch]$SkipPluginBuild,
     [string]$OutputDir = ""
@@ -20,7 +20,7 @@ if (-not $OutputDir) { $OutputDir = Join-Path $InstallerDir "output" }
 
 $YearToConfig = @{
     2020 = "R20"; 2021 = "R21"; 2022 = "R22"; 2023 = "R23"
-    2024 = "R24"; 2025 = "R25"; 2026 = "R26"
+    2024 = "R24"; 2025 = "R25"; 2026 = "R26"; 2027 = "R27"
 }
 
 function Invoke-Build {
@@ -77,16 +77,17 @@ if (-not $SkipPluginBuild) {
 
         Write-Host "`n=== Building Revit $year ($buildConfig) ===" -ForegroundColor Cyan
         dotnet build $slnPath -c $buildConfig --verbosity minimal
-        if ($LASTEXITCODE -ne 0) { Write-Host "  Skipped" -ForegroundColor Yellow; continue }
+        if ($LASTEXITCODE -ne 0) { throw "Core build failed for Revit $year" }
 
         # Build any *-commandset projects present in the repo (auto-discovered,
         # so new command set features require no installer edits). Their deploy
         # targets copy into the plugin's AddIn output directory before staging.
-        Get-ChildItem $RepoRoot -Directory -Filter "*-commandset" | ForEach-Object {
+        Get-ChildItem $RepoRoot -Directory -Filter "*-commandset" | Where-Object { $year -in 2024, 2025, 2026 } | ForEach-Object {
             $csproj = Get-ChildItem $_.FullName -Filter "*.csproj" | Select-Object -First 1
             if ($csproj) {
                 Write-Host "  Building $($csproj.BaseName) ($buildConfig)..." -ForegroundColor Cyan
                 dotnet build $csproj.FullName -c $buildConfig --verbosity minimal
+                if ($LASTEXITCODE -ne 0) { throw "$($csproj.Name) build failed for Revit $year" }
             }
         }
 
@@ -119,7 +120,6 @@ if (Test-Path $StagedServerDir) { Remove-Item $StagedServerDir -Recurse -Force }
 New-Item -ItemType Directory -Path $StagedServerDir -Force | Out-Null
 Copy-Item -Path $ServerBuildDir -Destination (Join-Path $StagedServerDir "build") -Recurse -Force
 Copy-Item -Path (Join-Path $ServerSrc "package.json") -Destination $StagedServerDir -Force
-Copy-Item -Path $ServerModulesDir -Destination $StagedServerDir -Recurse -Force
 $nItems = (Get-ChildItem $StagedServerDir -Recurse -File | Measure-Object).Count
 Write-Host "`nStaged MCP Server bundle: $nItems files under staged\Server" -ForegroundColor Green
 
@@ -929,7 +929,7 @@ $issLines += 'procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep
 $issLines += 'var I: Integer;'
 $issLines += 'begin'
 $issLines += '  if CurUninstallStep = usUninstall then begin'
-$issLines += '    for I := 2020 to 2026 do RemoveFromRevitAddins(IntToStr(I));'
+$issLines += '    for I := 2020 to 2027 do RemoveFromRevitAddins(IntToStr(I));'
 $issLines += '    RemoveFromClaudeDesktop;'
 $issLines += '    RemoveFromCursor;'
 $issLines += '    RemoveFromOpencode;'

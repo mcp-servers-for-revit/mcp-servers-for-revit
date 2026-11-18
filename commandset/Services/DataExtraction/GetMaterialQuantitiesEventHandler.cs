@@ -9,15 +9,17 @@ namespace RevitMCPCommandSet.Services.DataExtraction
     {
         private List<string> _categoryFilters;
         private bool _selectedElementsOnly;
+        private int _maxResults;
 
         public GetMaterialQuantitiesResult ResultInfo { get; private set; }
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        public void SetParameters(List<string> categoryFilters = null, bool selectedElementsOnly = false)
+        public void SetParameters(List<string> categoryFilters = null, bool selectedElementsOnly = false, int maxResults = 50)
         {
             _categoryFilters = categoryFilters;
             _selectedElementsOnly = selectedElementsOnly;
+            _maxResults = maxResults > 0 ? maxResults : 50;
             TaskCompleted = false;
             _resetEvent.Reset();
         }
@@ -121,15 +123,21 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                 var materials = materialData.Values.ToList();
                 double totalArea = materials.Sum(m => m.Area);
                 double totalVolume = materials.Sum(m => m.Volume);
+                int totalCount = materials.Count;
+                bool truncated = materials.Count > _maxResults;
+                if (truncated)
+                    materials = materials.Take(_maxResults).ToList();
 
                 ResultInfo = new GetMaterialQuantitiesResult
                 {
                     TotalMaterials = materials.Count,
+                    TotalCount = totalCount,
+                    Truncated = truncated,
                     TotalArea = totalArea,
                     TotalVolume = totalVolume,
                     Materials = materials,
                     Success = true,
-                    Message = $"Successfully calculated quantities for {materials.Count} materials"
+                    Message = $"Successfully calculated quantities for {materials.Count} materials" + (truncated ? $" (truncated from {totalCount})" : "")
                 };
             }
             catch (Exception ex)

@@ -32,17 +32,17 @@ namespace RevitMCPCommandSet.Commands.Access
                     // Parse parameters
                     int? limit = parameters?["limit"]?.Value<int>();
 
-                    // Set the count limit
+                    // Set quantity limit
                     _handler.Limit = limit;
 
-                    // Raise the external event and wait for completion
+                    // Raise external event and wait for completion
                     if (RaiseAndWaitForCompletion(15000))
                     {
                         return _handler.ResultElements;
                     }
                     else
                     {
-                        throw new TimeoutException("Timed out getting selected elements");
+                        throw new TimeoutException("Get selected elements timed out");
                     }
                 }
                 catch (Exception ex)

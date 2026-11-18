@@ -12,15 +12,15 @@ namespace RevitMCPCommandSet.Services
         private Document doc => uiDoc.Document;
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         /// <summary>
-        /// Input data
+        /// Creation data (input)
         /// </summary>
         public List<SurfaceElement> CreatedInfo { get; private set; }
         /// <summary>
-        /// Execution result (output data)
+        /// Execution result (output)
         /// </summary>
         public AIResult<List<int>> Result { get; private set; }
         public string _floorName = "Generic - ";
@@ -28,7 +28,7 @@ namespace RevitMCPCommandSet.Services
         private List<string> _warnings = new List<string>();
 
         /// <summary>
-        /// Sets the creation parameters
+        /// Set creation parameters
         /// </summary>
         public void SetParameters(List<SurfaceElement> data)
         {
@@ -46,11 +46,11 @@ namespace RevitMCPCommandSet.Services
                 foreach (var data in CreatedInfo)
                 {
                     int requestedTypeId = data.TypeId;
-                    // Step0 Get the element category
+                    // Step0 Get element category
                     BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
                     Enum.TryParse(data.Category.Replace(".", "").Replace("BuiltInCategory", ""), true, out builtInCategory);
 
-                    // Step1 Get the levels and offsets
+                    // Step1 Get level and offset
                     Level baseLevel = null;
                     Level topLevel = null;
                     double topOffset = -1;  // ft
@@ -62,7 +62,7 @@ namespace RevitMCPCommandSet.Services
                     if (baseLevel == null)
                         continue;
 
-                    // Step2 Get the family type
+                    // Step2 Get family type
                     FamilySymbol symbol = null;
                     FloorType floorType = null;
                     RoofType roofType = null;
@@ -76,7 +76,7 @@ namespace RevitMCPCommandSet.Services
                             if (typeEle != null && typeEle is FamilySymbol)
                             {
                                 symbol = typeEle as FamilySymbol;
-                                // Get the symbol's Category object and convert to the BuiltInCategory enum
+                                // Get symbol's Category and convert to BuiltInCategory enum
                                 builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
                             }
                             else if (typeEle != null && typeEle is FloorType)
@@ -167,7 +167,7 @@ namespace RevitMCPCommandSet.Services
                                     .OfClass(typeof(FamilySymbol))
                                     .OfCategory(builtInCategory)
                                     .Cast<FamilySymbol>()
-                                    .FirstOrDefault(fs => fs.IsActive); // Use the active type as the default
+                                    .FirstOrDefault(fs => fs.IsActive); // Get active type as default
                                 if (symbol == null)
                                 {
                                     symbol = new FilteredElementCollector(doc)
@@ -182,9 +182,9 @@ namespace RevitMCPCommandSet.Services
                             break;
                     }
 
-                    // Step3 Batch-create floors
+                    // Step3 Create surface elements
                     Floor floor = null;
-                    using (Transaction transaction = new Transaction(doc, "Create Surface-Based Elements"))
+                    using (Transaction transaction = new Transaction(doc, "Create surface element"))
                     {
                         transaction.Start();
 
@@ -198,13 +198,10 @@ namespace RevitMCPCommandSet.Services
                                 }
                                 CurveLoop curveLoop = CurveLoop.Create(data.Boundary.OuterLoop.Select(l => JZLine.ToLine(l) as Curve).ToList());
 
-                                // Multi-version - Floor.Create introduced in Revit 2022 but stable in 2023+
-#if REVIT2023_OR_GREATER
-                                floor = Floor.Create(doc, new List<CurveLoop> { curveLoop }, floorType.Id, baseLevel.Id);
-#else
-                                floor = doc.Create.NewFloor(curves, floorType, baseLevel, _structural);
-#endif
-                                //Edit the floor parameters
+                                // Multi-version - Floor.Create introduced in Revit 2022,
+                                // Revit 2020-2021 fall back to Document.Create.NewFloor
+                                floor = SurfaceElementCompat.CreateFloor(doc, new List<CurveLoop> { curveLoop }, floorType.Id, baseLevel.Id);
+                                // Set floor parameters
                                 if (floor != null)
                                 {
                                     floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseOffset);
@@ -240,13 +237,7 @@ namespace RevitMCPCommandSet.Services
                             case BuiltInCategory.OST_Ceilings:
                                 CurveLoop ceilingCurveLoop = CurveLoop.Create(data.Boundary.OuterLoop.Select(l => JZLine.ToLine(l) as Curve).ToList());
 
-#if REVIT2022_OR_GREATER
-                                Ceiling ceiling = Ceiling.Create(doc, new List<CurveLoop> { ceilingCurveLoop }, ceilingType.Id, baseLevel.Id);
-#else
-                                // Ceiling.Create API not available before Revit 2022
-                                Ceiling ceiling = null;
-                                _warnings.Add("Ceiling creation is not supported in Revit versions before 2022.");
-#endif
+                                Ceiling ceiling = SurfaceElementCompat.CreateCeiling(doc, new List<CurveLoop> { ceilingCurveLoop }, ceilingType.Id, baseLevel.Id);
                                 if (ceiling != null)
                                 {
                                     // Set the ceiling height offset from level
@@ -282,21 +273,20 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<List<int>>
                 {
                     Success = false,
-                    Message = $"Error creating surface-based elements: {ex.Message}",
+                    Message = $"Error creating surface element: {ex.Message}",
                 };
-                TaskDialog.Show("Error", $"Error creating surface-based elements: {ex.Message}");
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
         /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -308,46 +298,46 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string GetName()
         {
-            return "Create Surface-Based Elements";
+            return "Create Surface Element";
         }
 
         /// <summary>
-        /// Gets or creates a floor type with the specified thickness
+        /// Get or create a floor type with the specified thickness
         /// </summary>
         /// <param name="thickness">Target thickness (ft)</param>
-        /// <returns>A floor type meeting the thickness requirement</returns>
+        /// <returns>Floor type matching the thickness requirement</returns>
         private FloorType CreateOrGetFloorType(Document doc, double thickness = 200 / 304.8)
         {
 
-            // Look for a floor type matching the thickness
+            // Find floor type matching the thickness
             FloorType existingType = new FilteredElementCollector(doc)
-                                     .OfClass(typeof(FloorType))                    // Only FloorType classes
-                                     .OfCategory(BuiltInCategory.OST_Floors)        // Only floor category
+                                     .OfClass(typeof(FloorType))                    // FloorType class only
+                                     .OfCategory(BuiltInCategory.OST_Floors)        // Floors category only
                                      .Cast<FloorType>()                            // Cast to FloorType
                                      .FirstOrDefault(w => w.Name == $"{_floorName}{thickness * 304.8}mm");
             if (existingType != null)
                 return existingType;
-            // If no matching floor type is found, create a new one
+            // If no matching floor type found, create a new one
             FloorType baseFloorType = existingType = new FilteredElementCollector(doc)
-                                     .OfClass(typeof(FloorType))                    // Only FloorType classes
-                                     .OfCategory(BuiltInCategory.OST_Floors)        // Only floor category
+                                     .OfClass(typeof(FloorType))                    // FloorType class only
+                                     .OfCategory(BuiltInCategory.OST_Floors)        // Floors category only
                                      .Cast<FloorType>()                            // Cast to FloorType
-                                     .FirstOrDefault(w => w.Name.Contains("常规"));
+                                     .FirstOrDefault(w => w.Name.Contains("Generic"));
             if (existingType != null)
             {
                 baseFloorType = existingType = new FilteredElementCollector(doc)
-                                     .OfClass(typeof(FloorType))                    // Only FloorType classes
-                                     .OfCategory(BuiltInCategory.OST_Floors)        // Only floor category
+                                     .OfClass(typeof(FloorType))                    // FloorType class only
+                                     .OfCategory(BuiltInCategory.OST_Floors)        // Floors category only
                                      .Cast<FloorType>()                            // Cast to FloorType
                                      .FirstOrDefault();
             }
 
-            // Duplicate the floor type
+            // Duplicate floor type
             FloorType newFloorType = null;
             newFloorType = baseFloorType.Duplicate($"{_floorName}{thickness * 304.8}mm") as FloorType;
 
-            // Set the thickness of the new floor type
-            // Get the layer structure
+            // Set thickness for the new floor type
+            // Get compound structure
             CompoundStructure cs = newFloorType.GetCompoundStructure();
             if (cs != null)
             {
@@ -355,7 +345,7 @@ namespace RevitMCPCommandSet.Services
                 IList<CompoundStructureLayer> layers = cs.GetLayers();
                 if (layers.Count > 0)
                 {
-                    // Calculate the current total thickness
+                    // Calculate current total thickness
                     double currentTotalThickness = cs.GetWidth();
 
                     // Adjust each layer thickness proportionally
@@ -366,7 +356,7 @@ namespace RevitMCPCommandSet.Services
                         cs.SetLayerWidth(i, newLayerThickness);
                     }
 
-                    // Apply the modified layer structure
+                    // Apply the modified compound structure
                     newFloorType.SetCompoundStructure(cs);
                 }
             }

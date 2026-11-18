@@ -3,7 +3,7 @@
 public class AIResult<T>
 {
     /// <summary>
-    ///     Whether the operation succeeded
+    ///     Whether successful
     /// </summary>
     public bool Success { get; set; }
 

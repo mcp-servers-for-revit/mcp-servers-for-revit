@@ -9,7 +9,7 @@ const entry = path.join(serverDir, "build", "index.js");
 
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: [entry],
+  args: [entry, "--offline"],
   cwd: serverDir,
   stderr: "pipe",
 });
@@ -32,7 +32,8 @@ try {
   const result = await client.listTools();
   const names = new Set(result.tools.map((tool) => tool.name));
 
-  const required = ["say_hello", "get_current_view_info", "send_code_to_revit"];
+  const required = ["say_hello", "get_current_view_info", "send_code_to_revit", "dimension_grids",
+    "create_walls_from_dwg_layer", "detect_off_axis_hybrid", "workflow_sheet_set"];
   const missing = required.filter((name) => !names.has(name));
   if (missing.length > 0) {
     throw new Error(`Missing tools: ${missing.join(", ")}`);

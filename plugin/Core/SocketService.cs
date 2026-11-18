@@ -10,21 +10,23 @@ using Newtonsoft.Json.Linq;
 using RevitMCPSDK.API.Models.JsonRPC;
 using RevitMCPSDK.API.Interfaces;
 using revit_mcp_plugin.Configuration;
+using revit_mcp_plugin.Helpers;
 using revit_mcp_plugin.Utils;
 
 namespace revit_mcp_plugin.Core
 {
     public class SocketService
     {
-        private static SocketService _instance;
+        private static volatile SocketService _instance;
+        private static readonly object _lock = new object();
         private TcpListener _listener;
         private Thread _listenerThread;
-        private bool _isRunning;
+        private volatile bool _isRunning;
         private int _port = 8080;
         private UIApplication _uiApp;
         private ICommandRegistry _commandRegistry;
         private ILogger _logger;
-        private CommandExecutor _commandExecutor;
+
         private CommandManager _pluginCommandManager;
         private revit_mcp_plugin.Configuration.ConfigurationManager _pluginConfigManager;
 
@@ -41,8 +43,14 @@ namespace revit_mcp_plugin.Core
         {
             get
             {
-                if(_instance == null)
-                    _instance = new SocketService();
+                if (_instance == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                            _instance = new SocketService();
+                    }
+                }
                 return _instance;
             }
         }
@@ -55,11 +63,9 @@ namespace revit_mcp_plugin.Core
 
         public bool IsRunning => _isRunning;
 
-        public int Port
-        {
-            get => _port;
-            set => _port = value;
-        }
+        public UIApplication UiApplication => _uiApp;
+
+        public int Port => _port;
 
         // Initialization.
         public void Initialize(UIApplication uiApp)
@@ -67,10 +73,8 @@ namespace revit_mcp_plugin.Core
             _uiApp = uiApp;
 
             // Initialize ExternalEventManager
-            // Initialize ExternalEventManager
             ExternalEventManager.Instance.Initialize(uiApp, _logger);
 
-            // Get the current Revit version.
             // Get the current Revit version.
             var versionAdapter = new RevitMCPSDK.API.Utils.RevitVersionAdapter(_uiApp.Application);
             string currentVersion = versionAdapter.GetRevitVersion();
@@ -78,11 +82,6 @@ namespace revit_mcp_plugin.Core
 
 
 
-            // Create CommandExecutor
-            // Create CommandExecutor
-            _commandExecutor = new CommandExecutor(_commandRegistry, _logger);
-
-            // Load configuration and register commands.
             // Load configuration and register commands.
             ConfigurationManager configManager = new ConfigurationManager(_logger);
             configManager.LoadConfiguration();
@@ -95,8 +94,7 @@ namespace revit_mcp_plugin.Core
             //}
             _port = 8080; // Hard-wired port number.
 
-            // Load command.
-            // Load command.
+            // Load commands.
             CommandSetLoader.EnsureResolveHook(PathManager.GetCommandsDirectoryPath());
 
             CommandManager commandManager = new CommandManager(
@@ -133,31 +131,105 @@ namespace revit_mcp_plugin.Core
             _logger.Info($"Socket service initialized on port {_port}");
         }
 
+        private int FindAvailablePort(int startPort, int endPort)
+        {
+            for (int port = startPort; port <= endPort; port++)
+            {
+                try
+                {
+                    var testListener = new TcpListener(IPAddress.Loopback, port);
+                    testListener.Start();
+                    testListener.Stop();
+                    return port;
+                }
+                catch (SocketException)
+                {
+                    McpLogger.Warn("SocketService", $"Port {port} is not available, trying next...");
+                }
+            }
+            return -1;
+        }
+
+        private void WritePortFile(int port)
+        {
+            try
+            {
+                string pluginDir = Path.GetDirectoryName(typeof(SocketService).Assembly.Location);
+                string portFilePath = Path.Combine(pluginDir, "mcp-port.txt");
+                File.WriteAllText(portFilePath, port.ToString());
+                McpLogger.Info("SocketService", $"Port file written to {portFilePath} with port {port}");
+            }
+            catch (Exception ex)
+            {
+                McpLogger.Error("SocketService", "Failed to write port file", ex);
+            }
+        }
+
         public void Start()
         {
             if (_isRunning) return;
 
+            // Run pre-start health checks
+            var pluginDir = Path.GetDirectoryName(typeof(SocketService).Assembly.Location);
+            var healthResults = HealthChecker.RunAll(pluginDir, 0);
+            foreach (var r in healthResults)
+            {
+                if (r.Name == "Port Connectivity") continue;
+                if (r.AutoFixed)
+                    McpLogger.Info("SocketService", $"Auto-fixed: {r.Name} — {r.Message}");
+                if (!r.Passed)
+                    McpLogger.Warn("SocketService", $"Health check [{r.Name}]: {r.Message}");
+            }
+
             try
             {
-                _isRunning = true;
-                _listener = new TcpListener(IPAddress.Any, _port);
+                int port = FindAvailablePort(8080, 8089);
+                if (port == -1)
+                {
+                    McpLogger.Error("SocketService", "No available port found in range 8080-8089");
+                    System.Windows.Forms.MessageBox.Show(
+                        "No available port (8080-8089). Please close other applications using these ports and try again.",
+                        "MCP Server - Port Error",
+                        System.Windows.Forms.MessageBoxButtons.OK,
+                        System.Windows.Forms.MessageBoxIcon.Error);
+                    return;
+                }
+
+                _port = port;
+
+                if (port != 8080)
+                {
+                    McpLogger.Warn("SocketService", $"Port 8080 was not available, falling back to port {port}");
+                }
+
+                WritePortFile(port);
+
+                _listener = new TcpListener(IPAddress.Loopback, port);
                 _listener.Start();
 
                 _listenerThread = new Thread(ListenForClients)
                 {
                     IsBackground = true
                 };
-                _listenerThread.Start();              
+                _isRunning = true;
+                _listenerThread.Start();
+                McpLogger.Info("SocketService", $"Server started on port {port}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 _isRunning = false;
+                _listener?.Stop();
+                _listener = null;
+                McpLogger.Error("SocketService", "Failed to start socket service", ex);
+                _logger?.Error($"Failed to start socket service on port {_port}: {ex.Message}");
             }
         }
 
         public void Stop()
         {
             if (!_isRunning) return;
+
+            McpLogger.Info("SocketService", "Server stopping");
 
             try
             {
@@ -171,9 +243,9 @@ namespace revit_mcp_plugin.Core
                     _listenerThread.Join(1000);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // log error
+                _logger?.Error($"Error stopping socket service: {ex.Message}");
             }
         }
 
@@ -192,13 +264,15 @@ namespace revit_mcp_plugin.Core
                     clientThread.Start(client);
                 }
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                
+                if (_isRunning)
+                    McpLogger.Error("SocketService", "Socket error in listener", ex);
             }
-            catch(Exception)
+            catch (Exception ex)
             {
-                // log
+                if (_isRunning)
+                    McpLogger.Error("SocketService", "Unexpected error in listener", ex);
             }
         }
 
@@ -206,15 +280,16 @@ namespace revit_mcp_plugin.Core
         {
             TcpClient tcpClient = (TcpClient)clientObj;
             NetworkStream stream = tcpClient.GetStream();
+            StringBuilder messageBuffer = new StringBuilder();
 
             try
             {
-                byte[] buffer = new byte[8192];
+                byte[] buffer = new byte[65536];
+                var decoder = Encoding.UTF8.GetDecoder();
+                char[] characters = new char[Encoding.UTF8.GetMaxCharCount(buffer.Length)];
 
                 while (_isRunning && tcpClient.Connected)
                 {
-                    // Read client messages.
-                    // Read client messages.
                     int bytesRead = 0;
 
                     try
@@ -223,31 +298,49 @@ namespace revit_mcp_plugin.Core
                     }
                     catch (IOException)
                     {
-                        // Client disconnected.
                         break;
                     }
 
                     if (bytesRead == 0)
-                    {
-                        // Client disconnected.
-                        // Client disconnected.
                         break;
+
+                    int count = decoder.GetChars(buffer, 0, bytesRead, characters, 0);
+                    messageBuffer.Append(characters, 0, count);
+
+                    // Process all complete newline-delimited messages in the buffer.
+                    string bufferContent = messageBuffer.ToString();
+                    // Older clients omit the delimiter on a complete request.
+                    if (!bufferContent.Contains("\n") && bufferContent.TrimEnd().EndsWith("}"))
+                    {
+                        try { JObject.Parse(bufferContent); bufferContent += "\n"; }
+                        catch (JsonReaderException) { /* Wait for the rest of the object. */ }
+                    }
+                    int newlineIndex;
+                    while ((newlineIndex = bufferContent.IndexOf('\n')) >= 0)
+                    {
+                        string message = bufferContent.Substring(0, newlineIndex).Trim();
+                        bufferContent = bufferContent.Substring(newlineIndex + 1);
+
+                        if (string.IsNullOrEmpty(message))
+                            continue;
+
+                        System.Diagnostics.Trace.WriteLine($"Received message: {message}");
+                        string response = ProcessJsonRPCRequest(message);
+
+                        // Send response with newline delimiter.
+                        byte[] responseData = Encoding.UTF8.GetBytes(response + "\n");
+                        stream.Write(responseData, 0, responseData.Length);
                     }
 
-                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    System.Diagnostics.Trace.WriteLine($"Received message: {message}");
-
-                    string response = ProcessJsonRPCRequest(message);
-
-                    // Send response.
-                    // Send response.
-                    byte[] responseData = Encoding.UTF8.GetBytes(response);
-                    stream.Write(responseData, 0, responseData.Length);
+                    messageBuffer.Clear();
+                    if (bufferContent.Length > 0)
+                        messageBuffer.Append(bufferContent);
                 }
             }
-            catch(Exception)
+            catch (Exception ex)
             {
-                // log
+                McpLogger.Error("SocketService", "Client communication error", ex);
+                _logger?.Error($"Error in client communication: {ex.Message}");
             }
             finally
             {
@@ -262,10 +355,8 @@ namespace revit_mcp_plugin.Core
             try
             {
                 // Parse JSON-RPC requests.
-                // Parse JSON-RPC requests.
                 request = JsonConvert.DeserializeObject<JsonRPCRequest>(requestJson);
 
-                // Verify that the request format is valid.
                 // Verify that the request format is valid.
                 if (request == null || !request.IsValid())
                 {
@@ -277,7 +368,6 @@ namespace revit_mcp_plugin.Core
                 }
 
                 // Search for the command in the registry.
-                // Search for the command in the registry.
                 if (!_commandRegistry.TryGetCommand(request.Method, out var command))
                 {
                     return CreateErrorResponse(request.Id, JsonRPCErrorCodes.MethodNotFound,
@@ -286,19 +376,39 @@ namespace revit_mcp_plugin.Core
 
                 // Execute command.
                 try
-                {                
+                {
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                     object result = command.Execute(request.GetParamsObject(), request.Id);
+                    stopwatch.Stop();
+
+                    // Log to dockable panel
+                    try
+                    {
+                        UI.MCPDockablePanel.Instance?.LogCommand(
+                            request.Method, true, "Success", stopwatch.ElapsedMilliseconds);
+                    }
+                    catch { }
 
                     return CreateSuccessResponse(request.Id, result);
                 }
                 catch (Exception ex)
                 {
-                    return CreateErrorResponse(request.Id, JsonRPCErrorCodes.InternalError, ex.Message);
+                    McpLogger.Error("SocketService", $"Command '{request.Method}' failed", ex);
+
+                    // Log error to dockable panel
+                    try
+                    {
+                        UI.MCPDockablePanel.Instance?.LogCommand(
+                            request.Method, false, ex.Message, 0);
+                    }
+                    catch { }
+
+                    return CreateErrorResponse(request.Id, JsonRPCErrorCodes.InternalError,
+                        $"Command '{request.Method}' failed: {ex.Message}. Check the MCP log for details.");
                 }
             }
             catch (JsonException)
             {
-                // JSON parsing error.
                 // JSON parsing error.
                 return CreateErrorResponse(
                     null,
@@ -309,11 +419,11 @@ namespace revit_mcp_plugin.Core
             catch (Exception ex)
             {
                 // Catch other errors produced when processing requests.
-                // Catch other errors produced when processing requests.
+                McpLogger.Error("SocketService", "Request processing failed", ex);
                 return CreateErrorResponse(
                     null,
                     JsonRPCErrorCodes.InternalError,
-                    $"Internal error: {ex.Message}"
+                    $"Request processing failed: {ex.Message}. Check the MCP log for details."
                 );
             }
         }

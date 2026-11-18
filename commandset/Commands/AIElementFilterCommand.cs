@@ -35,21 +35,21 @@ namespace RevitMCPCommandSet.Commands
             {
                 FilterSetting data = new FilterSetting();
                 // Parse parameters
-                data = parameters["data"].ToObject<FilterSetting>();
+                data = parameters?["data"]?.ToObject<FilterSetting>();
                 if (data == null)
-                    throw new ArgumentNullException(nameof(data), "AI input data is null");
+                    throw new ArgumentNullException(nameof(data), "AI input data is null — expected: {\"data\": {\"filterCategory\": \"OST_Walls\", ...}}");
 
-                // Set the AI filter parameters
+                // Set AI filter parameters
                 _handler.SetParameters(data);
 
-                // Raise the external event and wait for completion
-                if (RaiseAndWaitForCompletion(10000))
+                // Raise external event and wait for completion
+                if (RaiseAndWaitForCompletion(120000)) // 2-minute timeout for large model scans
                 {
                     return _handler.Result;
                 }
                 else
                 {
-                    throw new TimeoutException("Timed out getting element info");
+                    throw new TimeoutException("Get element info operation timed out — try adding a filterCategory to narrow the search scope");
                 }
             }
             catch (Exception ex)

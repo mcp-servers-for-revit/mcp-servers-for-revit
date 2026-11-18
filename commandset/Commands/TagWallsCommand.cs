@@ -40,17 +40,17 @@ namespace RevitMCPCommandSet.Commands
                     tagTypeId = parameters["tagTypeId"].ToString();
                 }
 
-                // Set the tagging parameters
+                // Set tag parameters
                 _handler.SetParameters(useLeader, tagTypeId);
 
-                // Raise the external event and wait for completion
+                // Raise external event and wait for completion
                 if (RaiseAndWaitForCompletion(10000))
                 {
                     return _handler.TaggingResults;
                 }
                 else
                 {
-                    throw new TimeoutException("Wall tagging timed out");
+                    throw new TimeoutException("Tag walls operation timed out");
                 }
             }
             catch (Exception ex)

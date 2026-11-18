@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
@@ -24,7 +24,7 @@ public class JZLine
     }
 
     /// <summary>
-    ///     Constructor taking four double parameters
+    ///     Constructor with six double parameters
     /// </summary>
     /// <param name="x0">Start point X coordinate</param>
     /// <param name="y0">Start point Y coordinate</param>
@@ -39,7 +39,7 @@ public class JZLine
     }
 
     /// <summary>
-    ///     Constructor taking four double parameters
+    ///     Constructor with four double parameters
     /// </summary>
     /// <param name="x0">Start point X coordinate</param>
     /// <param name="y0">Start point Y coordinate</param>
@@ -66,14 +66,14 @@ public class JZLine
     public JZPoint P1 { get; set; }
 
     /// <summary>
-    ///     Gets the length of the line segment
+    ///     Get the length of the line segment
     /// </summary>
     public double GetLength()
     {
         if (P0 == null || P1 == null)
             throw new InvalidOperationException("JZLine must have both P0 and P1 defined to calculate length.");
 
-        // Calculate the distance between the 3D points
+        // Calculate distance between 3D points
         var dx = P1.X - P0.X;
         var dy = P1.Y - P0.Y;
         var dz = P1.Z - P0.Z;
@@ -82,7 +82,7 @@ public class JZLine
     }
 
     /// <summary>
-    ///     Gets the direction of the line segment
+    ///     Get the direction of the line segment
     ///     Returns a normalized JZPoint representing the direction vector
     /// </summary>
     public JZPoint GetDirection()
@@ -90,23 +90,23 @@ public class JZLine
         if (P0 == null || P1 == null)
             throw new InvalidOperationException("JZLine must have both P0 and P1 defined to calculate direction.");
 
-        // Calculate the direction vector
+        // Calculate direction vector
         var dx = P1.X - P0.X;
         var dy = P1.Y - P0.Y;
         var dz = P1.Z - P0.Z;
 
-        // Calculate the magnitude of the vector
+        // Calculate vector magnitude
         var length = Math.Sqrt(dx * dx + dy * dy + dz * dz);
 
         if (length == 0)
             throw new InvalidOperationException("Cannot determine direction for a line with zero length.");
 
-        // Return the normalized vector
+        // Return normalized vector
         return new JZPoint(dx / length, dy / length, dz / length);
     }
 
     /// <summary>
-    ///     Converts to a Revit Line
+    ///     Convert to Revit Line
     ///     Unit conversion: mm -> ft
     /// </summary>
     public static Line ToLine(JZLine jzLine)

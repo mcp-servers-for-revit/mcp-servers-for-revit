@@ -16,8 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Node 22: server engines require >=20 (upstream constraint, driven by
-      # better-sqlite3 v12); upstream's own workflow still pins 18 and is stale.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -137,6 +135,9 @@ jobs:
           foreach ($rv in $revitVersions) {
             $addinDir = "plugin/bin/AddIn $($rv.Year) $($rv.Config)"
             if (Test-Path $addinDir) {
+              $runtime = Join-Path $addinDir "revit_mcp_plugin/Commands/RevitMCPCommandSet/server/runtime"
+              New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+              Copy-Item (Get-Command node.exe).Source $runtime
               $zipName = "$outputDir/mcp-servers-for-revit-$version-Revit$($rv.Year).zip"
               Compress-Archive -Path "$addinDir/*" -DestinationPath $zipName
               Write-Host "Created $zipName"
@@ -158,7 +159,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
           Copy-Item -Recurse -Force "server/build" "$stage/build"
           Copy-Item "server/package.json" $stage
-          Copy-Item -Recurse -Force "server/node_modules" "$stage/node_modules"
           $zip = "release-assets/mcp-servers-for-revit-$version-server.zip"
           Compress-Archive -Path "$stage/*" -DestinationPath $zip
           Remove-Item $stage -Recurse -Force
@@ -166,7 +166,7 @@ jobs:
         shell: pwsh
 
       # ---------------------------------------------------------------
-      # Build the Inno Setup Windows installer (Revit 2020-2026).
+      # Build the Inno Setup Windows installer (Revit 2020-2027).
       # 2020-2023 are core-only; 2024-2026 include Dwg/OffAxis too.
       # Primes the staged layout via -RevitVersions, which rebuilds those
       # configs and compiles mcp-servers-for-revit-setup.exe.
@@ -175,7 +175,7 @@ jobs:
         run: choco install innosetup -y --no-progress
 
       - name: Build Windows installer
-        run: ./installer/build-installer.ps1 -RevitVersions @(2020, 2021, 2022, 2023, 2024, 2025, 2026)
+        run: ./installer/build-installer.ps1 -RevitVersions @(2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027)
         shell: pwsh
 
       - name: Collect installer asset
@@ -188,7 +188,7 @@ jobs:
       - name: Generate core manifest and registry seed
         run: |
           $version = "${{ github.ref_name }}"
-          $years = @('2020','2021','2022','2023','2024','2025','2026')
+          $years = @('2020','2021','2022','2023','2024','2025','2026','2027')
           $seedCommands = @()
           $seedRoot = "plugin/bin/AddIn 2026 Release R26/revit_mcp_plugin/Commands"
           if (Test-Path $seedRoot) {
@@ -202,7 +202,7 @@ jobs:
                   description = $cmd.description
                   assemblyPath = "$($setDir.Name)\{VERSION}\$($cmd.assemblyPath)"
                   enabled = $false
-                  supportedRevitVersions = @('2024','2025','2026')
+                  supportedRevitVersions = if ($setDir.Name -eq "RevitMCPCommandSet") { $years } else { @('2024','2025','2026') }
                   developer = $manifest.developer
                 }
               }
@@ -223,6 +223,7 @@ jobs:
             version = $version
             supportedRevitYears = $years
             commandSets = [ordered]@{
+              '2027' = @('RevitMCPCommandSet')
               '2020-2023' = @('RevitMCPCommandSet')
               '2024-2026' = @('DwgCommandSet','RevitMCPCommandSet','OffAxisCommandSet')
             }
@@ -244,6 +245,35 @@ jobs:
           append_body: true
           body: |
             ## Windows Installer
-            **`mcp-servers-for-revit-setup.exe`** is a standard Windows installer (Revit 2020-2026): it installs the Revit plugin, lets you choose command sets, and configures AI clients (Claude Desktop, Cursor, opencode, AnythingLLM) when detected. The MCP server is bundled with the installer (no npm `npx` dependency; a portable Node runtime is included). 2020-2023 ship the core command set only; 2024-2026 also include DwgCommandSet and OffAxisCommandSet. The per-Revit-version ZIPs below remain available for manual deployment. The suite installer (SMS Toolkit) is the primary installation vehicle; this standalone installer remains available for testing and piecemeal updates.
+            **`mcp-servers-for-revit-setup.exe`** is a standard Windows installer (Revit 2020-2027): it installs the Revit plugin, lets you choose command sets, and configures AI clients (Claude Desktop, Cursor, opencode, AnythingLLM) when detected. The MCP server is bundled with the installer (no npm `npx` dependency; a portable Node runtime is included). 2020-2023 ship the core command set only; 2024-2026 also include DwgCommandSet and OffAxisCommandSet. The per-Revit-version ZIPs below remain available for manual deployment. The suite installer (SMS Toolkit) is the primary installation vehicle; this standalone installer remains available for testing and piecemeal updates.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  npm-publish:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Install and build
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish to npm
+        working-directory: server
+        run: npm publish --access public

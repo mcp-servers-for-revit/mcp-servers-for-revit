@@ -134,12 +134,12 @@ namespace revit_mcp_plugin.Configuration
                         {
                             string dllPath = string.IsNullOrEmpty(item.AssemblyPath)
                                 ? null
-                                : Path.Combine(setDir, year, item.AssemblyPath);
+                                : Path.Combine(setDir, year, Path.GetFileName(item.AssemblyPath));
                             if (dllPath != null && File.Exists(dllPath))
                             {
                                 supported.Add(year);
                                 if (dllTemplate == null)
-                                    dllTemplate = Path.Combine(manifest.Name, "{VERSION}", item.AssemblyPath);
+                                    dllTemplate = Path.Combine(manifest.Name, "{VERSION}", Path.GetFileName(item.AssemblyPath));
                             }
                         }
 

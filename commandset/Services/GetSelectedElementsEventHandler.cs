@@ -21,10 +21,17 @@ namespace RevitMCPCommandSet.Services
         // Limit the number of returned elements
         public int? Limit { get; set; }
 
-        // IWaitableExternalEventHandler interface implementation
+        // Set query parameters
+        public void SetParameters(int? limit = null)
+        {
+            Limit = limit;
+            TaskCompleted = false;
+            _resetEvent.Reset();
+        }
+
+        // Implement IWaitableExternalEventHandler interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -35,17 +42,17 @@ namespace RevitMCPCommandSet.Services
                 var uiDoc = app.ActiveUIDocument;
                 var doc = uiDoc.Document;
 
-                // Get the currently selected elements
+                // Get currently selected elements
                 var selectedIds = uiDoc.Selection.GetElementIds();
                 var selectedElements = selectedIds.Select(id => doc.GetElement(id)).ToList();
 
-                // Apply the count limit
+                // Apply quantity limit
                 if (Limit.HasValue && Limit.Value > 0)
                 {
                     selectedElements = selectedElements.Take(Limit.Value).ToList();
                 }
 
-                // Convert to an ElementInfo list
+                // Convert to ElementInfo list
                 ResultElements = selectedElements.Select(element => new ElementInfo
                 {
 #if REVIT2024_OR_GREATER
@@ -58,9 +65,8 @@ namespace RevitMCPCommandSet.Services
                     Category = element.Category?.Name
                 }).ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                TaskDialog.Show("Error", "Failed to get selected elements: " + ex.Message);
                 ResultElements = new List<Models.Common.ElementInfo>();
             }
             finally

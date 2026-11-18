@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.UI;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using RevitMCPSDK.API.Base;
 using RevitMCPCommandSet.Models.Common;
@@ -30,26 +30,26 @@ namespace RevitMCPCommandSet.Commands
             {
                 List<SurfaceElement> data = new List<SurfaceElement>();
                 // Parse parameters
-                data = parameters["data"].ToObject<List<SurfaceElement>>();
+                data = parameters?["data"]?.ToObject<List<SurfaceElement>>();
                 if (data == null)
                     throw new ArgumentNullException(nameof(data), "AI input data is null");
 
-                // Set the surface-based element parameters
+                // Set surface-based element parameters
                 _handler.SetParameters(data);
 
-                // Raise the external event and wait for completion
+                // Raise external event and wait for completion
                 if (RaiseAndWaitForCompletion(10000))
                 {
                     return _handler.Result;
                 }
                 else
                 {
-                    throw new TimeoutException("Timed out creating surface-based elements");
+                    throw new TimeoutException("Surface-based element creation timed out");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to create surface-based elements: {ex.Message}");
+                throw new Exception($"Failed to create surface-based element: {ex.Message}");
             }
         }
     }

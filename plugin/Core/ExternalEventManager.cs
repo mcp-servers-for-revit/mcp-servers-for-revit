@@ -11,7 +11,8 @@ namespace revit_mcp_plugin.Core
     /// </summary>
     public class ExternalEventManager
     {
-        private static ExternalEventManager _instance;
+        private static volatile ExternalEventManager _instance;
+        private static readonly object _lock = new object();
         private Dictionary<string, ExternalEventWrapper> _events = new Dictionary<string, ExternalEventWrapper>();
         private bool _isInitialized = false;
         private UIApplication _uiApp;
@@ -25,7 +26,13 @@ namespace revit_mcp_plugin.Core
             get
             {
                 if (_instance == null)
-                    _instance = new ExternalEventManager();
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                            _instance = new ExternalEventManager();
+                    }
+                }
                 return _instance;
             }
         }
@@ -48,17 +55,18 @@ namespace revit_mcp_plugin.Core
                 throw new InvalidOperationException($"{nameof(ExternalEventManager)} has not been initialized.");
 
             // If it exists and the processor matches, return directly.
-            // If it exists and the processor matches, return directly.
             if (_events.TryGetValue(key, out var wrapper) &&
                 wrapper.Handler == handler)
             {
                 return wrapper.Event;
             }
 
-            // You need to create events in the UI thread. 
+            // You need to create events in the UI thread.
             ExternalEvent externalEvent = null;
 
-            // Perform the operation that created the event using the context of the active document.
+            if (_uiApp.ActiveUIDocument == null)
+                throw new InvalidOperationException("No active document is open in Revit. Open a document first.");
+
             // Perform the operation that created the event using the context of the active document.
             _uiApp.ActiveUIDocument.Document.Application.ExecuteCommand(
                 (uiApp) => {
@@ -69,8 +77,7 @@ namespace revit_mcp_plugin.Core
             if (externalEvent == null)
                 throw new InvalidOperationException("Unable to create external events.");
 
-            // Storage events.
-            // Storage events.
+            // Store events.
             _events[key] = new ExternalEventWrapper
             {
                 Event = externalEvent,
@@ -83,7 +90,7 @@ namespace revit_mcp_plugin.Core
         }
 
         /// <summary>
-        /// <para>Clears the event cache.</para>
+        /// Clears the event cache.
         /// </summary>
         public void ClearEvents()
         {
@@ -105,7 +112,7 @@ namespace Autodesk.Revit.DB
         public delegate void CommandDelegate(UIApplication uiApp);
 
         /// <summary>
-        /// <para>Execute commands in the Revit context.</para>
+        /// Execute commands in the Revit context.
         /// </summary>
         public static void ExecuteCommand(this Autodesk.Revit.ApplicationServices.Application app, CommandDelegate command)
         {

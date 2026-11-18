@@ -207,7 +207,8 @@ namespace RevitMCPCommandSet.Services
                     tran.SetFailureHandlingOptions(failureOptions);
 
                     tran.Start();
-
+                    try
+                    {
                     // Find the room tag type
                     FamilySymbol roomTagType = FindRoomTagType(_doc);
 
@@ -236,7 +237,17 @@ namespace RevitMCPCommandSet.Services
                         if (room == null) continue;
 
                         // Skip unplaced or not enclosed rooms
-                        if (room.Area <= 0) continue;
+                        if (room.Area <= 0)
+                        {
+                            skippedRooms.Add(new
+                            {
+                                roomId = room.Id.GetValue().ToString(),
+                                roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "Room",
+                                roomNumber = room.Number,
+                                reason = "Room has Area=0 (not enclosed by walls or not placed)"
+                            });
+                            continue;
+                        }
 
                         // Skip rooms that already have tags
                         if (roomsWithExistingTags.Contains(room.Id.GetValue()))
@@ -330,11 +341,17 @@ namespace RevitMCPCommandSet.Services
                         viewSwitched = viewSwitchMessage != null,
                         message = resultMessage
                     };
+                    }
+                    catch
+                    {
+                        if (tran.GetStatus() == TransactionStatus.Started)
+                            tran.RollBack();
+                        throw;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error tagging rooms: {ex.Message}");
                 TaggingResults = new
                 {
                     success = false,
@@ -354,8 +371,7 @@ namespace RevitMCPCommandSet.Services
         /// <returns>True if completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
         /// <summary>
@@ -372,9 +388,9 @@ namespace RevitMCPCommandSet.Services
         private FamilySymbol FindRoomTagType(Document doc)
         {
             // If specific tag type ID was specified, try to use it
-            if (!string.IsNullOrEmpty(_tagTypeId) && int.TryParse(_tagTypeId, out int id))
+            if (!string.IsNullOrEmpty(_tagTypeId) && long.TryParse(_tagTypeId, out long id))
             {
-                ElementId elementId = new ElementId(id);
+                ElementId elementId = RevitMCPCommandSet.Utils.ElementIdExtensions.FromLong(id);
                 Element element = doc.GetElement(elementId);
 
                 if (element != null && element is FamilySymbol symbol &&

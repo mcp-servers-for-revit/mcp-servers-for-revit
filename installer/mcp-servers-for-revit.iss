@@ -26,6 +26,7 @@ Source: "staged\2023\*"; DestDir: "{app}\RevitPlugins\2023"; Flags: recursesubdi
 Source: "staged\2024\*"; DestDir: "{app}\RevitPlugins\2024"; Flags: recursesubdirs ignoreversion
 Source: "staged\2025\*"; DestDir: "{app}\RevitPlugins\2025"; Flags: recursesubdirs ignoreversion
 Source: "staged\2026\*"; DestDir: "{app}\RevitPlugins\2026"; Flags: recursesubdirs ignoreversion
+Source: "staged\2027\*"; DestDir: "{app}\RevitPlugins\2027"; Flags: recursesubdirs ignoreversion
 Source: "staged\Server\*"; DestDir: "{app}\Server"; Flags: recursesubdirs ignoreversion
 Source: "staged\node\node.exe"; DestDir: "{app}\node"; Flags: ignoreversion
 Source: "run-mcp-server.cmd"; DestDir: "{app}\Server"; Flags: ignoreversion
@@ -679,6 +680,7 @@ begin
     if IsRevitInstalled('2024') then CopyToRevitAddins('2024');
     if IsRevitInstalled('2025') then CopyToRevitAddins('2025');
     if IsRevitInstalled('2026') then CopyToRevitAddins('2026');
+    if IsRevitInstalled('2027') then CopyToRevitAddins('2027');
     AnyChecked := ClaudeCB.Checked or CursorCB.Checked or OpencodeCB.Checked or AnythingLLMCB.Checked;
     if not AnyChecked then ConfigureDetectedClients
     else begin
@@ -695,7 +697,7 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var I: Integer;
 begin
   if CurUninstallStep = usUninstall then begin
-    for I := 2020 to 2026 do RemoveFromRevitAddins(IntToStr(I));
+    for I := 2020 to 2027 do RemoveFromRevitAddins(IntToStr(I));
     RemoveFromClaudeDesktop;
     RemoveFromCursor;
     RemoveFromOpencode;

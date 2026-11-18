@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
@@ -23,7 +23,7 @@ public class JZFace
     public List<JZLine> OuterLoop { get; set; }
 
     /// <summary>
-    ///     Inner loops (List&lt;JZLine&gt; type, one or more inner loops)
+    ///     Inner loops (List&lt;List&lt;JZLine&gt;&gt; type, representing one or more inner loops)
     /// </summary>
     [JsonProperty("innerLoops")]
     public List<List<JZLine>> InnerLoops { get; set; }

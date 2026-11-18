@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateSurfaceBasedElementTool(server: McpServer) {
   server.tool(
     "create_surface_based_element",
-    "Create one or more surface-based elements in Revit such as floors, ceilings, or roofs. Supports batch creation with detailed parameters including family type ID, boundary lines, thickness, and level information. All units are in millimeters (mm).",
+    "Create surface-based elements (floors, ceilings, roofs) from points.",
     {
       data: z
         .array(
@@ -16,7 +18,7 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
             category: z
               .enum(["OST_Floors", "OST_Ceilings", "OST_Roofs"])
               .optional()
-              .describe("The Revit built-in category for the element. Use OST_Floors for floors, OST_Ceilings for ceilings, OST_Roofs for roofs. If not specified, will be determined from typeId."),
+              .describe("The Revit built-in category for the element."),
             typeId: z
               .number()
               .optional()
@@ -59,25 +61,11 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
           );
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_surface_based_element", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Create surface-based element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_surface_based_element", `Create surface-based element failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

@@ -107,7 +107,7 @@ namespace revit_mcp_plugin.Utils
                         {
                             string commandName = cmdToken["commandName"]?.ToString();
                             string description = cmdToken["description"]?.ToString() ?? "";
-                            string assemblyPath = cmdToken["assemblyPath"]?.ToString();
+                            string assemblyPath = Path.GetFileName(cmdToken["assemblyPath"]?.ToString());
 
                             if (string.IsNullOrEmpty(commandName)) continue;
 

@@ -107,6 +107,8 @@ namespace RevitMCPCommandSet.Services.Architecture
                         tx.SetFailureHandlingOptions(failureOptions);
 
                         tx.Start();
+                        try
+                        {
 
                         // Step 1: Find or determine the level
                         Level level = null;
@@ -259,6 +261,13 @@ namespace RevitMCPCommandSet.Services.Architecture
                             Area = room.Area,
                             Perimeter = room.Perimeter
                         });
+                        }
+                        catch
+                        {
+                            if (tx.GetStatus() == TransactionStatus.Started)
+                                tx.RollBack();
+                            throw;
+                        }
                     }
                 }
 
@@ -276,7 +285,6 @@ namespace RevitMCPCommandSet.Services.Architecture
                     Success = false,
                     Message = $"Error creating rooms: {ex.Message}",
                 };
-                TaskDialog.Show("Error", $"Error creating rooms: {ex.Message}");
             }
             finally
             {
@@ -451,8 +459,7 @@ namespace RevitMCPCommandSet.Services.Architecture
         /// <returns>True if completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
         /// <summary>

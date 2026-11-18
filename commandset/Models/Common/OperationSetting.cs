@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +48,7 @@ namespace RevitMCPCommandSet.Models.Common
         TempHide,
 
         /// <summary>
-        /// Isolate elements (show alone)
+        /// Isolate elements (show individually)
         /// </summary>
         Isolate,
 
@@ -65,7 +65,7 @@ namespace RevitMCPCommandSet.Models.Common
 
 
     /// <summary>
-    /// Settings for operating on elements
+    /// Element operation settings
     /// </summary>
     public class OperationSetting
     {
@@ -76,19 +76,19 @@ namespace RevitMCPCommandSet.Models.Common
         public List<int> ElementIds = new List<int>();
 
         /// <summary>
-        /// The action to perform, holding the string value of the ElementOperationType enum
+        /// Action to perform, stores the string value of the ElementOperationType enum
         /// </summary>
         [JsonProperty("action")]
         public string Action { get; set; } = "Select";
 
         /// <summary>
-        /// Transparency value (0-100); the higher the value, the more transparent
+        /// Transparency value (0-100), higher values mean more transparent
         /// </summary>
         [JsonProperty("transparencyValue")]
         public int TransparencyValue { get; set; } = 50;
 
         /// <summary>
-        /// Element color to set (RGB format), defaults to red
+        /// Set element color (RGB format), default is red
         /// </summary>
         [JsonProperty("colorValue")]
         public int[] ColorValue { get; set; } = new int[] { 255, 0, 0 }; // Default red

@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { toolResponse, toolError } from "../utils/compactTool.js";
 
 export function registerAIElementFilterTool(server: McpServer) {
   server.tool(
     "ai_element_filter",
-    "An intelligent Revit element querying tool designed specifically for AI assistants to retrieve detailed element information from Revit projects. This tool allows the AI to request elements matching specific criteria (such as category, type, visibility, or spatial location) and then perform further analysis on the returned data to answer complex user queries about Revit model elements. Example: When a user asks 'Find all walls taller than 5m in the project', the AI would: 1) Call this tool with parameters: {\"filterCategory\": \"OST_Walls\", \"includeInstances\": true}, 2) Receive detailed information about all wall instances in the project, 3) Process the returned data to filter walls with height > 5000mm, 4) Present the filtered results to the user with relevant details.",
+    "An intelligent Revit element querying tool designed specifically for AI assistants to retrieve detailed element information from Revit projects. This tool allows the AI to request elements matching specific criteria (such as category, type, visibility, or spatial location) and then perform further analysis on the returned data to answer complex user queries about Revit model elements. Example: When a user asks 'Find all walls taller than 5m in the project', the AI would: 1) Call this tool with parameters: {\"filterCategory\": \"OST_Walls\", \"includeInstances\": true}, 2) Receive detailed information about all wall instances in the project, 3) Process the returned data to filter walls with height > 5000mm, 4) Present the filtered results to the user with relevant details.\n\nGUIDANCE:\n- Find all doors on Level 1: category=\"Doors\", parameterFilters=[{name:\"Level\", value:\"Level 1\"}]\n- Find walls by type: category=\"Walls\", parameterFilters=[{name:\"Type\", value:\"Generic - 200mm\"}]\n- Find rooms by department: category=\"Rooms\", parameterFilters=[{name:\"Department\", value:\"Office\"}]\n\nTIPS:\n- Most powerful query tool — supports multi-parameter filtering\n- Returns element IDs for use with other tools (modify, delete, set_parameters)\n- Use export_elements_data for tabular data extraction instead\n- Combine with operate_element to select/highlight filtered results",
     {
       data: z.object({
         filterCategory: z
@@ -68,6 +70,11 @@ export function registerAIElementFilterTool(server: McpServer) {
           .describe("The maximum number of elements to find in a single tool invocation. Default is 50. Values exceeding 50 are not recommended for performance reasons."),
       })
         .describe("Configuration parameters for the Revit element filter tool. These settings determine which elements will be selected from the Revit project based on various filtering criteria. Multiple filters can be combined to achieve precise element selection. All spatial coordinates should be provided in millimeters."),
+      compact: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe("Return summary counts only, without full data arrays. Saves tokens for large results."),
     },
     async (args, extra) => {
       const params = args;
@@ -80,24 +87,9 @@ export function registerAIElementFilterTool(server: McpServer) {
           );
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return toolResponse("ai_element_filter", response, args);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Get element information failed: ${error instanceof Error ? error.message : String(error)
-                }`,
-            },
-          ],
-        };
+        return toolError("ai_element_filter", `Get element information failed: ${errorMessage(error)}`);
       }
     }
   );

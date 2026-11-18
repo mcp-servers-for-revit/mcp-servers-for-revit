@@ -43,29 +43,33 @@ namespace RevitMCPCommandSet.Services
         private List<string> _annotationCategoryList;
         private bool _includeHidden;
         private int _limit;
+        private List<string> _fields;
 
         // Execution result
         public ViewElementsResult ResultInfo { get; private set; }
+
+        // Error message if execution fails
+        public string ErrorMessage { get; private set; }
 
         // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        // Set the query parameters
-        public void SetQueryParameters(List<string> modelCategoryList, List<string> annotationCategoryList, bool includeHidden, int limit)
+        // Set query parameters
+        public void SetQueryParameters(List<string> modelCategoryList, List<string> annotationCategoryList, bool includeHidden, int limit, List<string> fields = null)
         {
             _modelCategoryList = modelCategoryList;
             _annotationCategoryList = annotationCategoryList;
             _includeHidden = includeHidden;
             _limit = limit;
+            _fields = fields;
             TaskCompleted = false;
             _resetEvent.Reset();
         }
 
-        // IWaitableExternalEventHandler interface implementation
+        // Implement IWaitableExternalEventHandler interface
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -101,7 +105,7 @@ namespace RevitMCPCommandSet.Services
                 // Filter by category
                 if (allCategories.Count > 0)
                 {
-                    // Convert string categories to enums
+                    // Convert string categories to enum
                     List<BuiltInCategory> builtInCategories = new List<BuiltInCategory>();
                     foreach (string categoryName in allCategories)
                     {
@@ -110,7 +114,7 @@ namespace RevitMCPCommandSet.Services
                             builtInCategories.Add(category);
                         }
                     }
-                    // If categories parsed successfully, use a category filter
+                    // If categories were successfully parsed, use category filter
                     if (builtInCategories.Count > 0)
                     {
                         ElementMulticategoryFilter categoryFilter = new ElementMulticategoryFilter(builtInCategories);
@@ -121,19 +125,22 @@ namespace RevitMCPCommandSet.Services
                     }
                 }
 
-                // Filter out hidden elements
+                // Filter hidden elements
                 if (!_includeHidden)
                 {
                     elements = elements.Where(e => !e.IsHidden(activeView)).ToList();
                 }
 
-                // Limit the return count
+                // Limit return count
+                int totalFiltered = elements.Count;
+                bool truncated = false;
                 if (_limit > 0 && elements.Count > _limit)
                 {
                     elements = elements.Take(_limit).ToList();
+                    truncated = true;
                 }
 
-                // Build the result
+                // Build result
                 var elementInfos = elements.Select(e => new ElementInfo
                 {
 #if REVIT2024_OR_GREATER
@@ -144,7 +151,7 @@ namespace RevitMCPCommandSet.Services
                     UniqueId = e.UniqueId,
                     Name = e.Name,
                     Category = e.Category?.Name ?? "unknow",
-                    Properties = GetElementProperties(e)
+                    Properties = GetElementProperties(e, _fields)
                 }).ToList();
 
                 ResultInfo = new ViewElementsResult
@@ -157,12 +164,13 @@ namespace RevitMCPCommandSet.Services
                     ViewName = activeView.Name,
                     TotalElementsInView = new FilteredElementCollector(doc, activeView.Id).GetElementCount(),
                     FilteredElementCount = elementInfos.Count,
+                    Truncated = truncated,
                     Elements = elementInfos
                 };
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("error", ex.Message);
+                ErrorMessage = $"Failed to get current view elements: {ex.Message}";
             }
             finally
             {
@@ -171,31 +179,60 @@ namespace RevitMCPCommandSet.Services
             }
         }
 
-        private Dictionary<string, string> GetElementProperties(Element element)
+        private Dictionary<string, string> GetElementProperties(Element element, List<string> fields = null)
         {
             var properties = new Dictionary<string, string>();
+            // When fields is provided, only include requested properties
+            bool hasFilter = fields != null && fields.Count > 0;
+            HashSet<string> requestedFields = hasFilter ? new HashSet<string>(fields, StringComparer.OrdinalIgnoreCase) : null;
 
-            // Add generic properties
+            // Add common properties
+            if (!hasFilter || requestedFields.Contains("ElementId"))
+            {
 #if REVIT2024_OR_GREATER
-            properties.Add("ElementId", element.Id.Value.ToString());
+                properties.Add("ElementId", element.Id.Value.ToString());
 #else
-            properties.Add("ElementId", element.Id.IntegerValue.ToString());
+                properties.Add("ElementId", element.Id.IntegerValue.ToString());
 #endif
+            }
+
             if (element.Location != null)
             {
                 if (element.Location is LocationPoint locationPoint)
                 {
                     var point = locationPoint.Point;
-                    properties.Add("LocationX", point.X.ToString("F2"));
-                    properties.Add("LocationY", point.Y.ToString("F2"));
-                    properties.Add("LocationZ", point.Z.ToString("F2"));
+                    if (!hasFilter || requestedFields.Contains("LocationX"))
+                        properties.Add("LocationX", point.X.ToString("F2"));
+                    if (!hasFilter || requestedFields.Contains("LocationY"))
+                        properties.Add("LocationY", point.Y.ToString("F2"));
+                    if (!hasFilter || requestedFields.Contains("LocationZ"))
+                        properties.Add("LocationZ", point.Z.ToString("F2"));
                 }
                 else if (element.Location is LocationCurve locationCurve)
                 {
                     var curve = locationCurve.Curve;
-                    properties.Add("Start", $"{curve.GetEndPoint(0).X:F2}, {curve.GetEndPoint(0).Y:F2}, {curve.GetEndPoint(0).Z:F2}");
-                    properties.Add("End", $"{curve.GetEndPoint(1).X:F2}, {curve.GetEndPoint(1).Y:F2}, {curve.GetEndPoint(1).Z:F2}");
-                    properties.Add("Length", curve.Length.ToString("F2"));
+                    if (!hasFilter || requestedFields.Contains("StartX") || requestedFields.Contains("StartY") || requestedFields.Contains("StartZ"))
+                    {
+                        var startPt = curve.GetEndPoint(0);
+                        if (!hasFilter || requestedFields.Contains("StartX"))
+                            properties.Add("StartX", startPt.X.ToString("F2"));
+                        if (!hasFilter || requestedFields.Contains("StartY"))
+                            properties.Add("StartY", startPt.Y.ToString("F2"));
+                        if (!hasFilter || requestedFields.Contains("StartZ"))
+                            properties.Add("StartZ", startPt.Z.ToString("F2"));
+                    }
+                    if (!hasFilter || requestedFields.Contains("EndX") || requestedFields.Contains("EndY") || requestedFields.Contains("EndZ"))
+                    {
+                        var endPt = curve.GetEndPoint(1);
+                        if (!hasFilter || requestedFields.Contains("EndX"))
+                            properties.Add("EndX", endPt.X.ToString("F2"));
+                        if (!hasFilter || requestedFields.Contains("EndY"))
+                            properties.Add("EndY", endPt.Y.ToString("F2"));
+                        if (!hasFilter || requestedFields.Contains("EndZ"))
+                            properties.Add("EndZ", endPt.Z.ToString("F2"));
+                    }
+                    if (!hasFilter || requestedFields.Contains("Length"))
+                        properties.Add("Length", curve.Length.ToString("F2"));
                 }
             }
 
@@ -203,6 +240,9 @@ namespace RevitMCPCommandSet.Services
             var commonParams = new[] { "Comments", "Mark", "Level", "Family", "Type" };
             foreach (var paramName in commonParams)
             {
+                if (hasFilter && !requestedFields.Contains(paramName))
+                    continue;
+
                 Parameter param = element.LookupParameter(paramName);
                 if (param != null && !param.IsReadOnly)
                 {

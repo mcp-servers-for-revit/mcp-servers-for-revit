@@ -9,19 +9,30 @@ namespace RevitMCPCommandSet.Services
         // Execution result
         public List<FamilyTypeInfo> ResultFamilyTypes { get; private set; }
 
+        // Error message if execution fails
+        public string ErrorMessage { get; private set; }
+
         // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        // Filter conditions
+        // Filter criteria
         public List<string> CategoryList { get; set; }
         public string FamilyNameFilter { get; set; }
         public int? Limit { get; set; }
 
-        // Slightly shorter than the caller's timeout
+        public void SetParameters(List<string> categoryList, string familyNameFilter, int? limit)
+        {
+            CategoryList = categoryList;
+            FamilyNameFilter = familyNameFilter;
+            Limit = limit;
+            TaskCompleted = false;
+            _resetEvent.Reset();
+        }
+
+        // Execution time, slightly shorter than the call timeout
         public bool WaitForCompletion(int timeoutMilliseconds = 12500)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -76,7 +87,7 @@ namespace RevitMCPCommandSet.Services
                     }
                 }
 
-                // Fuzzy name matching (matches both the family name and the type name)
+                // Fuzzy name matching (matches both family name and type name)
                 if (!string.IsNullOrEmpty(FamilyNameFilter))
                 {
                     filteredElements = filteredElements.Where(et =>
@@ -89,13 +100,13 @@ namespace RevitMCPCommandSet.Services
                     });
                 }
 
-                // Limit the return count
+                // Limit return count
                 if (Limit.HasValue && Limit.Value > 0)
                 {
                     filteredElements = filteredElements.Take(Limit.Value);
                 }
 
-                // Convert to a FamilyTypeInfo list
+                // Convert to FamilyTypeInfo list
                 ResultFamilyTypes = filteredElements.Select(et =>
                 {
                     string familyName;
@@ -124,7 +135,8 @@ namespace RevitMCPCommandSet.Services
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", "Failed to get family types: " + ex.Message);
+                ResultFamilyTypes = new List<FamilyTypeInfo>();
+                ErrorMessage = "Failed to get family types: " + ex.Message;
             }
             finally
             {

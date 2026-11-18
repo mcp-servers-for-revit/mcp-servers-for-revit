@@ -1,11 +1,13 @@
-import { z } from "zod";
+import { errorMessage } from "../utils/errorUtils.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateGridTool(server: McpServer) {
   server.tool(
     "create_grid",
-    "Create a grid system in Revit with smart spacing generation. Supports both X-axis (vertical) and Y-axis (horizontal) grids with customizable naming styles (alphabetic A,B,C or numeric 1,2,3). All units are in millimeters (mm).",
+    "Create grid lines (linear or arc) with optional naming pattern.",
     {
       xCount: z
         .number()
@@ -94,25 +96,11 @@ export function registerCreateGridTool(server: McpServer) {
           return await revitClient.sendCommand("create_grid", params);
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_grid", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Create grid failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_grid", `Create grid failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

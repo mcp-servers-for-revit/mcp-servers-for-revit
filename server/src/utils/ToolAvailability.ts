@@ -28,6 +28,12 @@ export const REGISTERED_COMMANDS_METHOD = "get_registered_commands";
  */
 const TOOL_COMMAND_OVERRIDES: Record<string, string> = {
   color_elements: "color_splash",
+  create_door_schedule_by_room: "create_schedule",
+  create_material_takeoff_schedule: "create_schedule",
+  create_room_finish_schedule: "create_schedule",
+  create_sheet_list_schedule: "create_schedule",
+  create_view_list_schedule: "create_schedule",
+  create_window_schedule_by_room: "create_schedule",
   tag_all_rooms: "tag_rooms",
   tag_all_walls: "tag_walls",
 };

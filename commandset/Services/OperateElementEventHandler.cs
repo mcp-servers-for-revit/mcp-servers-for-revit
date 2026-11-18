@@ -18,11 +18,11 @@ namespace RevitMCPCommandSet.Services
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
 
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         /// <summary>
-        /// Input data
+        /// Creation data (input data)
         /// </summary>
         public OperationSetting OperationData { get; private set; }
         /// <summary>
@@ -31,7 +31,7 @@ namespace RevitMCPCommandSet.Services
         public AIResult<string> Result { get; private set; }
 
         /// <summary>
-        /// Sets the parameters
+        /// Set creation parameters
         /// </summary>
         public void SetParameters(OperationSetting data)
         {
@@ -57,23 +57,22 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<string>
                 {
                     Success = false,
-                    Message = $"Error while operating element: {ex.Message}",
+                    Message = $"Error operating on elements: {ex.Message}",
                 };
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <param name="timeoutMilliseconds">Timeout duration (milliseconds)</param>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -86,31 +85,31 @@ namespace RevitMCPCommandSet.Services
         }
 
         /// <summary>
-        /// Executes the appropriate element operation according to the operation settings
+        /// Execute the corresponding element operation based on operation settings
         /// </summary>
-        /// <param name="uidoc">The current UI document</param>
+        /// <param name="uidoc">Current UI document</param>
         /// <param name="setting">Operation settings</param>
-        /// <returns>Whether the operation succeeded</returns>
+        /// <returns>Whether the operation was successful</returns>
         public static bool ExecuteElementOperation(UIDocument uidoc, OperationSetting setting)
         {
-            // Validate the parameters
+            // Check parameter validity
             if (uidoc == null || uidoc.Document == null || setting == null || setting.ElementIds == null ||
                 (setting.ElementIds.Count == 0 && setting.Action.ToLower() != "resetisolate"))
-                throw new Exception("Invalid parameters: document is null or no elements specified to operate on");
+                throw new Exception("Invalid parameters: document is null or no elements specified for operation");
 
             Document doc = uidoc.Document;
 
-            // Convert int element IDs to the ElementId type
+            // Convert int element IDs to ElementId type
             ICollection<ElementId> elementIds = setting.ElementIds.Select(id => new ElementId(id)).ToList();
 
-            // Parse the operation type
+            // Parse operation type
             ElementOperationType action;
             if (!Enum.TryParse(setting.Action, true, out action))
             {
-                throw new Exception($"Unsupported operation type: {setting.Action}");
+                throw new Exception($"Unsupported operation type:{setting.Action}");
             }
 
-            // Perform different operations by operation type
+            // Execute different operations based on operation type
             switch (action)
             {
                 case ElementOperationType.Select:
@@ -119,38 +118,38 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.SelectionBox:
-                    // Create a section box in the 3D view
+                    // Create section box in 3D view
 
-                    // Check whether the current view is a 3D view
+                    // Check if current view is a 3D view
                     View3D targetView;
 
                     if (doc.ActiveView is View3D)
                     {
-                        // If the current view is a 3D view, create the section box in it
+                        // If current view is a 3D view, create section box in current view
                         targetView = doc.ActiveView as View3D;
                     }
                     else
                     {
-                        // If the current view is not a 3D view, look for the default 3D view
+                        // If current view is not a 3D view, find default 3D view
                         FilteredElementCollector collector = new FilteredElementCollector(doc);
                         collector.OfClass(typeof(View3D));
 
-                        // Try to find the default 3D view or any other available 3D view
+                        // Try to find default 3D view or any other available 3D view
                         targetView = collector
                             .Cast<View3D>()
                             .FirstOrDefault(v => !v.IsTemplate && !v.IsLocked && (v.Name.Contains("{3D}") || v.Name.Contains("Default 3D")));
 
                         if (targetView == null)
                         {
-                            // If no suitable 3D view was found, throw
-                            throw new Exception("Cannot find a suitable 3D view to create the section box");
+                            // If no suitable 3D view found, throw exception
+                            throw new Exception("Cannot find a suitable 3D view for creating section box");
                         }
 
                         // Activate the 3D view
                         uidoc.ActiveView = targetView;
                     }
 
-                    // Compute the bounding box of the selected elements
+                    // Calculate bounding box of selected elements
                     BoundingBoxXYZ boundingBox = null;
 
                     foreach (ElementId id in elementIds)
@@ -170,7 +169,7 @@ namespace RevitMCPCommandSet.Services
                             }
                             else
                             {
-                                // Expand the bounding box to include the current element
+                                // Expand bounding box to include current element
                                 boundingBox.Min = new XYZ(
                                     Math.Min(boundingBox.Min.X, elemBox.Min.X),
                                     Math.Min(boundingBox.Min.Y, elemBox.Min.Y),
@@ -186,15 +185,15 @@ namespace RevitMCPCommandSet.Services
 
                     if (boundingBox == null)
                     {
-                        throw new Exception("Cannot create a bounding box for the selected elements");
+                        throw new Exception("Cannot create bounding box for selected elements");
                     }
 
-                    // Enlarge the bounding box slightly beyond the elements
-                    double offset = 1.0; // Offset of 1 foot
+                    // Increase bounding box size to be slightly larger than elements
+                    double offset = 1.0; // 1 foot offset
                     boundingBox.Min = new XYZ(boundingBox.Min.X - offset, boundingBox.Min.Y - offset, boundingBox.Min.Z - offset);
                     boundingBox.Max = new XYZ(boundingBox.Max.X + offset, boundingBox.Max.Y + offset, boundingBox.Max.Z + offset);
 
-                    // Enable and set the section box in the 3D view
+                    // Enable and set section box in 3D view
                     using (Transaction trans = new Transaction(doc, "Create Section Box"))
                     {
                         trans.Start();
@@ -203,39 +202,39 @@ namespace RevitMCPCommandSet.Services
                         trans.Commit();
                     }
 
-                    // Move to the view center
+                    // Move to view center
                     uidoc.ShowElements(elementIds);
                     return true;
 
                 case ElementOperationType.SetColor:
-                    // Set the elements to the specified color
+                    // Set elements to specified color
                     using (Transaction trans = new Transaction(doc, "Set Element Color"))
                     {
                         trans.Start();
                         SetElementsColor(doc, elementIds, setting.ColorValue);
                         trans.Commit();
                     }
-                    // Scroll to these elements to make them visible
+                    // Scroll to make these elements visible
                     uidoc.ShowElements(elementIds);
                     return true;
 
 
                 case ElementOperationType.SetTransparency:
-                    // Set element transparency in the current view
+                    // Set element transparency in current view
                     using (Transaction trans = new Transaction(doc, "Set Element Transparency"))
                     {
                         trans.Start();
 
-                        // Create a graphic override settings object
+                        // Create graphic override settings object
                         OverrideGraphicSettings overrideSettings = new OverrideGraphicSettings();
 
-                        // Set the transparency (clamped to 0-100)
+                        // Set transparency (ensure value is in 0-100 range)
                         int transparencyValue = Math.Max(0, Math.Min(100, setting.TransparencyValue));
 
-                        // Set the surface transparency
+                        // Set surface transparency
                         overrideSettings.SetSurfaceTransparency(transparencyValue);
 
-                        // Apply the transparency settings to each element
+                        // Apply transparency settings to each element
                         foreach (ElementId id in elementIds)
                         {
                             doc.ActiveView.SetElementOverrides(id, overrideSettings);
@@ -246,8 +245,8 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.Delete:
-                    // Delete elements (requires a transaction)
-                    using (Transaction trans = new Transaction(doc, "Delete Element"))
+                    // Delete elements (requires transaction)
+                    using (Transaction trans = new Transaction(doc, "Delete Elements"))
                     {
                         trans.Start();
                         doc.Delete(elementIds);
@@ -256,7 +255,7 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.Hide:
-                    // Hide elements (requires an active view and a transaction)
+                    // Hide elements (requires active view and transaction)
                     using (Transaction trans = new Transaction(doc, "Hide Elements"))
                     {
                         trans.Start();
@@ -266,7 +265,7 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.TempHide:
-                    // Temporarily hide elements (requires an active view and a transaction)
+                    // Temporarily hide elements (requires active view and transaction)
                     using (Transaction trans = new Transaction(doc, "Temporarily Hide Elements"))
                     {
                         trans.Start();
@@ -276,7 +275,7 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.Isolate:
-                    // Isolate elements (requires an active view and a transaction)
+                    // Isolate elements (requires active view and transaction)
                     using (Transaction trans = new Transaction(doc, "Isolate Elements"))
                     {
                         trans.Start();
@@ -286,7 +285,7 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.Unhide:
-                    // Unhide elements (requires an active view and a transaction)
+                    // Unhide elements (requires active view and transaction)
                     using (Transaction trans = new Transaction(doc, "Unhide Elements"))
                     {
                         trans.Start();
@@ -296,8 +295,8 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 case ElementOperationType.ResetIsolate:
-                    // Reset isolation (requires an active view and a transaction)
-                    using (Transaction trans = new Transaction(doc, "Reset Isolate"))
+                    // Reset isolation (requires active view and transaction)
+                    using (Transaction trans = new Transaction(doc, "Reset Isolation"))
                     {
                         trans.Start();
                         doc.ActiveView.DisableTemporaryViewMode(TemporaryViewMode.TemporaryHideIsolate);
@@ -306,45 +305,45 @@ namespace RevitMCPCommandSet.Services
                     return true;
 
                 default:
-                    throw new Exception($"Unsupported operation type: {setting.Action}");
+                    throw new Exception($"Unsupported operation type:{setting.Action}");
             }
         }
 
         /// <summary>
-        /// Sets the specified elements to the specified color in the view
+        /// Set specified elements to a specified color in the view
         /// </summary>
         /// <param name="doc">Document</param>
-        /// <param name="elementIds">Collection of element IDs to color</param>
+        /// <param name="elementIds">Collection of element IDs to set color for</param>
         /// <param name="elementColor">Color value (RGB format)</param>
         private static void SetElementsColor(Document doc, ICollection<ElementId> elementIds, int[] elementColor)
         {
-            // Check whether the color array is valid
+            // Check if color array is valid
             if (elementColor == null || elementColor.Length < 3)
             {
                 elementColor = new int[] { 255, 0, 0 }; // Default red
             }
-            // Ensure RGB values are in the 0-255 range
+            // Ensure RGB values are in 0-255 range
             int r = Math.Max(0, Math.Min(255, elementColor[0]));
             int g = Math.Max(0, Math.Min(255, elementColor[1]));
             int b = Math.Max(0, Math.Min(255, elementColor[2]));
-            // Create the Revit Color object - using a byte conversion
+            // Create Revit color object - using byte type conversion
             Color color = new Color((byte)r, (byte)g, (byte)b);
-            // Create the graphic override settings
+            // Create graphic override settings
             OverrideGraphicSettings overrideSettings = new OverrideGraphicSettings();
-            // Set the specified color
+            // Set specified color
             overrideSettings.SetProjectionLineColor(color);
             overrideSettings.SetCutLineColor(color);
             overrideSettings.SetSurfaceForegroundPatternColor(color);
             overrideSettings.SetSurfaceBackgroundPatternColor(color);
 
-            // Try to set the fill pattern
+            // Try to set fill pattern
             try
             {
                 // Try to get the default fill pattern
                 FilteredElementCollector patternCollector = new FilteredElementCollector(doc)
                     .OfClass(typeof(FillPatternElement));
 
-                // First try to find a solid fill pattern
+                // First try to find solid fill pattern
                 FillPatternElement solidPattern = patternCollector
                     .Cast<FillPatternElement>()
                     .FirstOrDefault(p => p.GetFillPattern().IsSolidFill);
@@ -360,7 +359,7 @@ namespace RevitMCPCommandSet.Services
                 throw new Exception($"Failed to set fill pattern: {ex.Message}");
             }
 
-            // Apply the override settings to each element
+            // Apply override settings to each element
             foreach (ElementId id in elementIds)
             {
                 doc.ActiveView.SetElementOverrides(id, overrideSettings);

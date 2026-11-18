@@ -11,12 +11,12 @@ namespace RevitMCPCommandSet.Services
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
 
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
         /// <summary>
-        /// Tagging result data
+        /// Tag result data
         /// </summary>
         public object TaggingResults { get; private set; }
 
@@ -24,7 +24,7 @@ namespace RevitMCPCommandSet.Services
         private string _tagTypeId;
 
         /// <summary>
-        /// Sets the parameters
+        /// Set creation parameters
         /// </summary>
         public void SetParameters(bool useLeader, string tagTypeId)
         {
@@ -54,6 +54,8 @@ namespace RevitMCPCommandSet.Services
                 using (Transaction tran = new Transaction(doc, "Tag Walls"))
                 {
                     tran.Start();
+                    try
+                    {
 
                     // Find the wall tag type
                     FamilySymbol wallTagType = FindWallTagType(doc);
@@ -120,7 +122,7 @@ namespace RevitMCPCommandSet.Services
                         }
                         catch (Exception ex)
                         {
-                            errors.Add($"Error tagging wall {wall.Id.Value}: {ex.Message}");
+                            errors.Add($"Tag wall {wall.Id.Value} error: {ex.Message}");
                         }
 #else
 try
@@ -163,7 +165,7 @@ try
                         }
                         catch (Exception ex)
                         {
-                            errors.Add($"Error tagging wall {wall.Id.IntegerValue}: {ex.Message}");
+                            errors.Add($"Tag wall {wall.Id.IntegerValue} error: {ex.Message}");
                         }
 #endif
                     }
@@ -178,31 +180,36 @@ try
                         tags = createdTags,
                         errors = errors.Count > 0 ? errors : null
                     };
+                    }
+                    catch
+                    {
+                        if (tran.GetStatus() == TransactionStatus.Started)
+                            tran.RollBack();
+                        throw;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error tagging walls: {ex.Message}");
                 TaggingResults = new
                 {
                     success = false,
-                    message = $"An error occurred: {ex.Message}"
+                    message = $"Error occurred: {ex.Message}"
                 };
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <param name="timeoutMilliseconds">Timeout duration (milliseconds)</param>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -223,7 +230,7 @@ try
             // If specific tag type ID was specified, try to use it
             if (!string.IsNullOrEmpty(_tagTypeId))
             {
-                if (int.TryParse(_tagTypeId, out int id))
+                if (long.TryParse(_tagTypeId, out long id))
                 {
                     ElementId elementId = new ElementId(id);
                     Element element = doc.GetElement(elementId);

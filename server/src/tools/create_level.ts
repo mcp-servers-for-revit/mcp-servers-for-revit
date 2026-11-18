@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateLevelTool(server: McpServer) {
   server.tool(
     "create_level",
-    "Create one or more levels in Revit at specified elevations. Levels define horizontal planes in the building and are used to host floor plans, ceilings, and other level-based elements. All elevation units are in millimeters (mm).",
+    "Create new levels at specified elevations.",
     {
       data: z
         .array(
@@ -66,25 +68,11 @@ export function registerCreateLevelTool(server: McpServer) {
           return await revitClient.sendCommand("create_level", params);
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_level", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Create level failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_level", `Create level failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

@@ -25,7 +25,7 @@ public class PointElement
     public int TypeId { get; set; } = -1;
 
     /// <summary>
-    ///     Location point coordinates
+    ///     Location point
     /// </summary>
     [JsonProperty("locationPoint")]
     public JZPoint LocationPoint { get; set; }
@@ -61,25 +61,25 @@ public class PointElement
     public double BaseOffset { get; set; }
 
     /// <summary>
-    ///     Rotation angle (degrees), for non-hosted elements (e.g. furniture)
+    ///     Rotation angle (degrees), used for non-hosted elements (e.g. furniture)
     /// </summary>
     [JsonProperty("rotation")]
     public double Rotation { get; set; } = 0;
 
     /// <summary>
-    ///     Explicit host wall ElementId; -1 means auto-detection
+    ///     Explicit host wall ElementId, -1 means auto-detect
     /// </summary>
     [JsonProperty("hostWallId")]
     public int HostWallId { get; set; } = -1;
 
     /// <summary>
-    ///     Whether to flip the door/window facing orientation
+    ///     Whether to flip door/window facing direction
     /// </summary>
     [JsonProperty("facingFlipped")]
     public bool FacingFlipped { get; set; } = false;
 
     /// <summary>
-    ///     Parameterized properties
+    ///     Parametric properties
     /// </summary>
     [JsonProperty("parameters")]
     public Dictionary<string, double> Parameters { get; set; }

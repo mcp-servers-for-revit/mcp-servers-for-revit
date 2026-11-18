@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { storeProject, getProjectByName } from "../database/service.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerStoreProjectDataTool(server: McpServer) {
   server.tool(
     "store_project_data",
-    "Store or update Revit project metadata in the local database. This captures project information with a timestamp for later retrieval.",
+    "Store project metadata in the local Revit MCP database.",
     {
       project_name: z.string().describe("The name of the Revit project"),
       project_path: z.string().optional().describe("File path to the project"),
@@ -16,37 +18,19 @@ export function registerStoreProjectDataTool(server: McpServer) {
       author: z.string().optional().describe("Project author or creator"),
       metadata: z.record(z.string()).optional().describe("Additional project metadata as key-value pairs")
     },
-    async (args: any) => {
+    async (args) => {
       try {
         const projectId = storeProject(args);
         const project = getProjectByName(args.project_name);
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                message: "Project data stored successfully",
-                project_id: projectId,
-                project
-              }, null, 2)
-            }
-          ]
-        };
-      } catch (error: any) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: false,
-                error: error.message
-              }, null, 2)
-            }
-          ],
-          isError: true
-        };
+        return rawToolResponse("store_project_data", {
+          success: true,
+          message: "Project data stored successfully",
+          project_id: projectId,
+          project
+        });
+      } catch (error) {
+        return rawToolError("store_project_data", `Store project data failed: ${errorMessage(error)}`);
       }
     }
   );

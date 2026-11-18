@@ -1,36 +1,24 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerGetCurrentViewInfoTool(server: McpServer) {
   server.tool(
     "get_current_view_info",
-    "Get detailed information about the current active view in Revit, including view type, name, scale, and other properties.",
+    "Get details about the active view (type, scale, crop, etc.).",
     {},
     async (args, extra) => {
       try {
         const response = await withRevitConnection(async (revitClient) => {
           return await revitClient.sendCommand("get_current_view_info", {});
-        });
+        }, 30000);
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("get_current_view_info", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `get current view info failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("get_current_view_info", `get current view info failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

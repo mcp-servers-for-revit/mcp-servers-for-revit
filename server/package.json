@@ -1,21 +1,20 @@
 {
     "name": "mcp-server-for-revit",
-    "version": "1.2.2",
+    "version": "1.0.0",
     "description": "MCP server for interacting with Autodesk Revit through AI assistants like Claude",
-    "main": "index.js",
+    "main": "./build/index.js",
     "type": "module",
     "bin": {
         "mcp-server-for-revit": "./build/index.js"
     },
-    "engines": {
-        "node": ">=20.0.0"
-    },
     "scripts": {
         "clean": "rimraf build",
         "prebuild": "npm run clean",
-        "build": "tsc",
-        "test:smoke": "node test/smoke.mjs",
-        "prepublishOnly": "npm run build"
+        "build": "node esbuild.config.mjs && node generate-tool-schemas.mjs",
+        "build:check": "tsc --noEmit",
+        "prepublishOnly": "npm run build",
+        "deploy:addins": "node deploy-addins.mjs",
+        "test:smoke": "node test/smoke.mjs"
     },
     "files": [
         "build",
@@ -35,6 +34,9 @@
         "architecture"
     ],
     "license": "MIT",
+    "engines": {
+        "node": ">=20.0.0"
+    },
     "publishConfig": {
         "access": "public"
     },
@@ -44,19 +46,15 @@
     "homepage": "https://github.com/mcp-servers-for-revit/mcp-servers-for-revit#readme",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.7.0",
-        "ajv": "^8.17.1",
-        "better-sqlite3": "^12.8.0",
-        "ws": "^8.18.1",
         "zod": "^3.24.2"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.13",
         "@types/node": "^22.13.10",
-        "@types/ws": "^8.18.0",
+        "esbuild": "^0.28.0",
         "rimraf": "^5.0.10",
         "typescript": "^5.8.2"
     },
-    "allowScripts": {
-        "better-sqlite3@12.11.1": true
+    "optionalDependencies": {
+        "better-sqlite3": "^12.8.0"
     }
 }

@@ -1,11 +1,13 @@
+import { errorMessage } from "../utils/errorUtils.js";
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withRevitConnection } from "../utils/ConnectionManager.js";
+import { rawToolResponse, rawToolError } from "../utils/compactTool.js";
 
 export function registerCreateRoomTool(server: McpServer) {
   server.tool(
     "create_room",
-    "Create and place rooms in Revit at specified locations. Rooms are placed within enclosed wall boundaries and can be named and numbered. The location point should be inside an enclosed area bounded by walls. All coordinates are in millimeters (mm).",
+    "Create rooms at specified locations with optional parameters.",
     {
       data: z
         .array(
@@ -23,13 +25,11 @@ export function registerCreateRoomTool(server: McpServer) {
                 y: z.number().describe("Y coordinate in mm (should be inside enclosed walls)"),
                 z: z.number().describe("Z coordinate in mm (typically 0 or level elevation)"),
               })
-              .describe(
-                "The location point where the room will be placed - must be inside an enclosed area"
-              ),
+              .describe("Location point in mm - must be inside enclosed walls."),
             levelId: z
               .number()
               .optional()
-              .describe("Revit Level ElementId. If not provided, uses the nearest level to the Z coordinate"),
+              .describe("Revit Level ElementId."),
             upperLimitId: z
               .number()
               .optional()
@@ -62,25 +62,11 @@ export function registerCreateRoomTool(server: McpServer) {
           return await revitClient.sendCommand("create_room", params);
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2),
-            },
-          ],
-        };
+        return rawToolResponse("create_room", response);
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Create room failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
+        return rawToolError("create_room", `Create room failed: ${
+                errorMessage(error)
+              }`);
       }
     }
   );

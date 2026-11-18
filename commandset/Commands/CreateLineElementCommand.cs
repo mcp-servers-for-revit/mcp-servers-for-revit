@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.UI;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using RevitMCPCommandSet.Models.Common;
 using RevitMCPCommandSet.Services;
@@ -30,26 +30,26 @@ namespace RevitMCPCommandSet.Commands
             {
                 List<LineElement> data = new List<LineElement>();
                 // Parse parameters
-                data = parameters["data"].ToObject<List<LineElement>>();
+                data = parameters?["data"]?.ToObject<List<LineElement>>();
                 if (data == null)
                     throw new ArgumentNullException(nameof(data), "AI input data is null");
 
-                // Set the line-based element parameters
+                // Set line-based element parameters
                 _handler.SetParameters(data);
 
-                // Raise the external event and wait for completion
+                // Raise external event and wait for completion
                 if (RaiseAndWaitForCompletion(10000))
                 {
                     return _handler.Result;
                 }
                 else
                 {
-                    throw new TimeoutException("Timed out creating line-based elements");
+                    throw new TimeoutException("Line-based element creation timed out");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to create line-based elements: {ex.Message}");
+                throw new Exception($"Failed to create line-based element: {ex.Message}");
             }
         }
     }

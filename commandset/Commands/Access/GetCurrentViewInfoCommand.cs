@@ -24,14 +24,16 @@ namespace RevitMCPCommandSet.Commands.Access
 
         public override object Execute(JObject parameters, string requestId)
         {
-            // Raise the external event and wait for completion
+            // Raise external event and wait for completion
             if (RaiseAndWaitForCompletion(10000)) // 10 second timeout
             {
+                if (_handler.ErrorMessage != null)
+                    throw new Exception(_handler.ErrorMessage);
                 return _handler.ResultInfo;
             }
             else
             {
-                throw new TimeoutException("Timed out getting view info");
+                throw new TimeoutException("Get info timed out");
             }
         }
     }

@@ -33,14 +33,14 @@ namespace RevitMCPCommandSet.Commands.Access
                     _handler.FamilyNameFilter = familyNameFilter;
                     _handler.Limit = limit;
 
-                    // Raise the external event and wait for completion, up to 15 seconds
+                    // Raise external event and wait for completion, up to 15 seconds
                     if (RaiseAndWaitForCompletion(15000))
                     {
                         return _handler.ResultFamilyTypes;
                     }
                     else
                     {
-                        throw new TimeoutException("Timed out getting available family types");
+                        throw new TimeoutException("Get available family types timed out");
                     }
                 }
                 catch (Exception ex)

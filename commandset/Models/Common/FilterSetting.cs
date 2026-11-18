@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace RevitMCPCommandSet.Models.Common
         /// <summary>
         /// Gets or sets the ElementId value of the family type (FamilySymbol) to filter by.
         /// If 0 or negative, no family filtering is applied.
-        /// Note: this filter applies only to element instances, not to type elements.
+        /// Note: This filter only applies to element instances, not to type elements.
         /// </summary>
         [JsonProperty("filterFamilySymbolId")]
         public int FilterFamilySymbolId { get; set; } = -1;
@@ -43,19 +43,19 @@ namespace RevitMCPCommandSet.Models.Common
         public bool IncludeInstances { get; set; } = true;
         /// <summary>
         /// Gets or sets whether to return only elements visible in the current view.
-        /// Note: this filter applies only to element instances, not to type elements.
+        /// Note: This filter only applies to element instances, not to type elements.
         /// </summary>
         [JsonProperty("filterVisibleInCurrentView")]
         public bool FilterVisibleInCurrentView { get; set; }
         /// <summary>
-        /// Gets or sets the minimum point coordinates for spatial filtering (unit: mm)
-        /// If set along with BoundingBoxMax, elements intersecting this bounding box will be selected
+        /// Gets or sets the minimum point coordinates for spatial range filtering (unit: mm).
+        /// If this value and BoundingBoxMax are set, elements intersecting this bounding box will be filtered.
         /// </summary>
         [JsonProperty("boundingBoxMin")]
         public JZPoint BoundingBoxMin { get; set; } = null;
         /// <summary>
-        /// Gets or sets the maximum point coordinates for spatial filtering (unit: mm)
-        /// If set along with BoundingBoxMin, elements intersecting this bounding box will be selected
+        /// Gets or sets the maximum point coordinates for spatial range filtering (unit: mm).
+        /// If this value and BoundingBoxMin are set, elements intersecting this bounding box will be filtered.
         /// </summary>
         [JsonProperty("boundingBoxMax")]
         public JZPoint BoundingBoxMax { get; set; } = null;
@@ -63,28 +63,28 @@ namespace RevitMCPCommandSet.Models.Common
         /// Maximum element count limit
         /// </summary>
         [JsonProperty("maxElements")]
-        public int MaxElements { get; set; } = 50; 
+        public int MaxElements { get; set; } = 50;
         /// <summary>
-        /// Validates the filter settings and checks for potential conflicts
+        /// Validates the filter settings for correctness, checking for potential conflicts
         /// </summary>
-        /// <returns>True if the settings are valid, otherwise false</returns>
+        /// <returns>Returns true if the settings are valid, otherwise returns false</returns>
         public bool Validate(out string errorMessage)
         {
             errorMessage = null;
 
-            // Check whether at least one kind of element is selected
+            // Check that at least one element kind is selected
             if (!IncludeTypes && !IncludeInstances)
             {
-                errorMessage = "Invalid filter settings: at least one of element types or element instances must be included";
+                errorMessage = "Invalid filter settings: must include at least one of element types or element instances";
                 return false;
             }
 
-            // Check whether at least one filter condition is specified
+            // Check that at least one filter condition is specified
             if (string.IsNullOrWhiteSpace(FilterCategory) &&
                 string.IsNullOrWhiteSpace(FilterElementType) &&
                 FilterFamilySymbolId <= 0)
             {
-                errorMessage = "Invalid filter settings: at least one filter condition (category, element type, or family type) must be specified";
+                errorMessage = "Invalid filter settings: must specify at least one filter condition (category, element type, or family type)";
                 return false;
             }
 
@@ -98,25 +98,25 @@ namespace RevitMCPCommandSet.Models.Common
                     invalidFilters.Add("view visibility filter");
                 if (invalidFilters.Count > 0)
                 {
-                    errorMessage = $"When filtering type elements only, the following filters do not apply: {string.Join(", ", invalidFilters)}";
+                    errorMessage = $"When filtering type elements only, the following filters are not applicable: {string.Join(", ", invalidFilters)}";
                     return false;
                 }
             }
-            // Check the validity of the spatial range filter
+            // Check validity of the spatial range filter
             if (BoundingBoxMin != null && BoundingBoxMax != null)
             {
-                // Ensure the minimum point is less than or equal to the maximum point
+                // Ensure minimum point is less than or equal to maximum point
                 if (BoundingBoxMin.X > BoundingBoxMax.X ||
                     BoundingBoxMin.Y > BoundingBoxMax.Y ||
                     BoundingBoxMin.Z > BoundingBoxMax.Z)
                 {
-                    errorMessage = "Invalid bounding box filter: the minimum point coordinates must be less than or equal to the maximum point coordinates";
+                    errorMessage = "Invalid spatial range filter settings: minimum point coordinates must be less than or equal to maximum point coordinates";
                     return false;
                 }
             }
             else if (BoundingBoxMin != null || BoundingBoxMax != null)
             {
-                errorMessage = "Invalid bounding box filter: both the minimum and maximum point coordinates must be set";
+                errorMessage = "Invalid spatial range filter settings: both minimum and maximum point coordinates must be set";
                 return false;
             }
             return true;

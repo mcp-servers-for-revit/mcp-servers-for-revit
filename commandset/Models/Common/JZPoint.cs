@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
@@ -41,7 +41,7 @@ public class JZPoint
     [JsonProperty("z")] public double Z { get; set; }
 
     /// <summary>
-    ///     Converts to a Revit XYZ point
+    ///     Convert to Revit XYZ point
     ///     Unit conversion: mm -> ft
     /// </summary>
     public static XYZ ToXYZ(JZPoint jzPoint)

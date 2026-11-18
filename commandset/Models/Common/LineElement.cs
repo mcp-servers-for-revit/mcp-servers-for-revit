@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace RevitMCPCommandSet.Models.Common;
 
@@ -25,7 +25,7 @@ public class LineElement
     public int TypeId { get; set; } = -1;
 
     /// <summary>
-    ///     Location curve
+    ///     Path curve
     /// </summary>
     [JsonProperty("locationLine")]
     public JZLine LocationLine { get; set; }
@@ -55,7 +55,7 @@ public class LineElement
     public double BaseOffset { get; set; }
 
     /// <summary>
-    ///     Parameterized properties
+    ///     Parametric properties
     /// </summary>
     [JsonProperty("parameters")]
     public Dictionary<string, double> Parameters { get; set; }

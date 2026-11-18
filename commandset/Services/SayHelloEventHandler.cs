@@ -9,17 +9,25 @@ namespace RevitMCPCommandSet.Services
 
         public string Message { get; set; } = "Hello MCP!";
 
+        // Result of the hello operation
+        public string Result { get; private set; }
+
+        public void SetParameters(string message = "Hello MCP!")
+        {
+            Message = message;
+            _resetEvent.Reset();
+        }
+
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
         public void Execute(UIApplication app)
         {
             try
             {
-                TaskDialog.Show("Revit MCP", Message);
+                Result = Message;
             }
             finally
             {

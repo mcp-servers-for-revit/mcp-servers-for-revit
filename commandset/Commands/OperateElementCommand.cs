@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.UI;
+using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using RevitMCPSDK.API.Base;
 using RevitMCPCommandSet.Models.Common;
@@ -35,14 +35,14 @@ namespace RevitMCPCommandSet.Commands
             {
                 OperationSetting data = new OperationSetting();
                 // Parse parameters
-                data = parameters["data"].ToObject<OperationSetting>();
+                data = parameters?["data"]?.ToObject<OperationSetting>();
                 if (data == null)
                     throw new ArgumentNullException(nameof(data), "AI input data is null");
 
-                // Set the operation parameters
+                // Set operation parameters
                 _handler.SetParameters(data);
 
-                // Raise the external event and wait for completion
+                // Raise external event and wait for completion
                 if (RaiseAndWaitForCompletion(10000))
                 {
                     return _handler.Result;
@@ -54,7 +54,7 @@ namespace RevitMCPCommandSet.Commands
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to operate element: {ex.Message}");
+                throw new Exception($"Element operation failed: {ex.Message}");
             }
         }
     }

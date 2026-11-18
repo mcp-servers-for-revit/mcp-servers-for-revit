@@ -1,4 +1,4 @@
-using Autodesk.Revit.DB.Structure;
+﻿using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Commands;
 using RevitMCPCommandSet.Models.Common;
@@ -10,14 +10,14 @@ namespace RevitMCPCommandSet.Utils
     public static class ProjectUtils
     {
         /// <summary>
-        /// Generic method for creating a family instance
+        /// Generic method to create family instances
         /// </summary>
         /// <param name="doc">Current document</param>
         /// <param name="familySymbol">Family type</param>
         /// <param name="locationPoint">Location point</param>
-        /// <param name="locationLine">Base line</param>
+        /// <param name="locationLine">Reference line</param>
         /// <param name="baseLevel">Base level</param>
-        /// <param name="topLevel">Second level (used for TwoLevelsBased)</param>
+        /// <param name="topLevel">Second level (for TwoLevelsBased)</param>
         /// <param name="baseOffset">Base offset (ft)</param>
         /// <param name="topOffset">Top offset (ft)</param>
         /// <param name="faceDirection">Reference direction</param>
@@ -41,46 +41,46 @@ namespace RevitMCPCommandSet.Utils
         {
             // Basic parameter validation
             if (doc == null)
-                throw new ArgumentNullException($"Required parameter {typeof(Document)} {nameof(doc)} is missing!");
+                throw new ArgumentNullException($"Required parameter {typeof(Document)} {nameof(doc)} missing!");
             if (familySymbol == null)
-                throw new ArgumentNullException($"Required parameter {typeof(FamilySymbol)} {nameof(familySymbol)} is missing!");
+                throw new ArgumentNullException($"Required parameter {typeof(FamilySymbol)} {nameof(familySymbol)} missing!");
 
-            // Activate the family
+            // Activate family symbol
             if (!familySymbol.IsActive)
                 familySymbol.Activate();
 
             FamilyInstance instance = null;
 
-            // Choose the creation method based on the family's placement type
+            // Choose creation method based on family placement type
             switch (familySymbol.Family.FamilyPlacementType)
             {
-                // One-level based family (e.g., Metric Generic Model)
+                // Family based on a single level (e.g. metric generic model)
                 case FamilyPlacementType.OneLevelBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
-                    // With level info
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} missing!");
+                    // With level information
                     if (baseLevel != null)
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationPoint,                  // The physical position where the instance will be placed
-                            familySymbol,                   // The FamilySymbol object representing the type of instance to insert
-                            baseLevel,                      // The Level object used as the base level of the object
-                            StructuralType.NonStructural);  // The type of member if it is a structural member
+                            locationPoint,                  // Physical location where the instance will be placed
+                            familySymbol,                   // FamilySymbol object representing the instance type to insert
+                            baseLevel,                      // Level object used as the base level for the object
+                            StructuralType.NonStructural);  // Specifies the structural type if it is a structural element
                     }
-                    // Without level info
+                    // Without level information
                     else
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationPoint,                  // The physical position where the instance will be placed
-                            familySymbol,                   // The FamilySymbol object representing the type of instance to insert
-                            StructuralType.NonStructural);  // The type of member if it is a structural member
+                            locationPoint,                  // Physical location where the instance will be placed
+                            familySymbol,                   // FamilySymbol object representing the instance type to insert
+                            StructuralType.NonStructural);  // Specifies the structural type if it is a structural element
                     }
                     break;
 
-                // One-level based hosted family (e.g., doors, windows)
+                // Family based on a single level and host (e.g. doors, windows)
                 case FamilyPlacementType.OneLevelBasedHosted:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} missing!");
 
                     Element host = explicitHost;
                     XYZ placementPoint = locationPoint;
@@ -110,13 +110,13 @@ namespace RevitMCPCommandSet.Utils
                         }
                         else
                         {
-                        // Fall back to the original ray-casting method
+                            // Fall back to original ray-casting method
                             host = doc.GetNearestHostElement(locationPoint, familySymbol);
                         }
                     }
 
                     if (host == null)
-                        throw new ArgumentNullException("No valid host found!");
+                        throw new ArgumentNullException($"Cannot find a valid host element!");
 
                     if (baseLevel != null)
                     {
@@ -147,21 +147,21 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // Two-level based family (e.g., columns)
+                // Family based on two levels (e.g. columns)
                 case FamilyPlacementType.TwoLevelsBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} missing!");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} is missing!");
-                    // Determine whether it is a structural or architectural column
+                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} missing!");
+                    // Determine if it is a structural column or an architectural column
                     StructuralType structuralType = StructuralType.NonStructural;
                     if (familySymbol.Category.Id.GetIntValue() == (int)BuiltInCategory.OST_StructuralColumns)
                         structuralType = StructuralType.Column;
                     instance = doc.Create.NewFamilyInstance(
-                        locationPoint,              // The physical position where the instance will be placed
-                        familySymbol,               // The FamilySymbol object representing the type of instance to insert
-                        baseLevel,                  // The Level object used as the base level of the object
-                        structuralType);            // The type of member if it is a structural member
+                        locationPoint,              // Physical location where the instance will be placed
+                        familySymbol,               // FamilySymbol object representing the instance type to insert
+                        baseLevel,                  // Level object used as the base level for the object
+                        structuralType);            // Specifies the structural type if it is a structural element
                     // Set base level, top level, base offset, and top offset
                     if (instance != null)
                     {
@@ -178,24 +178,24 @@ namespace RevitMCPCommandSet.Utils
                             if (topLevelParam != null)
                                 topLevelParam.Set(topLevel.Id);
                         }
-                        // Get the base offset parameter
+                        // Get base offset parameter
                         if (baseOffset != -1)
                         {
                             Parameter baseOffsetParam = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM);
                             if (baseOffsetParam != null && baseOffsetParam.StorageType == StorageType.Double)
                             {
-                                // Convert mm to Revit internal units
+                                // Convert millimeters to Revit internal units
                                 double baseOffsetInternal = baseOffset;
                                 baseOffsetParam.Set(baseOffsetInternal);
                             }
                         }
-                        // Get the top offset parameter
+                        // Get top offset parameter
                         if (topOffset != -1)
                         {
                             Parameter topOffsetParam = instance.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM);
                             if (topOffsetParam != null && topOffsetParam.StorageType == StorageType.Double)
                             {
-                                // Convert mm to Revit internal units
+                                // Convert millimeters to Revit internal units
                                 double topOffsetInternal = topOffset;
                                 topOffsetParam.Set(topOffsetInternal);
                             }
@@ -203,68 +203,68 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // View-specific family (e.g., detail annotations)
+                // View-specific family (e.g. detail annotations)
                 case FamilyPlacementType.ViewBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationPoint,  // The origin of the family instance. If created in a plan view (ViewPlan), this origin is projected onto the plane view
-                        familySymbol,   // The family symbol object representing the type of instance to insert
-                        view);          // The 2D view in which the family instance is placed
+                        locationPoint,  // Origin of the family instance. If placed on a ViewPlan, the origin will be projected onto the plan view
+                        familySymbol,   // FamilySymbol object representing the instance type to insert
+                        view);          // 2D view in which to place the family instance
                     break;
 
-                // Work-plane based family (e.g., Metric face-based generic model, including face-based, wall-based, etc.)
+                // Work plane-based family (e.g. face-based metric generic model, including face-based, wall-based, etc.)
                 case FamilyPlacementType.WorkPlaneBased:
                     if (locationPoint == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(XYZ)} {nameof(locationPoint)} missing!");
                     // Get the nearest host face
                     Reference hostFace = doc.GetNearestFaceReference(locationPoint, 1000 / 304.8);
                     if (hostFace == null)
-                        throw new ArgumentNullException("No valid host found!");
+                        throw new ArgumentNullException($"Cannot find a valid host element!");
                     if (faceDirection == null || faceDirection == XYZ.Zero)
                     {
                         var result = doc.GenerateDefaultOrientation(hostFace);
                         faceDirection = result.FacingOrientation;
                     }
-                    // Create the family instance on the face using the point and direction
+                    // Create a family instance on the face using point and direction
                     instance = doc.Create.NewFamilyInstance(
-                        hostFace,               // The reference to the face  
-                        locationPoint,          // The point on the face where the instance will be placed
-                        faceDirection,          // The vector defining the orientation of the family instance. Note that this orientation defines the rotation of the instance on the face, so it must not be parallel to the face normal
-                        familySymbol);          // The FamilySymbol object representing the type of instance to insert. Note that this FamilySymbol must represent a family whose FamilyPlacementType is WorkPlaneBased
+                        hostFace,               // Reference to the face
+                        locationPoint,          // Point on the face where the instance will be placed
+                        faceDirection,          // Vector defining the orientation of the family instance. Note: this direction defines the rotation on the face and cannot be parallel to the face normal
+                        familySymbol);          // FamilySymbol object representing the instance type to insert. Note: this FamilySymbol must represent a family with FamilyPlacementType of WorkPlaneBased
                     break;
 
-                // Curve based, on work-plane family (e.g., Metric line-based generic model)
+                // Line-based family on a work plane (e.g. line-based metric generic model)
                 case FamilyPlacementType.CurveBased:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} missing!");
 
                     // Get the nearest host face (no tolerance allowed)
                     Reference lineHostFace = doc.GetNearestFaceReference(locationLine.Evaluate(0.5, true), 1e-5);
                     if (lineHostFace != null)
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            lineHostFace,   // The reference to the face
-                            locationLine,   // The curve on which the family instance is based
-                            familySymbol);  // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
+                            lineHostFace,   // Reference to the face
+                            locationLine,   // Curve on which the family instance is based
+                            familySymbol);  // A FamilySymbol object representing the instance type to insert. Note: this Symbol must represent a family with FamilyPlacementType of WorkPlaneBased or CurveBased
                     }
                     else
                     {
                         instance = doc.Create.NewFamilyInstance(
-                            locationLine,                   // The curve on which the family instance is based
-                            familySymbol,                   // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
-                            baseLevel,                      // A Level object used as the base level of the object
-                            StructuralType.NonStructural);  // The type of member if it is a structural member
+                            locationLine,                   // Curve on which the family instance is based
+                            familySymbol,                   // A FamilySymbol object representing the instance type to insert. Note: this Symbol must represent a family with FamilyPlacementType of WorkPlaneBased or CurveBased
+                            baseLevel,                      // A Level object used as the base level for the object
+                            StructuralType.NonStructural);  // Specifies the structural type if it is a structural element
                     }
                     if (instance != null)
                     {
-                        // Get the base offset parameter
+                        // Get base offset parameter
                         if (baseOffset != -1)
                         {
                             Parameter baseOffsetParam = instance.get_Parameter(BuiltInParameter.INSTANCE_FREE_HOST_OFFSET_PARAM);
                             if (baseOffsetParam != null && baseOffsetParam.StorageType == StorageType.Double)
                             {
-                                // Convert mm to Revit internal units
+                                // Convert millimeters to Revit internal units
                                 double baseOffsetInternal = baseOffset;
                                 baseOffsetParam.Set(baseOffsetInternal);
                             }
@@ -272,34 +272,34 @@ namespace RevitMCPCommandSet.Utils
                     }
                     break;
 
-                // Curve based, in a specific view family (e.g., detail components)
+                // Line-based family in a specific view (e.g. detail components)
                 case FamilyPlacementType.CurveBasedDetail:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} missing!");
                     if (view == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(View)} {nameof(view)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(View)} {nameof(view)} missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationLine,   // The line location of the family instance. The line must lie in the view plane
-                        familySymbol,   // The family symbol object representing the type of instance to insert
-                        view);          // The 2D view in which the family instance is placed
+                        locationLine,   // Line location of the family instance. The line must lie within the view plane
+                        familySymbol,   // FamilySymbol object representing the instance type to insert
+                        view);          // 2D view in which to place the family instance
                     break;
 
-                // Curve-driven structural family (e.g., beams, braces, or sloped columns)
+                // Structural curve-driven family (e.g. beams, braces, or slanted columns)
                 case FamilyPlacementType.CurveDrivenStructural:
                     if (locationLine == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(Line)} {nameof(locationLine)} missing!");
                     if (baseLevel == null)
-                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} is missing!");
+                        throw new ArgumentNullException($"Required parameter {typeof(Level)} {nameof(baseLevel)} missing!");
                     instance = doc.Create.NewFamilyInstance(
-                        locationLine,                   // The curve on which the family instance is based
-                        familySymbol,                   // A FamilySymbol object representing the type of instance to insert. Note that this symbol must represent a family whose FamilyPlacementType is WorkPlaneBased or CurveBased
-                        baseLevel,                      // A Level object used as the base level of the object
-                        StructuralType.Beam);           // The type of member if it is a structural member
+                        locationLine,                   // Curve on which the family instance is based
+                        familySymbol,                   // A FamilySymbol object representing the instance type to insert. Note: this Symbol must represent a family with FamilyPlacementType of WorkPlaneBased or CurveBased
+                        baseLevel,                      // A Level object used as the base level for the object
+                        StructuralType.Beam);           // Specifies the structural type if it is a structural element
                     break;
 
-                // Adaptive family (e.g., Metric Adaptive Generic Model, curtain wall panels)
+                // Adaptive family (e.g. adaptive metric generic model, curtain panels)
                 case FamilyPlacementType.Adaptive:
-                    throw new NotImplementedException("FamilyPlacementType.Adaptive creation is not implemented!");
+                    throw new NotImplementedException("FamilyPlacementType.Adaptive creation method is not implemented!");
 
                 default:
                     break;
@@ -308,25 +308,25 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Generates default facing and hand orientations (by default the long edge is HandOrientation, the short edge is FacingOrientation)
+        /// Generate default facing and hand orientations (default: long edge is HandOrientation, short edge is FacingOrientation)
         /// </summary>
         /// <param name="hostFace"></param>
         /// <returns></returns>
         public static (XYZ FacingOrientation, XYZ HandOrientation) GenerateDefaultOrientation(this Document doc, Reference hostFace)
         {
-            var facingOrientation = new XYZ();  // Facing orientation: the orientation of the family's positive Y axis after loading
-            var handOrientation = new XYZ();    // Hand orientation: the orientation of the family's positive X axis after loading
+            var facingOrientation = new XYZ();  // Facing direction: orientation of the family's Y-axis positive direction after loading
+            var handOrientation = new XYZ();    // Hand direction: orientation of the family's X-axis positive direction after loading
 
-            // Step1: get the Face object from the Reference
+            // Step1: Get the face object from the Reference
             Face face = doc.GetElement(hostFace.ElementId).GetGeometryObjectFromReference(hostFace) as Face;
 
-            // Step2: get the face profile
+            // Step2: Get face profile
             List<Curve> profile = null;
-            // Collection of profile loops; each sub-list represents one complete closed loop, the first usually being the outer outline
+            // Profile curve collection, each sub-list represents a complete closed profile; the first is typically the outer profile
             List<List<Curve>> profiles = new List<List<Curve>>();
-            // Get all profile loops (outer outline and possible inner holes)
+            // Get all edge loops (outer profile and possible inner holes)
             EdgeArrayArray edgeLoops = face.EdgeLoops;
-            // Iterate over each profile loop
+            // Iterate through each edge loop
             foreach (EdgeArray loop in edgeLoops)
             {
                 List<Curve> currentLoop = new List<Curve>();
@@ -336,32 +336,32 @@ namespace RevitMCPCommandSet.Utils
                     Curve curve = edge.AsCurve();
                     currentLoop.Add(curve);
                 }
-                // If the current loop has edges, add it to the results collection
+                // If the current loop has edges, add it to the result collection
                 if (currentLoop.Count > 0)
                 {
                     profiles.Add(currentLoop);
                 }
             }
-            // The first one is usually the outer outline
+            // The first is typically the outer profile
             if (profiles != null && profiles.Any())
                 profile = profiles.FirstOrDefault();
 
-            // Step3: get the face normal vector
+            // Step3: Get face normal vector
             XYZ faceNormal = null;
-            // If it is a planar face, the normal vector property can be obtained directly
+            // If it's a planar face, the normal vector property can be obtained directly
             if (face is PlanarFace planarFace)
                 faceNormal = planarFace.FaceNormal;
 
-            // Step4: get the two valid (right-hand rule compliant) primary directions of the face
+            // Step4: Get the two compliant (right-hand rule) principal directions of the face
             var result = face.GetMainDirections();
             var primaryDirection = result.PrimaryDirection;
             var secondaryDirection = result.SecondaryDirection;
 
-            // By default the long edge direction is HandOrientation and the short edge direction is FacingOrientation
+            // Default: long edge direction is HandOrientation, short edge direction is FacingOrientation
             facingOrientation = primaryDirection;
             handOrientation = secondaryDirection;
 
-            // Check compliance with the right-hand rule (thumb: HandOrientation, index finger: FacingOrientation, middle finger: FaceNormal)
+            // Check if it complies with the right-hand rule (thumb: HandOrientation, index: FacingOrientation, middle: FaceNormal)
             if (!facingOrientation.IsRightHandRuleCompliant(handOrientation, faceNormal))
             {
                 var newHandOrientation = facingOrientation.GenerateIndexFinger(faceNormal);
@@ -375,20 +375,20 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Gets the Reference of the face nearest to a point
+        /// Get the nearest face Reference to a point
         /// </summary>
         /// <param name="doc">Current document</param>
-        /// <param name="location">Target point position</param>
+        /// <param name="location">Target point location</param>
         /// <param name="radius">Search radius (internal units)</param>
-        /// <returns>The Reference of the nearest face, or null if not found</returns>
+        /// <returns>Reference to the nearest face, or null if not found</returns>
         public static Reference GetNearestFaceReference(this Document doc, XYZ location, double radius = 1000 / 304.8)
         {
             try
             {
-                // Tolerance handling
+                // Tolerance adjustment
                 location = new XYZ(location.X, location.Y, location.Z + 0.1 / 304.8);
 
-                // Create or get a 3D view
+                // Create or get 3D view
                 View3D view3D = null;
                 FilteredElementCollector collector = new FilteredElementCollector(doc)
                     .OfClass(typeof(View3D));
@@ -422,19 +422,19 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Error", "Unable to create or get a 3D view");
+                    TaskDialog.Show("Error", "Unable to create or get 3D view");
                     return null;
                 }
 
-                // Set up rays in the 6 directions
+                // Set up rays in 6 directions
                 XYZ[] directions = new XYZ[]
                 {
-                  XYZ.BasisX,    // +X
-                  -XYZ.BasisX,   // -X
-                  XYZ.BasisY,    // +Y
-                  -XYZ.BasisY,   // -Y
-                  XYZ.BasisZ,    // +Z
-                  -XYZ.BasisZ    // -Z
+                  XYZ.BasisX,    // X positive
+                  -XYZ.BasisX,   // X negative
+                  XYZ.BasisY,    // Y positive
+                  -XYZ.BasisY,   // Y negative
+                  XYZ.BasisZ,    // Z positive
+                  -XYZ.BasisZ    // Z negative
                 };
 
                 // Create filters
@@ -443,7 +443,7 @@ namespace RevitMCPCommandSet.Utils
                 ElementClassFilter ceilingFilter = new ElementClassFilter(typeof(Ceiling));
                 ElementClassFilter instanceFilter = new ElementClassFilter(typeof(FamilyInstance));
 
-                // Combine filters
+                // Combined filter
                 LogicalOrFilter categoryFilter = new LogicalOrFilter(
                     new ElementFilter[] { wallFilter, floorFilter, ceilingFilter, instanceFilter });
 
@@ -451,24 +451,24 @@ namespace RevitMCPCommandSet.Utils
                 // 1. Simplest: filter for all instantiated elements
                 //ElementFilter filter = new ElementIsElementTypeFilter(true);
 
-                // Create the ray tracer
+                // Create ray intersector
                 ReferenceIntersector refIntersector = new ReferenceIntersector(categoryFilter,
                     FindReferenceTarget.Face, view3D);
-                refIntersector.FindReferencesInRevitLinks = true; // If faces in linked files need to be found
+                refIntersector.FindReferencesInRevitLinks = true; // Also search for faces in linked files
 
                 double minDistance = double.MaxValue;
                 Reference nearestFace = null;
 
                 foreach (XYZ direction in directions)
                 {
-                    // Fire a ray from the current position
+                    // Cast ray from the current position
                     IList<ReferenceWithContext> references = refIntersector.Find(location, direction);
 
                     foreach (ReferenceWithContext rwc in references)
                     {
-                        double distance = rwc.Proximity; // Get the distance to the face
+                        double distance = rwc.Proximity; // Get distance to the face
 
-                        // If within the search range and closer
+                        // If within search radius and closer
                         if (distance <= radius && distance < minDistance)
                         {
                             minDistance = distance;
@@ -481,17 +481,17 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error occurred while getting the nearest face: {ex.Message}");
+                TaskDialog.Show("Error", $"Error occurred while getting nearest face: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// Gets the element nearest to a point that can serve as a host
+        /// Get the nearest element that can serve as a host for the given point
         /// </summary>
         /// <param name="doc">Current document</param>
-        /// <param name="location">Target point position</param>
-        /// <param name="familySymbol">Family type, used to determine the host type</param>
+        /// <param name="location">Target point location</param>
+        /// <param name="familySymbol">Family type, used to determine host type</param>
         /// <param name="radius">Search radius (internal units)</param>
         /// <returns>The nearest host element, or null if not found</returns>
         public static Element GetNearestHostElement(this Document doc, XYZ location, FamilySymbol familySymbol, double radius = 5.0)
@@ -506,7 +506,7 @@ namespace RevitMCPCommandSet.Utils
                 Parameter hostParam = familySymbol.Family.get_Parameter(BuiltInParameter.FAMILY_HOSTING_BEHAVIOR);
                 int hostingBehavior = hostParam?.AsInteger() ?? 0;
 
-                // Create or get a 3D view
+                // Create or get 3D view
                 View3D view3D = null;
                 FilteredElementCollector viewCollector = new FilteredElementCollector(doc)
                     .OfClass(typeof(View3D));
@@ -539,11 +539,11 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Error", "Unable to create or get a 3D view");
+                    TaskDialog.Show("Error", "Unable to create or get 3D view");
                     return null;
                 }
 
-                // Create the class filter based on hosting behavior
+                // Create type filter based on hosting behavior
                 ElementFilter classFilter;
                 switch (hostingBehavior)
                 {
@@ -563,35 +563,35 @@ namespace RevitMCPCommandSet.Utils
                         return null; // Unsupported host type
                 }
 
-                // Set up rays in the 6 directions
+                // Set up rays in 6 directions
                 XYZ[] directions = new XYZ[]
                 {
-                    XYZ.BasisX,    // +X
-                    -XYZ.BasisX,   // -X
-                    XYZ.BasisY,    // +Y
-                    -XYZ.BasisY,   // -Y
-                    XYZ.BasisZ,    // +Z
-                    -XYZ.BasisZ    // -Z
+                    XYZ.BasisX,    // X positive
+                    -XYZ.BasisX,   // X negative
+                    XYZ.BasisY,    // Y positive
+                    -XYZ.BasisY,   // Y negative
+                    XYZ.BasisZ,    // Z positive
+                    -XYZ.BasisZ    // Z negative
                 };
 
-                // Create the ray tracer
+                // Create ray intersector
                 ReferenceIntersector refIntersector = new ReferenceIntersector(classFilter,
                     FindReferenceTarget.Element, view3D);
-                refIntersector.FindReferencesInRevitLinks = true; // If elements in linked files need to be found
+                refIntersector.FindReferencesInRevitLinks = true; // Also search for elements in linked files
 
                 double minDistance = double.MaxValue;
                 Element nearestHost = null;
 
                 foreach (XYZ direction in directions)
                 {
-                    // Fire a ray from the current position
+                    // Cast ray from the current position
                     IList<ReferenceWithContext> references = refIntersector.Find(location, direction);
 
                     foreach (ReferenceWithContext rwc in references)
                     {
-                        double distance = rwc.Proximity; // Get the distance to the element
+                        double distance = rwc.Proximity; // Get distance to the element
 
-                        // If within the search range and closer
+                        // If within search radius and closer
                         if (distance <= radius && distance < minDistance)
                         {
                             minDistance = distance;
@@ -604,7 +604,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error occurred while getting the nearest host element: {ex.Message}");
+                TaskDialog.Show("Error", $"Error occurred while getting nearest host element: {ex.Message}");
                 return null;
             }
         }
@@ -681,16 +681,16 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Highlights the specified face
+        /// Highlight the specified face
         /// </summary>
         /// <param name="doc">Current document</param>
-        /// <param name="faceRef">The Reference of the face to highlight</param>
-        /// <param name="duration">Highlight duration (ms); defaults to 3000 ms</param>
+        /// <param name="faceRef">Face Reference to highlight</param>
+        /// <param name="duration">Highlight duration (milliseconds), default 3000ms</param>
         public static void HighlightFace(this Document doc, Reference faceRef)
         {
             if (faceRef == null) return;
 
-            // Get the solid fill pattern
+            // Get solid fill pattern
             FillPatternElement solidFill = new FilteredElementCollector(doc)
                 .OfClass(typeof(FillPatternElement))
                 .Cast<FillPatternElement>()
@@ -702,23 +702,23 @@ namespace RevitMCPCommandSet.Utils
                 return;
             }
 
-            // Create the highlight settings
+            // Create highlight settings
             OverrideGraphicSettings ogs = new OverrideGraphicSettings();
             ogs.SetSurfaceForegroundPatternColor(new Color(255, 0, 0)); // Red
             ogs.SetSurfaceForegroundPatternId(solidFill.Id);
             ogs.SetSurfaceTransparency(0); // Opaque
 
-            // Apply the highlight
+            // Apply highlight
             doc.ActiveView.SetElementOverrides(faceRef.ElementId, ogs);
         }
 
         /// <summary>
-        /// Extracts the two primary direction vectors of a face
+        /// Extract the two principal direction vectors of a face
         /// </summary>
         /// <param name="face">Input face</param>
-        /// <returns>A tuple containing the primary and secondary directions</returns>
+        /// <returns>Tuple containing the primary and secondary directions</returns>
         /// <exception cref="ArgumentNullException">Thrown when the face is null</exception>
-        /// <exception cref="ArgumentException">Thrown when the face's outline is insufficient to form a valid shape</exception>
+        /// <exception cref="ArgumentException">Thrown when the face profile is insufficient to form a valid shape</exception>
         /// <exception cref="InvalidOperationException">Thrown when valid directions cannot be extracted</exception>
         public static (XYZ PrimaryDirection, XYZ SecondaryDirection) GetMainDirections(this Face face)
         {
@@ -726,20 +726,20 @@ namespace RevitMCPCommandSet.Utils
             if (face == null)
                 throw new ArgumentNullException(nameof(face), "Face cannot be null");
 
-            // 2. Get the face normal vector, used for any later perpendicular vector calculations
+            // 2. Get the face normal vector for subsequent perpendicular vector calculations
             XYZ faceNormal = face.ComputeNormal(new UV(0.5, 0.5));
 
-            // 3. Get the face's outer outline
+            // 3. Get the outer profile of the face
             EdgeArrayArray edgeLoops = face.EdgeLoops;
             if (edgeLoops.Size == 0)
-                throw new ArgumentException("The face has no valid edge loops", nameof(face));
+                throw new ArgumentException("Face has no valid edge loops", nameof(face));
 
-            // Usually the first loop is the outer outline
+            // The first loop is typically the outer profile
             EdgeArray outerLoop = edgeLoops.get_Item(0);
 
-            // 4. Compute the direction vector and length of each edge
-            List<XYZ> edgeDirections = new List<XYZ>();  // Stores the unit direction vector of each edge
-            List<double> edgeLengths = new List<double>(); // Stores the length of each edge
+            // 4. Calculate direction vectors and lengths for each edge
+            List<XYZ> edgeDirections = new List<XYZ>();  // Store unit direction vector for each edge
+            List<double> edgeLengths = new List<double>(); // Store length of each edge
 
             foreach (Edge edge in outerLoop)
             {
@@ -747,25 +747,25 @@ namespace RevitMCPCommandSet.Utils
                 XYZ startPoint = curve.GetEndPoint(0);
                 XYZ endPoint = curve.GetEndPoint(1);
 
-                // Compute the vector from start to end point
+                // Calculate vector from start point to end point
                 XYZ direction = endPoint - startPoint;
                 double length = direction.GetLength();
 
                 // Ignore edges that are too short (possibly due to coincident vertices or numerical precision issues)
                 if (length > 1e-10)
                 {
-                    edgeDirections.Add(direction.Normalize());  // Store the normalized direction vector
-                    edgeLengths.Add(length);                    // Store the edge length
+                    edgeDirections.Add(direction.Normalize());  // Store normalized direction vector
+                    edgeLengths.Add(length);                    // Store edge length
                 }
             }
 
-            if (edgeDirections.Count < 4) // Ensure there are at least 4 edges
+            if (edgeDirections.Count < 4) // Ensure at least 4 edges
             {
                 throw new ArgumentException("The provided face does not have enough edges to form a valid shape", nameof(face));
             }
 
             // 5. Group edges with similar directions
-            List<List<int>> directionGroups = new List<List<int>>();  // Stores the direction groups, each containing edge indices
+            List<List<int>> directionGroups = new List<List<int>>();  // Store direction groups, each containing edge indices
 
             for (int i = 0; i < edgeDirections.Count; i++)
             {
@@ -776,20 +776,20 @@ namespace RevitMCPCommandSet.Utils
                 for (int j = 0; j < directionGroups.Count; j++)
                 {
                     var group = directionGroups[j];
-                    // Compute the group's weighted average direction
+                    // Calculate weighted average direction of the current group
                     XYZ groupAvgDir = CalculateWeightedAverageDirection(group, edgeDirections, edgeLengths);
 
-                    // Check whether the current direction is similar to the group's average direction (including both positive and negative directions)
+                    // Check if current direction is similar to the group's average direction (including opposite directions)
                     double dotProduct = Math.Abs(groupAvgDir.DotProduct(currentDirection));
-                    if (dotProduct > 0.8) // Deviations within about 30 degrees are treated as similar directions
+                    if (dotProduct > 0.8) // Deviations within ~30 degrees are considered similar
                     {
-                        group.Add(i);  // Add the current edge's index to that direction group
+                        group.Add(i);  // Add the current edge index to this direction group
                         foundGroup = true;
                         break;
                     }
                 }
 
-                // If the current edge is not similar to any existing group, create a new group
+                // If current edge is not similar to any existing group, create a new group
                 if (!foundGroup)
                 {
                     List<int> newGroup = new List<int> { i };
@@ -797,13 +797,13 @@ namespace RevitMCPCommandSet.Utils
                 }
             }
 
-            // 6. Compute each direction group's total weight (sum of edge lengths) and average direction
+            // 6. Calculate total weight (sum of edge lengths) and average direction for each direction group
             List<double> groupWeights = new List<double>();
             List<XYZ> groupDirections = new List<XYZ>();
 
             foreach (var group in directionGroups)
             {
-                // Sum the lengths of all edges in the group
+                // Calculate sum of all edge lengths in this group
                 double totalLength = 0;
                 foreach (int edgeIndex in group)
                 {
@@ -811,19 +811,19 @@ namespace RevitMCPCommandSet.Utils
                 }
                 groupWeights.Add(totalLength);
 
-                // Compute the group's weighted average direction
+                // Calculate weighted average direction for this group
                 groupDirections.Add(CalculateWeightedAverageDirection(group, edgeDirections, edgeLengths));
             }
 
-            // 7. Sort by weight and extract the primary direction
+            // 7. Sort by weight and extract principal directions
             int[] sortedIndices = Enumerable.Range(0, groupDirections.Count)
                 .OrderByDescending(i => groupWeights[i])
                 .ToArray();
 
-            // 8. Build the result
+            // 8. Construct result
             if (groupDirections.Count >= 2)
             {
-                // At least two direction groups: take the two highest-weight groups as primary and secondary directions
+                // At least two direction groups exist; use the two with highest weights as primary and secondary directions
                 int primaryIndex = sortedIndices[0];
                 int secondaryIndex = sortedIndices[1];
 
@@ -834,47 +834,47 @@ namespace RevitMCPCommandSet.Utils
             }
             else if (groupDirections.Count == 1)
             {
-                // Only one direction group: manually create a secondary direction perpendicular to the primary direction
+                // Only one direction group; manually create a secondary direction perpendicular to the primary
                 XYZ primaryDirection = groupDirections[0];
-                // Use the cross product of the face normal and the primary direction to create a perpendicular vector
+                // Create perpendicular vector using cross product of face normal and primary direction
                 XYZ secondaryDirection = faceNormal.CrossProduct(primaryDirection).Normalize();
 
                 return (
-                    PrimaryDirection: primaryDirection,         // Primary direction 
-                    SecondaryDirection: secondaryDirection      // Manually constructed perpendicular secondary direction
+                    PrimaryDirection: primaryDirection,         // Primary direction
+                    SecondaryDirection: secondaryDirection      // Constructed perpendicular secondary direction
                 );
             }
             else
             {
-                // Unable to extract valid directions (rarely occurs)
-                throw new InvalidOperationException("Unable to extract valid directions from the face");
+                // Cannot extract valid directions (rarely occurs)
+                throw new InvalidOperationException("Cannot extract valid directions from the face");
             }
         }
 
         /// <summary>
-        /// Computes the weighted average direction of a group of edges based on edge lengths
+        /// Calculate weighted average direction for a group of edges based on edge lengths
         /// </summary>
         /// <param name="edgeIndices">List of edge indices</param>
         /// <param name="directions">Direction vectors of all edges</param>
         /// <param name="lengths">Lengths of all edges</param>
-        /// <returns>The normalized weighted average direction vector</returns>
+        /// <returns>Normalized weighted average direction vector</returns>
         public static XYZ CalculateWeightedAverageDirection(List<int> edgeIndices, List<XYZ> directions, List<double> lengths)
         {
             if (edgeIndices.Count == 0)
                 return null;
 
             double sumX = 0, sumY = 0, sumZ = 0;
-            XYZ referenceDir = directions[edgeIndices[0]];  // Use the first direction in the group as the reference
+            XYZ referenceDir = directions[edgeIndices[0]];  // Use the first direction in the group as reference
 
             foreach (int i in edgeIndices)
             {
                 XYZ currentDir = directions[i];
 
-                // Compute the dot product of the current direction with the reference direction to determine if a flip is needed
+                // Calculate dot product with reference direction to determine if reversal is needed
                 double dot = referenceDir.DotProduct(currentDir);
 
-                // If the directions are opposite (negative dot product), flip the vector before computing its contribution
-                // This ensures vectors within the same group point consistently and do not cancel each other out
+                // If direction is opposite (negative dot product), reverse the vector before calculating contribution
+                // This ensures vectors within the same group point consistently, avoiding cancellation
                 double factor = (dot >= 0) ? lengths[i] : -lengths[i];
 
                 // Accumulate vector components (weighted)
@@ -883,28 +883,28 @@ namespace RevitMCPCommandSet.Utils
                 sumZ += currentDir.Z * factor;
             }
 
-            // Create the composite vector and normalize it
+            // Create composite vector and normalize
             XYZ avgDir = new XYZ(sumX, sumY, sumZ);
             double magnitude = avgDir.GetLength();
 
-            // Guard against a zero vector
+            // Prevent zero vector
             if (magnitude < 1e-10)
-                return referenceDir;  // Fall back to the reference direction
+                return referenceDir;  // Fall back to reference direction
 
-            return avgDir.Normalize();  // Return the normalized direction vector
+            return avgDir.Normalize();  // Return normalized direction vector
         }
 
         /// <summary>
-        /// Determines whether three vectors comply with the right-hand rule and are strictly perpendicular to each other
+        /// Determine whether three vectors comply with the right-hand rule and are mutually strictly perpendicular
         /// </summary>
         /// <param name="thumb">Thumb direction vector</param>
         /// <param name="indexFinger">Index finger direction vector</param>
         /// <param name="middleFinger">Middle finger direction vector</param>
-        /// <param name="tolerance">Tolerance for the check; defaults to 1e-6</param>
-        /// <returns>true if the three vectors comply with the right-hand rule and are mutually perpendicular; otherwise false</returns>
+        /// <param name="tolerance">Tolerance for comparison, default 1e-6</param>
+        /// <returns>Returns true if the three vectors comply with the right-hand rule and are mutually perpendicular, otherwise false</returns>
         public static bool IsRightHandRuleCompliant(this XYZ thumb, XYZ indexFinger, XYZ middleFinger, double tolerance = 1e-6)
         {
-            // Check whether the three vectors are mutually perpendicular (all dot products near 0)
+            // Check if three vectors are mutually perpendicular (all dot products close to 0)
             double dotThumbIndex = Math.Abs(thumb.DotProduct(indexFinger));
             double dotThumbMiddle = Math.Abs(thumb.DotProduct(middleFinger));
             double dotIndexMiddle = Math.Abs(indexFinger.DotProduct(middleFinger));
@@ -913,49 +913,49 @@ namespace RevitMCPCommandSet.Utils
                                   (dotThumbMiddle <= tolerance) &&
                                   (dotIndexMiddle <= tolerance);
 
-            // Only check the right-hand rule when the three vectors are mutually perpendicular
+            // Only check right-hand rule if the three vectors are mutually perpendicular
             if (!areOrthogonal)
                 return false;
 
-            // Compute the dot product of the cross product vector with the thumb to determine right-hand rule compliance
+            // Calculate dot product of cross product vector with thumb to determine right-hand rule compliance
             XYZ crossProduct = indexFinger.CrossProduct(middleFinger);
             double rightHandTest = crossProduct.DotProduct(thumb);
 
-            // A positive dot product indicates right-hand rule compliance
+            // Positive dot product indicates right-hand rule compliance
             return rightHandTest > tolerance;
         }
 
         /// <summary>
-        /// Generates an index finger direction compliant with the right-hand rule from the thumb and middle finger directions
+        /// Generate an index finger direction that complies with the right-hand rule, given thumb and middle finger directions
         /// </summary>
         /// <param name="thumb">Thumb direction vector</param>
         /// <param name="middleFinger">Middle finger direction vector</param>
-        /// <param name="tolerance">Tolerance for the perpendicularity check; defaults to 1e-6</param>
-        /// <returns>The generated index finger direction vector, or null if the input vectors are not perpendicular</returns>
+        /// <param name="tolerance">Tolerance for perpendicularity check, default 1e-6</param>
+        /// <returns>Generated index finger direction vector, or null if the input vectors are not perpendicular</returns>
         public static XYZ GenerateIndexFinger(this XYZ thumb, XYZ middleFinger, double tolerance = 1e-6)
         {
-            // First normalize the input vectors
+            // First normalize input vectors
             XYZ normalizedThumb = thumb.Normalize();
             XYZ normalizedMiddleFinger = middleFinger.Normalize();
 
-            // Check whether the two vectors are perpendicular (dot product near 0)
+            // Check if the two vectors are perpendicular (dot product close to 0)
             double dotProduct = normalizedThumb.DotProduct(normalizedMiddleFinger);
 
-            // If the absolute value of the dot product exceeds the tolerance, the vectors are not perpendicular
+            // If the absolute value of dot product exceeds tolerance, vectors are not perpendicular
             if (Math.Abs(dotProduct) > tolerance)
             {
                 return null;
             }
 
-            // Compute the index finger direction via the cross product and negate it
+            // Calculate index finger direction via cross product and negate
             XYZ indexFinger = normalizedMiddleFinger.CrossProduct(normalizedThumb).Negate();
 
-            // Return the normalized index finger direction vector
+            // Return normalized index finger direction vector
             return indexFinger.Normalize();
         }
 
         /// <summary>
-        /// Creates or gets a level at the specified elevation
+        /// Create or get a level at the specified elevation
         /// </summary>
         /// <param name="doc">Revit document</param>
         /// <param name="elevation">Level elevation (ft)</param>
@@ -963,7 +963,7 @@ namespace RevitMCPCommandSet.Utils
         /// <returns></returns>
         public static Level CreateOrGetLevel(this Document doc, double elevation, string levelName)
         {
-            // First check whether a level at the specified elevation already exists
+            // First check if a level at the specified elevation already exists
             Level existingLevel = new FilteredElementCollector(doc)
                 .OfClass(typeof(Level))
                 .Cast<Level>()
@@ -972,9 +972,9 @@ namespace RevitMCPCommandSet.Utils
             if (existingLevel != null)
                 return existingLevel;
 
-            // Create a new level
+            // Create new level
             Level newLevel = Level.Create(doc, elevation);
-            // Set the level name
+            // Set level name
             Level namesakeLevel = new FilteredElementCollector(doc)
                  .OfClass(typeof(Level))
                  .Cast<Level>()
@@ -989,17 +989,17 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// Finds the level nearest to the given elevation
+        /// Find the level nearest to the given elevation
         /// </summary>
         /// <param name="doc">Current Revit document</param>
         /// <param name="height">Target elevation (Revit internal units)</param>
-        /// <returns>The level nearest to the target elevation, or null if the document has no levels</returns>
+        /// <returns>The level nearest to the target elevation, or null if no levels exist in the document</returns>
         public static Level FindNearestLevel(this Document doc, double height)
         {
             if (doc == null)
                 throw new ArgumentNullException(nameof(doc), "Document cannot be null");
 
-            // Query directly with LINQ for the nearest level
+            // Use LINQ query to get the nearest level
             return new FilteredElementCollector(doc)
                 .OfClass(typeof(Level))
                 .Cast<Level>()
@@ -1008,20 +1008,20 @@ namespace RevitMCPCommandSet.Utils
         }
 
         ///// <summary>
-        ///// Refresh the view and add a delay
+        ///// Refresh view and add delay
         ///// </summary>
         //public static void Refresh(this Document doc, int waitingTime = 0, bool allowOperation = true)
         //{
         //    UIApplication uiApp = new UIApplication(doc.Application);
         //    UIDocument uiDoc = uiApp.ActiveUIDocument;
 
-        //    // Check whether the document is modifiable
+        //    // Check if document is modifiable
         //    if (uiDoc.Document.IsModifiable)
         //    {
-        //        // Update the model
+        //        // Update model
         //        uiDoc.Document.Regenerate();
         //    }
-        //    // Update the UI
+        //    // Update UI
         //    uiDoc.RefreshActiveView();
 
         //    // Delay wait
@@ -1030,7 +1030,7 @@ namespace RevitMCPCommandSet.Utils
         //        System.Threading.Thread.Sleep(waitingTime);
         //    }
 
-        //    // Allow the user to perform unsafe operations
+        //    // Allow user to perform non-safe operations
         //    if (allowOperation)
         //    {
         //        System.Windows.Forms.Application.DoEvents();
@@ -1038,25 +1038,25 @@ namespace RevitMCPCommandSet.Utils
         //}
 
         /// <summary>
-        /// Saves the given message to the specified file on the desktop (overwrites the file by default)
+        /// Save the specified message to a file on the desktop (overwrites by default)
         /// </summary>
-        /// <param name="message">The message content to save</param>
+        /// <param name="message">Message content to save</param>
         /// <param name="fileName">Target file name</param>
         public static void SaveToDesktop(this string message, string fileName = "temp.json", bool isAppend = false)
         {
-            // Ensure logName includes an extension
+            // Ensure logName has a file extension
             if (!Path.HasExtension(fileName))
             {
-                fileName += ".txt"; // Add the .txt extension by default
+                fileName += ".txt"; // Add .txt extension by default
             }
 
-            // Get the desktop path
+            // Get desktop path
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
 
-            // Combine the full file path
+            // Combine full file path
             string filePath = Path.Combine(desktopPath, fileName);
 
-            // Write to the file (overwrite mode)
+            // Write to file (overwrite mode)
             using (StreamWriter sw = new StreamWriter(filePath, isAppend))
             {
                 sw.WriteLine($"{message}");

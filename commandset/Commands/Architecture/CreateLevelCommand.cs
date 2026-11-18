@@ -32,9 +32,9 @@ namespace RevitMCPCommandSet.Commands.Architecture
             try
             {
                 // Parse parameters
-                List<LevelCreationInfo> data = parameters["data"].ToObject<List<LevelCreationInfo>>();
+                List<LevelCreationInfo> data = parameters?["data"]?.ToObject<List<LevelCreationInfo>>();
                 if (data == null || data.Count == 0)
-                    throw new ArgumentNullException(nameof(data), "No level data provided");
+                    throw new ArgumentNullException(nameof(data), "No level data provided — expected: {\"data\": [{\"name\": \"Level 2\", \"elevation\": 3000}]}");
 
                 // Set parameters for the event handler
                 _handler.SetParameters(data);

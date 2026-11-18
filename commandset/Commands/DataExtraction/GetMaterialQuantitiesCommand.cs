@@ -23,9 +23,10 @@ namespace RevitMCPCommandSet.Commands.DataExtraction
                 // Parse parameters
                 List<string> categoryFilters = parameters?["categoryFilters"]?.ToObject<List<string>>();
                 bool selectedElementsOnly = parameters?["selectedElementsOnly"]?.Value<bool>() ?? false;
+                int maxResults = parameters?["maxResults"]?.Value<int>() ?? 50;
 
                 // Set parameters
-                _handler.SetParameters(categoryFilters, selectedElementsOnly);
+                _handler.SetParameters(categoryFilters, selectedElementsOnly, maxResults);
 
                 // Execute and wait
                 if (RaiseAndWaitForCompletion(120000)) // 120 second timeout for large projects

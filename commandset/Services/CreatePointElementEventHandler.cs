@@ -13,11 +13,11 @@ namespace RevitMCPCommandSet.Services
         private Autodesk.Revit.ApplicationServices.Application app => uiApp.Application;
 
         /// <summary>
-        /// Event wait object
+        /// Event wait handle
         /// </summary>
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         /// <summary>
-        /// Input data
+        /// Creation data (input data)
         /// </summary>
         public List<PointElement> CreatedInfo { get; private set; }
         /// <summary>
@@ -27,7 +27,7 @@ namespace RevitMCPCommandSet.Services
         private List<string> _warnings = new List<string>();
 
         /// <summary>
-        /// Sets the creation parameters
+        /// Set creation parameters
         /// </summary>
         public void SetParameters(List<PointElement> data)
         {
@@ -46,11 +46,11 @@ namespace RevitMCPCommandSet.Services
                 {
                     int requestedTypeId = data.TypeId;
 
-                    // Step0 Get the element category
+                    // Step0 Get element type
                     BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
                     Enum.TryParse(data.Category.Replace(".", ""), true, out builtInCategory);
 
-                    // Step1 Get the levels and offsets
+                    // Step1 Get level and offset
                     Level baseLevel = null;
                     Level topLevel = null;
                     double topOffset = -1;  // ft
@@ -62,7 +62,7 @@ namespace RevitMCPCommandSet.Services
                     if (baseLevel == null)
                         continue;
 
-                    // Step2 Get the family type
+                    // Step2 Get family type
                     FamilySymbol symbol = null;
                     if (data.TypeId != -1 && data.TypeId != 0)
                     {
@@ -73,7 +73,7 @@ namespace RevitMCPCommandSet.Services
                             if (typeEle != null && typeEle is FamilySymbol)
                             {
                                 symbol = typeEle as FamilySymbol;
-                                // Get the symbol's Category object and convert to the BuiltInCategory enum
+                                // Get the symbol's Category object and convert to BuiltInCategory enum
                                 builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
                             }
                         }
@@ -86,7 +86,7 @@ namespace RevitMCPCommandSet.Services
                             .OfClass(typeof(FamilySymbol))
                             .OfCategory(builtInCategory)
                             .Cast<FamilySymbol>()
-                            .FirstOrDefault(fs => fs.IsActive); // Use the active type as the default
+                            .FirstOrDefault(fs => fs.IsActive); // Get active type as default type
                         if (symbol == null)
                         {
                             symbol = new FilteredElementCollector(doc)
@@ -108,8 +108,8 @@ namespace RevitMCPCommandSet.Services
                     if (symbol == null)
                         continue;
 
-                    // Step3 Call the generic method to create the family instance
-                    using (Transaction transaction = new Transaction(doc, "Create Point-Based Elements"))
+                    // Step3 Call generic method to create family instance
+                    using (Transaction transaction = new Transaction(doc, "Create Point-Based Element"))
                     {
                         transaction.Start();
 
@@ -232,21 +232,20 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<List<int>>
                 {
                     Success = false,
-                    Message = $"Error creating point-based elements: {ex.Message}",
+                    Message = $"Error creating point-based element: {ex.Message}",
                 };
-                TaskDialog.Show("Error", $"Error creating point-based elements: {ex.Message}");
             }
             finally
             {
-                _resetEvent.Set(); // Notify the waiting thread that the operation is complete
+                _resetEvent.Set(); // Notify waiting thread that operation is complete
             }
         }
 
         /// <summary>
-        /// Waits for the operation to complete
+        /// Wait for creation to complete
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        /// <returns>Whether the operation completed before the timeout</returns>
+        /// <param name="timeoutMilliseconds">Timeout duration (milliseconds)</param>
+        /// <returns>Whether the operation completed before timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
             _resetEvent.Reset();
@@ -258,7 +257,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string GetName()
         {
-            return "Create Point-Based Elements";
+            return "Create Point-Based Element";
         }
 
     }
