@@ -23,10 +23,12 @@ jobs:
         with:
           node-version: 22
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       # .NET 10 SDK is required to load the Nice3point.Revit.Sdk build tasks
       # (net10.0) used by the tests project; plugins target net8/net48.
@@ -80,6 +82,9 @@ jobs:
       - name: Build Revit 2026 (.NET 8)
         run: dotnet build mcp-servers-for-revit.sln -c "Release R26"
 
+      - name: Build Revit 2027 (.NET 10)
+        run: dotnet build mcp-servers-for-revit.sln -c "Release R27"
+
       # ---------------------------------------------------------------
       # Build standalone *-commandset projects (not in the sln). Their
       # DeployCommandSet targets copy DLLs into the plugin AddIn layout
@@ -125,7 +130,8 @@ jobs:
             @{ Config = "Release R23"; Year = "2023" },
             @{ Config = "Release R24"; Year = "2024" },
             @{ Config = "Release R25"; Year = "2025" },
-            @{ Config = "Release R26"; Year = "2026" }
+            @{ Config = "Release R26"; Year = "2026" },
+            @{ Config = "Release R27"; Year = "2027" }
           )
 
           foreach ($rv in $revitVersions) {
