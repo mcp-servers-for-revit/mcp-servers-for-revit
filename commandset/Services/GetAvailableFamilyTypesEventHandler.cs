@@ -27,6 +27,7 @@ namespace RevitMCPCommandSet.Services
             FamilyNameFilter = familyNameFilter;
             Limit = limit;
             TaskCompleted = false;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 

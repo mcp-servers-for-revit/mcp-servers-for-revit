@@ -33,6 +33,7 @@ try {
   const names = new Set(result.tools.map((tool) => tool.name));
 
   const required = ["say_hello", "get_current_view_info", "send_code_to_revit", "dimension_grids",
+    "get_parameters", "get_available_parameters", "set_parameters", "manage_materials",
     "create_walls_from_dwg_layer", "detect_off_axis_hybrid", "workflow_sheet_set"];
   const missing = required.filter((name) => !names.has(name));
   if (missing.length > 0) {

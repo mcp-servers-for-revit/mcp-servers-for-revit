@@ -16,6 +16,7 @@ const jsonOutputPath = join(__dirname, "..", "plugin", "tool_schemas.json");
 
 const child = spawn(process.execPath, [serverEntry, "--offline"], {
   stdio: ["pipe", "pipe", "pipe"],
+  env: { ...process.env, REVIT_MCP_DISABLED_TOOLS: "" },
 });
 
 child.stderr.pipe(process.stderr);

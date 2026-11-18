@@ -64,6 +64,7 @@ namespace RevitMCPCommandSet.Services
             _limit = limit;
             _fields = fields;
             TaskCompleted = false;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 

@@ -34,7 +34,7 @@ namespace RevitMCPCommandSet.Commands.Delete
                     bool dryRun = parameters?["dryRun"]?.Value<bool>() ?? true;
 
                     // Set element IDs and dryRun flag
-                    _handler.ElementIds = elementIds;
+                    _handler.SetDeleteParameters(elementIds);
                     _handler.DryRun = dryRun;
 
                     // Raise external event and wait for completion
@@ -42,11 +42,11 @@ namespace RevitMCPCommandSet.Commands.Delete
                     {
                         if (_handler.IsSuccess)
                         {
-                            return new { deleted = !dryRun, dryRun = dryRun, count = _handler.DeletedCount };
+                            return new { deleted = !dryRun, dryRun = dryRun, count = _handler.DeletedCount, warning = _handler.ErrorMessage };
                         }
                         else
                         {
-                            throw new Exception("Failed to delete element");
+                            throw new Exception(_handler.ErrorMessage ?? "Failed to delete element");
                         }
                     }
                     else

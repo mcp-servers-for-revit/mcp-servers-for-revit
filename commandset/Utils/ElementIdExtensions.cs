@@ -34,7 +34,7 @@ namespace RevitMCPCommandSet.Utils
 #if REVIT2024_OR_GREATER
         public static ElementId FromLong(long id) => new ElementId(id);
 #else
-        public static ElementId FromLong(long id) => new ElementId((int)id);
+        public static ElementId FromLong(long id) => new ElementId(checked((int)id));
 #endif
     }
 }

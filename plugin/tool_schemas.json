@@ -250,9 +250,17 @@
               "additionalProperties": false,
               "description": "The maximum point coordinates (in mm) for spatial bounding box filtering. When set along with boundingBoxMin, only elements that intersect with this bounding box will be returned. Set to null to disable this filter."
             },
+            "includeDetails": {
+              "type": "boolean",
+              "description": "Return full element information instead of just identity, family and category."
+            },
+            "includeInstanceCount": {
+              "type": "boolean",
+              "description": "Include the number of placed instances for each matching type across the project."
+            },
             "maxElements": {
               "type": "number",
-              "description": "The maximum number of elements to find in a single tool invocation. Default is 50. Values exceeding 50 are not recommended for performance reasons."
+              "description": "Maximum number of results. Omit to return every match."
             }
           },
           "additionalProperties": false,
@@ -4346,6 +4354,29 @@
     }
   },
   {
+    "name": "get_available_parameters",
+    "description": "List which parameters one or more Revit elements have (names and metadata only, no values), split into instance parameters and type parameters. Only parameters visible in Revit's Properties panel / Type Properties dialog are included. Always pass a list of element IDs, even for a single element. Use this first to discover parameter names, then call get_parameters to read only the values you need, or set_parameters to change them (parameters with IsReadOnly = true cannot be set). Result: 'Elements' holds, per element, its InstanceParameters and a TypeId; 'Types' holds the TypeParameters once per unique TypeId (elements of the same type share them). If an element ID is itself a type, all its parameters appear under Types.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Revit ElementId, as a string"
+          },
+          "minItems": 1,
+          "description": "Elements to inspect. Use a single-item list for one element."
+        }
+      },
+      "required": [
+        "elementIds"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
     "name": "get_compound_structure",
     "description": "Get the compound structure (layer stratigraphy) of a system family type (wall, floor, roof, ceiling). Returns all layers with thickness, material, and function.",
     "input_schema": {
@@ -4634,6 +4665,52 @@
           "description": "Filter materials whose name contains this substring (case-insensitive)"
         }
       },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "get_parameters",
+    "description": "Read the values of specific parameters on one or more Revit elements. Always pass a list of elements, even for a single element. Specify which parameters to read either per element (elements[].parameterNames) or once for all elements (parameterNames); a per-element list overrides the common one. Use get_available_parameters first to find valid parameter names. Each parameter is looked up on the element itself first, then on its type (see 'Source'). To change a parameter with Source 'type' via set_parameters, use the element's 'TypeId' as elementId (this changes it for all elements of that type). 'Value' is a number in the model's display units (see 'Unit', e.g. millimeters) for measurable values - the same units set_parameters expects - a boolean for Yes/No parameters, an ElementId number for element references, or text; 'DisplayValue' is the value as shown in Revit's Properties panel.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementId": {
+                "type": "string",
+                "description": "Revit ElementId of the element to read, as a string"
+              },
+              "parameterNames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Parameter names to read for this element; overrides the common parameterNames"
+              }
+            },
+            "required": [
+              "elementId"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "description": "Elements to read. Use a single-item list for one element."
+        },
+        "parameterNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Parameter names to read for every element that has no parameterNames of its own"
+        }
+      },
+      "required": [
+        "elements"
+      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     }
@@ -5084,6 +5161,138 @@
         "linkId": {
           "type": "number",
           "description": "Link element ID (required for reload/unload actions)"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "manage_materials",
+    "description": "Create, list and update Revit materials according to the NAAKT naming convention. A NAAKT name is always 'mainGroup_characteristic_application[_custom]', all lowercase, where the first three parts come from fixed lists per main group (e.g. beton_gewapend_ihw, hout_clt_prefab-element); the optional custom tail is free text. The tool builds the name itself from the separate parts and refuses anything that is not valid NAAKT, returning the reason and, where possible, a suggestion. Actions: 'options' (no mainGroup: list the main groups; with mainGroup: its valid characteristics and applications; set includeFillPatterns=true to also get the fill pattern names of the project), 'list' (materials with their NAAKT status, color, patterns, material class and asset names; filter: all (default), valid, invalid = everything that is not valid NAAKT, non-naakt = invalid names whose first part is not even a main group; optional nameContains, offset and limit), 'create' (new materials from 'materials') and 'update' (existing materials by 'id' from 'updates': rename to NAAKT and/or change color and patterns; name parts that are left out are taken from the current name, so a material that is not NAAKT yet needs mainGroup, characteristic and application). Recommended workflow for changes: use 'list' (and 'options' for missing parts) first, then call create/update with dryRun=true, show the user the planned changes and only repeat the call without dryRun after the user confirms. Each item is processed independently: an item that fails (invalid NAAKT name, name already in use, unknown fill pattern or template) is reported with a reason and rolled back, the other items still go through. The result lists per item the old and new name, the status (created, updated, unchanged, failed) and what changes. If the call times out, split the lists into smaller batches. Does not synchronize workshared models.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "options",
+            "list",
+            "create",
+            "update"
+          ],
+          "description": "What to do: options, list, create or update"
+        },
+        "mainGroup": {
+          "type": "string",
+          "description": "options: main group to get characteristics and applications for"
+        },
+        "includeFillPatterns": {
+          "type": "boolean",
+          "description": "options: also return the names of the fill patterns in the project"
+        },
+        "filter": {
+          "type": "string",
+          "enum": [
+            "all",
+            "valid",
+            "invalid",
+            "non-naakt"
+          ],
+          "description": "list: which materials to return (default all)"
+        },
+        "nameContains": {
+          "type": "string",
+          "description": "list: only materials whose name contains this text"
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "list: skip this many materials"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "list: return at most this many materials"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "create/update: only report what would happen, change nothing in the model"
+        },
+        "materials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Revit ElementId of the existing material, as a string (update only)"
+              },
+              "mainGroup": {
+                "type": "string",
+                "description": "NAAKT main group, e.g. 'beton'"
+              },
+              "characteristic": {
+                "type": "string",
+                "description": "NAAKT characteristic, e.g. 'gewapend'"
+              },
+              "application": {
+                "type": "string",
+                "description": "NAAKT application, e.g. 'ihw'"
+              },
+              "custom": {
+                "type": "string",
+                "description": "Free tail of the name (e.g. a color or product name). On update an empty string removes the existing tail."
+              },
+              "color": {
+                "type": "string",
+                "description": "Material color as 'R,G,B' (0-255)"
+              },
+              "surfaceForeground": {
+                "type": "object",
+                "properties": {
+                  "pattern": {
+                    "type": "string",
+                    "description": "Name of a fill pattern in the project"
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Pattern color as 'R,G,B' (0-255)"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Fill pattern and/or its color"
+              },
+              "surfaceBackground": {
+                "$ref": "#/properties/materials/items/properties/surfaceForeground",
+                "description": "Fill pattern and/or its color"
+              },
+              "cutForeground": {
+                "$ref": "#/properties/materials/items/properties/surfaceForeground",
+                "description": "Fill pattern and/or its color"
+              },
+              "cutBackground": {
+                "$ref": "#/properties/materials/items/properties/surfaceForeground",
+                "description": "Fill pattern and/or its color"
+              },
+              "template": {
+                "type": "string",
+                "description": "Name or ElementId of an existing material to use as template. create: the template is duplicated as a whole (all assets, identity data, graphics), update: material class, color and patterns are copied. In both cases the appearance, physical and thermal assets are shared with the template, never copied. Explicit values in the same item win over the template."
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "create: the materials to create (mainGroup, characteristic and application are required)"
+        },
+        "updates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/materials/items"
+          },
+          "description": "update: the materials to change; each needs an id"
         }
       },
       "required": [
@@ -6676,6 +6885,66 @@
       },
       "required": [
         "requests"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "set_parameters",
+    "description": "Set one or more parameter values on one or more Revit elements in a single call. Always pass a list of elements, even for a single element (use a list with one entry). Parameters are looked up by name (same as Revit's Properties panel), only on the given element itself: to change a type parameter, pass the type's ElementId (TypeId), which changes it for all elements of that type. Numeric values for length/area/volume parameters must be given in the model's display units (e.g. millimeters), not Revit's internal feet. Send numeric values (numbers, Yes/No as true/false, ElementIds for element references) as JSON numbers/booleans, not as strings; send values for text parameters as strings. Returns, per element and per parameter, whether the change succeeded and why not if it failed. If the call fails with a timeout (error text containing 'time-out' or 'timed out'), split the elements list into smaller batches (e.g. 50-100 elements at a time) and retry with those - this is safe even if the timed-out call had already applied some changes, since re-setting a parameter to the same value is a no-op.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementId": {
+                "type": "string",
+                "description": "Revit ElementId of the element to update, as a string"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Parameter name, as shown in Revit's Properties panel"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ],
+                      "description": "New value for this parameter"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "description": "Parameter changes to apply to this element"
+              }
+            },
+            "required": [
+              "elementId",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "description": "Elements to update, each with its own list of parameter changes. Use a single-item list for one element."
+        }
+      },
+      "required": [
+        "elements"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"

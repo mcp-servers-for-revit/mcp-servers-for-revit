@@ -14,6 +14,8 @@ namespace RevitMCPCommandSet.Services
         // Execution result
         public List<Models.Common.ElementInfo> ResultElements { get; private set; }
 
+        public string ErrorMessage { get; private set; }
+
         // State synchronization object
         public bool TaskCompleted { get; private set; }
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
@@ -26,6 +28,7 @@ namespace RevitMCPCommandSet.Services
         {
             Limit = limit;
             TaskCompleted = false;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 
@@ -65,8 +68,9 @@ namespace RevitMCPCommandSet.Services
                     Category = element.Category?.Name
                 }).ToList();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ErrorMessage = ex.Message;
                 ResultElements = new List<Models.Common.ElementInfo>();
             }
             finally

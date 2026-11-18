@@ -1,3 +1,7 @@
+import * as SetParameters from "./set_parameters.js";
+import * as ManageMaterials from "./manage_materials.js";
+import * as GetParameters from "./get_parameters.js";
+import * as GetAvailableParameters from "./get_available_parameters.js";
 import * as ReloadCommandSet from "./reload_command_set.js";
 import * as FixSpacingElements from "./fix_spacing_elements.js";
 import * as FixOffAxisWallsAndBeams from "./fix_off_axis_walls_and_beams.js";
@@ -172,6 +176,10 @@ export async function registerTools(server: McpServer) {
   };
 
   const modules = [
+    { name: "set_parameters", module: SetParameters },
+    { name: "manage_materials", module: ManageMaterials },
+    { name: "get_parameters", module: GetParameters },
+    { name: "get_available_parameters", module: GetAvailableParameters },
     { name: "reload_command_set", module: ReloadCommandSet },
     { name: "fix_spacing_elements", module: FixSpacingElements },
     { name: "fix_off_axis_walls_and_beams", module: FixOffAxisWallsAndBeams },
@@ -329,7 +337,9 @@ export async function registerTools(server: McpServer) {
     { name: "workflow_sheet_set", module: WorkflowSheetSet },
   ];
 
+  const disabled = new Set((process.env.REVIT_MCP_DISABLED_TOOLS ?? "").split(",").map(name => name.trim()));
   for (const { name, module } of modules) {
+    if (disabled.has(name)) continue;
     try {
       const registerFn = Object.values(module).find(
         (v): v is (s: McpServer) => void =>

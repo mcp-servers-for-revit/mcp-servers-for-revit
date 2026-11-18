@@ -58,6 +58,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Catalogs/IDS_NAAKT-v2.5.ids" LogicalName="NAAKT.ids" />
         <PackageReference Include="ClosedXML" Version="0.104.2" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

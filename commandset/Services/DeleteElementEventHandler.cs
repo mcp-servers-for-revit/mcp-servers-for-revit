@@ -31,7 +31,9 @@ namespace RevitMCPCommandSet.Services
         public void SetDeleteParameters(string[] elementIds)
         {
             ElementIds = elementIds;
+            Cancelled = false;
             TaskCompleted = false;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 
@@ -62,6 +64,10 @@ namespace RevitMCPCommandSet.Services
                         if (doc.GetElement(elementId) != null)
                         {
                             elementIdsToDelete.Add(elementId);
+                        }
+                        else
+                        {
+                            invalidIds.Add(idStr);
                         }
                     }
                     else

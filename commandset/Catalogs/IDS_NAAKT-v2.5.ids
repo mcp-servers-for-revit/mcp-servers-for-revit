@@ -1,0 +1,366 @@
+<ids:ids xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd" xmlns:ids="http://standards.buildingsmart.org/IDS">
+  <!--Edited with usBIM.IDSeditor 2.4.8 (http://www.accasoftware.com)-->
+  <ids:info>
+    <ids:title>NAA.K.T. v2.5 – controle (NAAM_KENMERK_TOEPASSING)</ids:title>
+    <ids:copyright>beheercommissie Naa.K.T.</ids:copyright>
+    <ids:author>nmontilla@bimcollab.com</ids:author>
+    <ids:date>2026-07-27</ids:date>
+    <ids:purpose>Controleert of materiaalnamen voldoen aan de NAA.K.T.-conventie (NAAM)_(KENMERK)_(TOEPASSING).* waarbij de toegestane TOEPASSING afhankelijk is van de gekozen NAAM (materiaalgroep).</ids:purpose>
+  </ids:info>
+  <ids:specifications>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="00. NAA.K.T. hoofdgroepen" identifier="23900ef2-89a8-464e-a8a5-f33ac4d589dd" description="De materiaalnaam moet beginnen met een geldige NAA.K.T.-hoofdgroep.">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material />
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/naam_kenmerk_toepassing" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(beton|bitumen|cement|gips|glas|grondstof|hout|isolatie|kunststof|metaal|natuursteen|ntb|organisch|rubber|samengesteld|steenachtig|virtueel)_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.01 beton_(KENMERK)_(TOEPASSING)" identifier="f87005c1-c6ce-457d-b193-974b6cba162a" description="Materialen van hoofdgroep 'beton' moeten voldoen aan beton_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="beton_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/beton" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="beton_(ntb|generiek|bimsbeton|cellenbeton|gewapend|grindbeton|isolatiebeton|lichtbeton|slakkenbeton|voorgespannen|schuimbeton|spuitbeton|vezelbeton)_(ntb|generiek|ballast|basalton|blok|granulaat|ihw|kit|klinker|onderwater|pan|prefab-element|steen|tegel).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.02 bitumen_(KENMERK)_(TOEPASSING)" identifier="32b04bfc-9e57-46bb-890b-eabcd52839c0" description="Materialen van hoofdgroep 'bitumen' moeten voldoen aan bitumen_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="bitumen_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/bitumen" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="bitumen_(ntb|generiek|asfalt|teer)_(ntb|generiek|bedekking|folie|gietsel|plaat).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.03 cement_(KENMERK)_(TOEPASSING)" identifier="b62589c4-c7f2-4c3b-b61a-6a5baf6a36f7" description="Materialen van hoofdgroep 'cement' moeten voldoen aan cement_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="cement_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/cement" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="cement_(ntb|generiek|asbestcement|cementstuc|grout|houtvezelcement|houtwolcement|metselspecie|mortel|spuitmortel|terrazzo|vezelcement|zandcement|zandcement-vezel)_(ntb|generiek|element|granulaat|ihw|plaat|tegel).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.04 gips_(KENMERK)_(TOEPASSING)" identifier="4cfecdc8-2f75-4c51-ba58-0a20554c2576" description="Materialen van hoofdgroep 'gips' moeten voldoen aan gips_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="gips_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/gips" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="gips_(ntb|generiek|anhydriet|gipskarton|spuitstuc|stuc)_(ntb|generiek|bedekking|blok|ihw|plaat|pleister|prefab-element|profiel).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.05 glas_(KENMERK)_(TOEPASSING)" identifier="e56f90de-48a2-4c2b-9eee-baf070e53fd3" description="Materialen van hoofdgroep 'glas' moeten voldoen aan glas_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="glas_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/glas" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="glas_(ntb|generiek|gehard|gewapend|glasvezel|helder|kwartsglas|ondoorzichtig|spiegelend|translucent)_(ntb|generiek|blok|doek|granulaat|kabel|plaat|steen).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.06 grondstof_(KENMERK)_(TOEPASSING)" identifier="81dc98c8-cfa1-40c6-95f5-ca965cd71562" description="Materialen van hoofdgroep 'grondstof' moeten voldoen aan grondstof_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="grondstof_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/grondstof" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="grondstof_(ntb|generiek|aarde|bimszand|grind|kalk|klei|leem|lucht|silt|split|turf|water|zand)_(ntb|generiek|blok|granulaat|ihw|pleister|steen|substraat|tegel|vulling).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.07 hout_(KENMERK)_(TOEPASSING)" identifier="2dfb3c6b-ff77-4c16-af24-02fdb388baea" description="Materialen van hoofdgroep 'hout' moeten voldoen aan hout_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="hout_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/hout" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="hout_(ntb|generiek|accoya|azobe|balsa|bangkirai|berken|beuken|bilinga|board|ceder|clt|douglas|ebben|eiken|esdoorn|essen|gemodificeerd|grenen|hardboard|hardhout|houtspaan|houtvezel|houtwol|kersen|lariks|mahonie|masonite|mdf|meranti|merbau|multiplex|noten|okoume|osb|populieren|spaanplaat|triplex|vuren|wenge|zaagsel|zachtboard|zachthout)_(ntb|generiek|blok|plaat|prefab-element|profiel|schaaldeel|stam|tegel|vezel|vlokken|vulling).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.08 isolatie_(KENMERK)_(TOEPASSING)" identifier="d335505b-e0cd-46ec-b1f8-c966ac26dd9a" description="Materialen van hoofdgroep 'isolatie' moeten voldoen aan isolatie_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="isolatie_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/isolatie" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="isolatie_(ntb|generiek|cellulairglas|cellulose|eps|fenolhars|glaswol|geexpandeerd-perliet|hardschuim|hennep|katoen|minerale-wol|resolschuim|siliperliet|pir|pur|solperlite|steenwol|stro|vlas|wol|xps|zacht)_(ntb|generiek|deken|korrels|plaat|profiel|schuim|substraat|vlokken|vulling).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.09 kunststof_(KENMERK)_(TOEPASSING)" identifier="a49f63dc-1e2f-4cf1-a26c-67e4de585c2a" description="Materialen van hoofdgroep 'kunststof' moeten voldoen aan kunststof_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="kunststof_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/kunststof" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="kunststof_(ntb|generiek|abs|acryl|dpc|elastomere-foam|ep|epoxyhars|glasvezelversterkt|hard-kunststof|hdpe|hmpe|hpl|kunsthars|ldpe|loodvervanger|pe|pmma|pa|pc|pctfe|plexiglas|polyesterhars|polyester|pom|pp|ps|ppsu|ptfe|pu|pvac|pvc|zacht-kunststof|silicagel|siliconen)_(ntb|generiek|appendage|bedekking|blok|doek|element|folie|granulaat|kit|plaat|profiel|schuim|slabbe|verf).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.10 metaal_(KENMERK)_(TOEPASSING)" identifier="97900c62-e22c-4cc3-89db-995c6af9b0c7" description="Materialen van hoofdgroep 'metaal' moeten voldoen aan metaal_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="metaal_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/metaal" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="metaal_(ntb|generiek|aluminium|brons|chroom|gietijzer|goud|ijzer|koper|lood|messing|platina|rvs|soldeersel|staal|tin|titanium|zilver|zink)_(ntb|generiek|appendage|blok|draad|element|folie|gaas|kabel|pan|plaat|profiel|vezel|vlechtwerk).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.11 natuursteen_(KENMERK)_(TOEPASSING)" identifier="b72413a9-c7c2-4f39-856c-1cf558131220" description="Materialen van hoofdgroep 'natuursteen' moeten voldoen aan natuursteen_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="natuursteen_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/natuursteen" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="natuursteen_(ntb|generiek|asbest|basalt|gneiss|graniet|gravel|hardsteen|kalksteen|kristallijn-gesteente|kwartsiet|lei|marmer|poreus-gesteente|puimsteen|sedimentgesteente|trachiet|travertin|zandsteen)_(ntb|generiek|blok|element|granulaat|grind|klinker|pan|plaat|profiel|steen|tegel|strip).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.12 ntb_(KENMERK)_(TOEPASSING)" identifier="13c2f761-e521-4b8b-b453-7a68c47a1c2b" description="Materialen van hoofdgroep 'ntb' moeten voldoen aan ntb_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="ntb_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/ntb" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="ntb_(ntb)_(ntb|generiek|ballast|bedekking|blok|deken|doek|draad|element|folie|gaas|gietsel|granulaat|ihw|kabel|kit|klinker|korrels|pan|plaat|pleister|prefab-element|profiel|schuim|slabbe|steen|strip|tegel|vezel|vlechtwerk|vulling).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.13 organisch_(KENMERK)_(TOEPASSING)" identifier="3dd859d9-74dd-4241-918a-440238211609" description="Materialen van hoofdgroep 'organisch' moeten voldoen aan organisch_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="organisch_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/organisch" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="organisch_(ntb|generiek|bamboe|jute|kurk|leer|linnen|mais|plantaardige-vezel|riet|schelp|vegetatie|vilt)_(ntb|generiek|bedekking|canvas|deken|element|folie|granulaat|plaat|profiel|slabbe|substraat|verf).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.14 rubber_(KENMERK)_(TOEPASSING)" identifier="a7dd8f76-f19a-4721-b862-21076a1f628c" description="Materialen van hoofdgroep 'rubber' moeten voldoen aan rubber_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="rubber_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/rubber" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="rubber_(ntb|generiek|butyl|epdm|hard-rubber|linoleum|natuurrubber|neopreen|polysulfide|schuimrubber)_(ntb|generiek|bedekking|blok|element|folie|kit|plaat|profiel|slabbe).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.15 samengesteld_(KENMERK)_(TOEPASSING)" identifier="02797c90-4529-44ca-9f83-661fd7c249fb" description="Materialen van hoofdgroep 'samengesteld' moeten voldoen aan samengesteld_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="samengesteld_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/samengesteld" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="samengesteld_(element|product)_(ntb|generiek|apparatuur|appendage|dakrand|deur|hek|hsb|installatie|keuken|kozijn|luifel|metalstud|meubel|plaat|plafond|rekwerk|sanitair|schakelmateriaal|terreininchting|vloer|wand).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.16 steenachtig_(KENMERK)_(TOEPASSING)" identifier="ed3a4619-26d9-4c78-a5ab-10fdd353c910" description="Materialen van hoofdgroep 'steenachtig' moeten voldoen aan steenachtig_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="steenachtig_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/steenachtig" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="steenachtig_(ntb|generiek|baksteen|calciumsilicaat|geexpandeerde-klei|kalkzandsteen|keramisch|kunststeen|porisosteen|porselein)_(ntb|generiek|blok|element|granulaat|grind|klinker|pan|plaat|pleister|prefab|profiel|steen|strip|substraat|tegel|trasraam).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" name="01.17 virtueel_(KENMERK)_(TOEPASSING)" identifier="a8b28aaf-a726-470f-8004-8dc0e3c2c7ac" description="Materialen van hoofdgroep 'virtueel' moeten voldoen aan virtueel_(KENMERK)_(TOEPASSING).*">
+      <ids:applicability minOccurs="0" maxOccurs="unbounded">
+        <ids:material>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="virtueel_.*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:applicability>
+      <ids:requirements>
+        <ids:material uri="https://search.bsdd.buildingsmart.org/uri/nkt/naakt/2.5/class/virtueel" cardinality="required">
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="virtueel_(annotatie|object|zone|ntb|generiek)_(ntb|generiek|clash|code|coordinatie|draairichting|onderhoud|opstelplaats|reservering|sparing|stelruimte|symbool|vereiste|vrije-ruimte).*" />
+            </xs:restriction>
+          </ids:value>
+        </ids:material>
+      </ids:requirements>
+    </ids:specification>
+  </ids:specifications>
+</ids:ids>

@@ -64,13 +64,17 @@ namespace RevitMCPCommandSet.Services
                 {
                     if (elementList.Count > FilterSetting.MaxElements)
                     {
+                        int totalCount = elementList.Count;
                         elementList = elementList.Take(FilterSetting.MaxElements).ToList();
-                        message = $". Additionally, {elementList.Count} elements matched the filter criteria, only showing the first {FilterSetting.MaxElements}";
+                        message = $". Additionally, {totalCount} elements matched the filter criteria, only showing the first {FilterSetting.MaxElements}";
                     }
                 }
 
                 // Get information for elements with specified IDs
-                elementInfoList = GetElementFullInfo(doc, elementList);
+                var counts = FilterSetting.IncludeInstanceCount && FilterSetting.IncludeTypes
+                    ? GetInstanceCountsByType(doc, FilterSetting) : null;
+                elementInfoList = FilterSetting.IncludeDetails
+                    ? GetElementFullInfo(doc, elementList, counts) : GetElementBaseInfo(elementList, counts);
 
                 Result = new AIResult<List<object>>
                 {
@@ -287,16 +291,115 @@ namespace RevitMCPCommandSet.Services
         /// <summary>
         /// Get model element info
         /// </summary>
-        public static List<object> GetElementFullInfo(Document doc, IList<Element> elementCollector)
+        public static Dictionary<ElementId, int> GetInstanceCountsByType(Document doc, FilterSetting settings)
+        {
+            var counts = new Dictionary<ElementId, int>();
+            FilteredElementCollector collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+            if (!string.IsNullOrWhiteSpace(settings.FilterCategory) &&
+                Enum.TryParse(settings.FilterCategory, true, out BuiltInCategory category))
+            {
+                collector = collector.OfCategory(category);
+            }
+
+            foreach (Element instance in collector)
+            {
+                ElementId typeId = instance.GetTypeId();
+                if (typeId == null || typeId == ElementId.InvalidElementId)
+                    continue;
+                counts.TryGetValue(typeId, out int current);
+                counts[typeId] = current + 1;
+            }
+            return counts;
+        }
+
+        /// <summary>
+        /// Geeft het aantal geplaatste instanties van een type terug, of null als er niet geteld wordt
+        /// of het element geen type is
+        /// </summary>
+        private static int? GetInstanceCount(Element element, IDictionary<ElementId, int> instanceCounts)
+        {
+            if (instanceCounts == null || !(element is ElementType))
+                return null;
+            return instanceCounts.TryGetValue(element.Id, out int count) ? count : 0;
+        }
+
+        /// <summary>
+        /// Haalt per element alleen de basisinformatie op (standaard, lichte response)
+        /// </summary>
+        public static List<object> GetElementBaseInfo(IList<Element> elementCollector, IDictionary<ElementId, int> instanceCounts = null)
+        {
+            List<object> infoList = new List<object>();
+            foreach (var element in elementCollector)
+            {
+                var info = CreateBaseInfo(element);
+                if (info != null)
+                {
+                    info.InstanceCount = GetInstanceCount(element, instanceCounts);
+                    infoList.Add(info);
+                }
+            }
+            return infoList;
+        }
+
+        /// <summary>
+        /// Maakt de lichte basisinformatie voor één element aan (Id, naam, familienaam, categorie).
+        /// Is het element zelf een familie, dan is de naam al de familienaam en wordt FamilyName weggelaten.
+        /// </summary>
+        public static ElementBaseInfo CreateBaseInfo(Element element)
+        {
+            try
+            {
+                if (element == null)
+                    return null;
+
+                // Een Family heeft zelf geen Category, alleen een FamilyCategory
+                Category category = element.Category ?? (element as Family)?.FamilyCategory;
+
+                string familyName = null;
+                if (element is ElementType elementType)
+                    familyName = elementType.FamilyName;
+                else if (!(element is Family))
+                    familyName = element.get_Parameter(BuiltInParameter.ELEM_FAMILY_PARAM)?.AsValueString();
+
+                return new ElementBaseInfo
+                {
+                    Id = element.Id.GetValue(),
+                    Name = element.Name,
+                    FamilyName = string.IsNullOrEmpty(familyName) ? null : familyName,
+                    Category = category?.Name,
+                    BuiltInCategory = category != null ?
+                        Enum.GetName(typeof(BuiltInCategory), category.Id.GetIntValue()) : null
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Fout bij het aanmaken van de basisinformatie van het element: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Haalt per element de uitgebreide informatie op, afhankelijk van het soort element
+        /// </summary>
+        public static List<object> GetElementFullInfo(Document doc, IList<Element> elementCollector, IDictionary<ElementId, int> instanceCounts = null)
         {
             List<object> infoList = new List<object>();
 
             // Get and process elements
             foreach (var element in elementCollector)
             {
+                if (element is ElementType elementType)
+                {
+                    var info = CreateTypeFullInfo(doc, elementType);
+                    if (info != null)
+                    {
+                        info.InstanceCount = GetInstanceCount(elementType, instanceCounts);
+                        infoList.Add(info);
+                    }
+                }
                 // Determine if it is a physical model element
                 // Get element instance info
-                if (element?.Category?.HasMaterialQuantities ?? false)
+                else if (element?.Category?.HasMaterialQuantities ?? false)
                 {
                     var info = CreateElementFullInfo(doc, element);
                     if (info != null)
@@ -305,14 +408,6 @@ namespace RevitMCPCommandSet.Services
                     }
                 }
                 // Get element type info
-                else if (element is ElementType elementType)
-                {
-                    var info = CreateTypeFullInfo(doc, elementType);
-                    if (info != null)
-                    {
-                        infoList.Add(info);
-                    }
-                }
                 // 3. Spatial positioning elements (high frequency)
                 else if (element is Level || element is Grid)
                 {
@@ -1085,6 +1180,24 @@ namespace RevitMCPCommandSet.Services
     /// <summary>
     /// Custom class for storing complete element instance info
     /// </summary>
+    public class ElementBaseInfo
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        /// <summary>
+        /// Wordt weggelaten als er geen aparte familienaam is (bijv. als het element zelf een familie is)
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string FamilyName { get; set; }
+        public string Category { get; set; }
+        public string BuiltInCategory { get; set; }
+        /// <summary>
+        /// Aantal geplaatste instanties van dit type in het project; alleen gevuld bij types met includeInstanceCount
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? InstanceCount { get; set; }
+    }
+
     public class ElementInstanceInfo
     {
         /// <summary>
@@ -1139,6 +1252,8 @@ namespace RevitMCPCommandSet.Services
     /// </summary>
     public class ElementTypeInfo
     {
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? InstanceCount { get; set; }
         /// <summary>
         /// ID
         /// </summary>

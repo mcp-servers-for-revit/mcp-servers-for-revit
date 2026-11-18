@@ -422,7 +422,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Error", "Unable to create or get 3D view");
+                    System.Diagnostics.Trace.TraceWarning("Unable to create or get 3D view");
                     return null;
                 }
 
@@ -481,7 +481,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error occurred while getting nearest face: {ex.Message}");
+                System.Diagnostics.Trace.TraceWarning($"Error occurred while getting nearest face: {ex.Message}");
                 return null;
             }
         }
@@ -539,7 +539,7 @@ namespace RevitMCPCommandSet.Utils
 
                 if (view3D == null)
                 {
-                    TaskDialog.Show("Error", "Unable to create or get 3D view");
+                    System.Diagnostics.Trace.TraceWarning("Unable to create or get 3D view");
                     return null;
                 }
 
@@ -604,7 +604,7 @@ namespace RevitMCPCommandSet.Utils
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Error occurred while getting nearest host element: {ex.Message}");
+                System.Diagnostics.Trace.TraceWarning($"Error occurred while getting nearest host element: {ex.Message}");
                 return null;
             }
         }
@@ -698,7 +698,7 @@ namespace RevitMCPCommandSet.Utils
 
             if (solidFill == null)
             {
-                TaskDialog.Show("Error", "Solid fill pattern not found");
+                System.Diagnostics.Trace.TraceWarning("Solid fill pattern not found");
                 return;
             }
 

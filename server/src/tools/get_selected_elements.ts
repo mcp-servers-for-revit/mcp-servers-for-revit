@@ -16,7 +16,7 @@ export function registerGetSelectedElementsTool(server: McpServer) {
     },
     async (args, extra) => {
       const params = {
-        limit: args.limit || 100,
+        limit: args.limit,
       };
 
       try {

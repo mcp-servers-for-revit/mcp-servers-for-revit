@@ -33,11 +33,13 @@ namespace RevitMCPCommandSet.Commands.Access
                     int? limit = parameters?["limit"]?.Value<int>();
 
                     // Set quantity limit
-                    _handler.Limit = limit;
+                    _handler.SetParameters(limit);
 
                     // Raise external event and wait for completion
                     if (RaiseAndWaitForCompletion(15000))
                     {
+                        if (_handler.ErrorMessage != null)
+                            throw new Exception(_handler.ErrorMessage);
                         return _handler.ResultElements;
                     }
                     else

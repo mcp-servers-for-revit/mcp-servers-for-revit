@@ -63,7 +63,10 @@ namespace RevitMCPCommandSet.Models.Common
         /// Maximum element count limit
         /// </summary>
         [JsonProperty("maxElements")]
-        public int MaxElements { get; set; } = 50;
+        public int MaxElements { get; set; }
+
+        public bool IncludeDetails { get; set; }
+        public bool IncludeInstanceCount { get; set; }
         /// <summary>
         /// Validates the filter settings for correctness, checking for potential conflicts
         /// </summary>

@@ -33,7 +33,7 @@ export function registerGetAvailableFamilyTypesTool(server: McpServer) {
       const params = {
         categoryList: args.categoryList || [],
         familyNameFilter: args.familyNameFilter || "",
-        limit: args.limit || 100,
+        limit: args.limit,
       };
 
       try {

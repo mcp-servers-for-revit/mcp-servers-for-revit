@@ -71,6 +71,7 @@ namespace revit_mcp_plugin.Core
         public void Initialize(UIApplication uiApp)
         {
             _uiApp = uiApp;
+            McpServerSyncService.Sync(_logger);
 
             // Initialize ExternalEventManager
             ExternalEventManager.Instance.Initialize(uiApp, _logger);

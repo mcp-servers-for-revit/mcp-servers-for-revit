@@ -115,6 +115,10 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 3. Copy the built DLLs into that folder
 4. Copy `command.json` (from repo root) into `Commands/RevitMCPCommandSet/`
 
+For a shared command directory and automatic server bundle updates, see [Shared deployment](docs/shared-deployment.md).
+
+Material validation uses the embedded digiGO NAA.K.T. v2.5 IDS catalog, credited to beheercommissie Naa.K.T. in the original file. [Publisher and download](https://www.digigo.nu/ilsen-en-richtlijnen/bim-basis-ils/praktijk/1-naa-k-t-eenduidige-materiaalbenaming/)
+
 ## Supported Tools
 
 | Tool | Description |
@@ -123,6 +127,10 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `get_current_view_elements` | Get elements from the current active view |
 | `get_available_family_types` | Get available family types in current project |
 | `get_selected_elements` | Get currently selected elements |
+| `get_available_parameters` | Discover visible instance and type parameters for a batch of elements |
+| `get_parameters` | Read named parameters in display units |
+| `set_parameters` | Set parameter values and report the outcome of each write |
+| `manage_materials` | List, validate, preview, create and update materials using the NAA.K.T. naming convention |
 | `get_material_quantities` | Calculate material quantities and takeoffs |
 | `ai_element_filter` | Intelligent element querying tool for AI assistants |
 | `analyze_model_statistics` | Analyze model complexity with element counts |

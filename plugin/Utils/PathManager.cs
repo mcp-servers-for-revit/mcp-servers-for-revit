@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using revit_mcp_plugin.Configuration;
 using System;
@@ -10,6 +11,27 @@ namespace revit_mcp_plugin.Utils
 {
     public static class PathManager
     {
+        private static readonly Lazy<XElement> Settings = new Lazy<XElement>(() =>
+        {
+            string path = Path.Combine(GetAppDataDirectoryPath(), "RevitMCPPlugin.dll.config");
+            try
+            {
+                return File.Exists(path) ? XDocument.Load(path).Root?.Element("appSettings") : null;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is System.Xml.XmlException)
+            {
+                System.Diagnostics.Trace.TraceWarning("Could not read Revit MCP settings: {0}", ex.Message);
+                return null;
+            }
+        });
+
+        public static string GetConfigSetting(string key)
+        {
+            string value = (string)Settings.Value?.Elements("add")
+                .FirstOrDefault(item => (string)item.Attribute("key") == key)?.Attribute("value");
+            return string.IsNullOrWhiteSpace(value) ? null : Environment.ExpandEnvironmentVariables(value.Trim());
+        }
+
         /// <summary>
         /// Gets the root application data directory
         /// </summary>
@@ -25,7 +47,7 @@ namespace revit_mcp_plugin.Utils
         /// </summary>
         public static string GetCommandsDirectoryPath()
         {
-            string appDataDirectory = GetAppDataDirectoryPath();
+            string appDataDirectory = GetConfigSetting("NetworkRootPath") ?? GetAppDataDirectoryPath();
             string commandsDirectory = Path.Combine(appDataDirectory, "Commands");
 
             EnsureDirectoryExists(commandsDirectory);
@@ -37,7 +59,7 @@ namespace revit_mcp_plugin.Utils
         /// </summary>
         public static string GetLogsDirectoryPath()
         {
-            string appDataDirectory = GetAppDataDirectoryPath();
+            string appDataDirectory = GetConfigSetting("NetworkRootPath") ?? GetAppDataDirectoryPath();
             string logsDirectory = Path.Combine(appDataDirectory, "Logs");
 
             EnsureDirectoryExists(logsDirectory);

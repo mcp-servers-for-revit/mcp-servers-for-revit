@@ -20,6 +20,7 @@ namespace RevitMCPCommandSet.Services
         public void SetParameters()
         {
             TaskCompleted = false;
+            ErrorMessage = null;
             _resetEvent.Reset();
         }
 

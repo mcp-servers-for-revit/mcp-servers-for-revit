@@ -657,6 +657,26 @@
       "commandName": "dimension_grids",
       "description": "Add overall and bay-by-bay dimension strings to the grids in the active plan view",
       "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_available_parameters",
+      "description": "List the instance and type parameters available on one or more elements",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_parameters",
+      "description": "Get the values of specific parameters on one or more elements",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "manage_materials",
+      "description": "Create, list and update materials according to the NAAKT naming convention",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "set_parameters",
+      "description": "Set one or more parameter values on one or more elements",
+      "assemblyPath": "RevitMCPCommandSet.dll"
     }
   ]
 }

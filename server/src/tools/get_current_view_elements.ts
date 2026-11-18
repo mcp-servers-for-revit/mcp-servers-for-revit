@@ -35,7 +35,7 @@ export function registerGetCurrentViewElementsTool(server: McpServer) {
         modelCategoryList: args.modelCategoryList || [],
         annotationCategoryList: args.annotationCategoryList || [],
         includeHidden: args.includeHidden || false,
-        limit: args.limit || 100,
+        limit: args.limit,
       };
       try {
         const response = await withRevitConnection(async (revitClient) => {

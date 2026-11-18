@@ -35,7 +35,16 @@ namespace revit_mcp_plugin.Core
                 System.Diagnostics.Trace.WriteLine($"[RevitMCP] Panel registration skipped: {ex.Message}");
             }
 
-            RibbonPanel mcpPanel = application.CreateRibbonPanel("Revit MCP Plugin");
+            string tab = PathManager.GetConfigSetting("RibbonTabName");
+            RibbonPanel mcpPanel;
+            try
+            {
+                mcpPanel = tab == null ? application.CreateRibbonPanel("Revit MCP Plugin") : application.CreateRibbonPanel(tab, "Revit MCP Plugin");
+            }
+            catch (Autodesk.Revit.Exceptions.ArgumentException) when (tab != null)
+            {
+                mcpPanel = application.CreateRibbonPanel("Revit MCP Plugin");
+            }
 
             PushButtonData pushButtonData = new PushButtonData("ID_EXCMD_TOGGLE_REVIT_MCP", "Revit MCP\r\n Switch",
                 Assembly.GetExecutingAssembly().Location, "revit_mcp_plugin.Core.MCPServiceConnection");
