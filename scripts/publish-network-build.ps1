@@ -21,10 +21,6 @@ foreach ($set in $sets) {
     Copy-Item -LiteralPath (Join-Path $set.FullName 'command.json') -Destination $destination -Force
     Copy-Item -LiteralPath (Join-Path $set.FullName $Year) -Destination $destination -Recurse -Force
 }
-$registry = Join-Path $NetworkRootPath 'Commands/commandRegistry.json'
-if (!(Test-Path -LiteralPath $registry)) {
-    Copy-Item -LiteralPath (Join-Path $commands 'commandRegistry.json') -Destination $registry
-}
 $serverDirectory = Join-Path $NetworkRootPath 'Server/build'
 New-Item -ItemType Directory -Path $serverDirectory -Force | Out-Null
 Copy-Item -LiteralPath $server -Destination $serverDirectory -Force

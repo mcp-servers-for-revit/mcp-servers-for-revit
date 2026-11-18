@@ -6,7 +6,7 @@ Build the MCP server and the Release solution for each Revit year you support. F
 .\scripts\publish-network-build.ps1 -Year 2026 -NetworkRootPath '\\fileserver\RevitMCP\release-1'
 ```
 
-The script publishes the available command sets, their dependencies and the bundled server. It seeds the shared command registry on first publish. Open Revit MCP Settings to enable the commands you want to expose, including the new parameter and material commands. The registry applies to everyone using this release directory. Give clients read access to the binaries and allow writes to the shared Logs directory. The administrator who manages command selection also needs write access to the registry.
+The script publishes the available command sets, their dependencies and the bundled server. After publishing all years, start Revit with the share configured using an account that can create the registry. The plugin discovers the installed commands from the published manifests. Open Revit MCP Settings to enable the commands you want to expose, including the new parameter and material commands. The registry applies to everyone using this release directory. Give clients read access to the binaries and allow writes to the shared Logs directory. The administrator who manages command selection also needs write access to the registry.
 
 Install the matching add-in and MCP server locally using the normal installation procedure. Add the following entries to `appSettings` in `RevitMCPPlugin.dll.config` beside `RevitMCPPlugin.dll`. Set the local path to the build directory your MCP client runs. Restart Revit to read the settings and restart the client to load a newly synced bundle.
 
